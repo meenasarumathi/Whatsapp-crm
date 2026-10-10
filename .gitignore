@@ -1,0 +1,17 @@
+# Dependencies and build output (each app has its own too)
+node_modules/
+.next/
+out/
+build/
+coverage/
+*.tsbuildinfo
+
+# Secrets — never commit real env files
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# OS / editor
+.DS_Store
+*.pem
