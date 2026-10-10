@@ -16,4 +16,4 @@ Code: `src/lib/automations/`, `src/components/automations/`, `src/app/api/automa
 
 | Date | Change |
 | --- | --- |
-| 2026-10-10 | Added in this release — see [release notes](../2026-10-10-release/README.md). |
+| 2026-10-10 | Original feature; new items marked **New** were added in this release — see [release notes](../2026-10-10-release/README.md). |
