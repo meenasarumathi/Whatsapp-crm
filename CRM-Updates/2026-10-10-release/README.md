@@ -6,7 +6,7 @@ This release adds roles and subscriptions, Train AI, a free flow test mode, a de
 
 | # | Area | Change |
 | --- | --- | --- |
-| 1 | Guide | One folder per update in `Guide/updates/` (and this repo-level `CRM-Updates/` folder) |
+| 1 | Guide | One folder per update in `Guide/updates/` (and this repo-level `CRM-Updates/` folder, with one folder per kind of work) |
 | 2 | Roles | Super admin, Admin 1, Admin 2, Subscription user |
 | 3 | Chatbot / Flows | **Test flow** — a free sandbox chat; nothing is sent to WhatsApp |
 | 4 | Demo | Demo tab: broadcast funnel, AI training, automation in action, Present mode |
