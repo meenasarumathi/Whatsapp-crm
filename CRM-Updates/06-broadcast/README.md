@@ -9,3 +9,4 @@ Code: `src/app/(dashboard)/broadcasts/`, `src/lib/whatsapp/broadcast-*.ts`
 | Date | Change |
 | --- | --- |
 | 2026-10-10 | Broadcast funnel walkthrough added to the Demo page — see [release notes](../2026-10-10-release/README.md). |
+| 2026-10-11 | Each broadcast recipient now costs 0.5 token; Resume never charges a recipient twice — see [release notes](../2026-10-11-token-wallet/README.md). |

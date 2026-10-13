@@ -42,6 +42,8 @@ import {
 } from '@/lib/whatsapp/phone-utils';
 import { resolveContactSendTarget } from '@/lib/whatsapp/wa-identity';
 import type { MessageTemplate } from '@/types';
+import { isBlockedSend, sendWithCharge } from '@/lib/wallet/charge';
+import { INSUFFICIENT_TOKENS_MESSAGE, type ChargeSpec } from '@/lib/wallet/policy';
 import {
   resolveTemplateRow,
   templateBodyParams,
@@ -186,7 +188,15 @@ export function validateSendMessageParams(params: {
 export async function sendMessageToConversation(
   db: SupabaseClient,
   accountId: string,
-  params: SendMessageParams
+  params: SendMessageParams,
+  options: {
+    /**
+     * Token wallet charge for AUTOMATED callers (the public API). The
+     * inbox agent-reply route passes none: manual replies are free and
+     * work at zero balance (D2).
+     */
+    charge?: ChargeSpec;
+  } = {}
 ): Promise<SendMessageResult> {
   const {
     conversationId,
@@ -414,28 +424,40 @@ export async function sendMessageToConversation(
     // Variants only make sense for a phone number — a BSUID is opaque
     // and has exactly one correct form, so it gets a single attempt.
     const variants = hasValidPhone ? phoneVariants(sanitizedPhone) : [sendTarget];
-    let lastError: unknown = null;
-
-    for (const variant of variants) {
-      try {
-        waMessageId = await attempt(variant);
-        workingPhone = variant;
-        lastError = null;
-        break;
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        if (!isRecipientNotAllowedError(message)) {
-          throw err;
+    const tryVariants = async (): Promise<string> => {
+      let lastError: unknown = null;
+      for (const variant of variants) {
+        try {
+          const id = await attempt(variant);
+          workingPhone = variant;
+          return id;
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          if (!isRecipientNotAllowedError(message)) {
+            throw err;
+          }
+          lastError = err;
+          console.warn(
+            `[send-message] variant "${variant}" rejected by Meta, trying next…`
+          );
         }
-        lastError = err;
-        console.warn(
-          `[send-message] variant "${variant}" rejected by Meta, trying next…`
-        );
       }
-    }
+      throw lastError ?? new Error('no WhatsApp address variant to try');
+    };
 
-    if (lastError) throw lastError;
+    waMessageId = options.charge
+      ? await sendWithCharge({ accountId, charge: options.charge, send: tryVariants })
+      : await tryVariants();
   } catch (err) {
+    if (isBlockedSend(err)) {
+      throw new SendMessageError(
+        err.reason,
+        err.reason === 'insufficient_tokens'
+          ? INSUFFICIENT_TOKENS_MESSAGE
+          : `Automated send not attempted: ${err.reason}`,
+        err.reason === 'insufficient_tokens' ? 402 : 409
+      );
+    }
     const message =
       err instanceof Error ? err.message : 'Unknown Meta API error';
     console.error('[send-message] Meta send failed for all variants:', message);

@@ -19,6 +19,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { sendTemplateMessage } from '@/lib/whatsapp/meta-api';
+import { isBlockedSend, sendWithCharge } from '@/lib/wallet/charge';
+import { broadcastMessageKey } from '@/lib/wallet/keys';
 import { decrypt } from '@/lib/whatsapp/encryption';
 import {
   parseInternationalPhone,
@@ -62,6 +64,8 @@ interface PlannedRecipient {
 }
 
 export interface BroadcastPlan {
+  /** Tenancy — the wallet charged for each recipient. */
+  accountId: string;
   broadcastId: string;
   templateName: string;
   templateLanguage: string;
@@ -234,6 +238,7 @@ export async function createBroadcast(
   );
 
   return {
+    accountId,
     broadcastId,
     templateName,
     templateLanguage: resolvedTemplate.language,
@@ -262,30 +267,54 @@ export async function deliverBroadcast(
   db: SupabaseClient,
   plan: BroadcastPlan
 ): Promise<void> {
+  // Once the wallet runs dry, the rest of the run can't send either —
+  // stamp them without another reserve round-trip each.
+  let outOfTokens = false;
   for (const recipient of plan.planned) {
     const variants = phoneVariants(recipient.phone);
     let sentMessageId: string | null = null;
     let lastError: string | null = null;
 
-    for (const variant of variants) {
+    if (outOfTokens) {
+      lastError = 'insufficient_tokens';
+    } else {
       try {
-        const result = await sendTemplateMessage({
-          phoneNumberId: plan.phoneNumberId,
-          accessToken: plan.accessToken,
-          to: variant,
-          templateName: plan.templateName,
-          language: plan.templateLanguage,
-          template: plan.templateRow ?? undefined,
-          params: recipient.params,
+        // Token wallet: 500 units per recipient, keyed on the recipient
+        // row so a Resume reuses the charge instead of paying twice.
+        sentMessageId = await sendWithCharge({
+          accountId: plan.accountId,
+          charge: { source: 'broadcast', messageKey: broadcastMessageKey(recipient.recipientRowId) },
+          send: async () => {
+            let lastErr: unknown = null;
+            for (const variant of variants) {
+              try {
+                const result = await sendTemplateMessage({
+                  phoneNumberId: plan.phoneNumberId,
+                  accessToken: plan.accessToken,
+                  to: variant,
+                  templateName: plan.templateName,
+                  language: plan.templateLanguage,
+                  template: plan.templateRow ?? undefined,
+                  params: recipient.params,
+                });
+                return result.messageId;
+              } catch (error) {
+                lastErr = error;
+                const message = error instanceof Error ? error.message : 'Unknown error';
+                // Only a "recipient not allowed" error is worth another variant.
+                if (!isRecipientNotAllowedError(message)) throw error;
+              }
+            }
+            throw lastErr ?? new Error('no phone variant to try');
+          },
         });
-        sentMessageId = result.messageId;
-        lastError = null;
-        break;
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        lastError = message;
-        // Only a "recipient not allowed" error is worth another variant.
-        if (!isRecipientNotAllowedError(message)) break;
+        if (isBlockedSend(error)) {
+          lastError = error.reason;
+          if (error.reason === 'insufficient_tokens') outOfTokens = true;
+        } else {
+          lastError = error instanceof Error ? error.message : 'Unknown error';
+        }
       }
     }
 

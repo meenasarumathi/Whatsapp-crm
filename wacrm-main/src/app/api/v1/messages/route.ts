@@ -31,6 +31,8 @@
 //               "contact_id", "contact_created" } }
 // ============================================================
 
+import { CHARGE_PUBLIC_API_SENDS } from '@/lib/wallet/policy';
+import { apiMessageKey } from '@/lib/wallet/keys';
 import { requireApiKey } from '@/lib/auth/api-context';
 import { ok, fail, toApiErrorResponse } from '@/lib/api/v1/respond';
 import { resolveConversationByPhone } from '@/lib/whatsapp/resolve-conversation';
@@ -124,7 +126,20 @@ export async function POST(request: Request) {
           typeof body.reply_to_message_id === 'string'
             ? body.reply_to_message_id
             : null,
-      }
+      },
+      // Token wallet: API sends are automated (no agent in the inbox).
+      // An Idempotency-Key header makes client retries reuse one charge.
+      CHARGE_PUBLIC_API_SENDS
+        ? {
+            charge: {
+              source: 'api',
+              messageKey: apiMessageKey(
+                ctx.accountId,
+                request.headers.get('idempotency-key')
+              ),
+            },
+          }
+        : {}
     );
 
     return ok(

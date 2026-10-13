@@ -496,6 +496,8 @@ export function useBroadcastSending(): UseBroadcastSendingReturn {
         const apiRecipients = batch
           .filter((r) => r.contact?.phone)
           .map((r) => ({
+            // Keys the token-wallet charge to this recipient row.
+            recipient_id: r.id as string,
             phone: r.contact!.phone as string,
             // Read back off the row rather than re-resolved, so this
             // pass and any later resume send identical params.

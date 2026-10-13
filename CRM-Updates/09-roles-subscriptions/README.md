@@ -16,3 +16,4 @@ Code: `src/lib/platform/`, `src/app/api/platform/`, `src/components/settings/sub
 | Date | Change |
 | --- | --- |
 | 2026-10-10 | Added in this release — see [release notes](../2026-10-10-release/README.md). |
+| 2026-10-11 | Token admin: Super admin grants / deducts / sets the rate; Admin 1 and 2 approve recharges and see reports — see [release notes](../2026-10-11-token-wallet/README.md). |

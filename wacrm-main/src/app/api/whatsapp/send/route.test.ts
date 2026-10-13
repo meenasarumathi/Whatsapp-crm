@@ -160,6 +160,18 @@ vi.mock('@/lib/whatsapp/meta-api', () => ({
   sendMediaMessage: vi.fn(),
 }))
 
+// Token wallet: if the manual send path ever asked the wallet, it would
+// be refused — the wallet here is empty (zero balance).
+const { sendWithCharge } = vi.hoisted(() => ({
+  sendWithCharge: vi.fn(async () => {
+    throw Object.assign(new Error('insufficient_tokens'), { reason: 'insufficient_tokens' })
+  }),
+}))
+vi.mock('@/lib/wallet/charge', () => ({
+  sendWithCharge,
+  isBlockedSend: () => false,
+}))
+
 import { POST } from './route'
 
 function postContactTemplate(overrides: Record<string, unknown> = {}) {
@@ -312,5 +324,26 @@ describe('POST /api/whatsapp/send — role enforcement', () => {
 
     expect(res.status).toBe(200)
     expect(sendTemplateMessage).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('POST /api/whatsapp/send — token wallet (D2: manual replies are free)', () => {
+  beforeEach(() => {
+    conversationInserts.length = 0
+    messageInserts.length = 0
+    existingConversation = null
+    createdConversation = null
+    contactRow = CONTACT
+    callerRole = 'agent'
+    supabaseMock = makeSupabaseMock()
+    sendTemplateMessage.mockClear()
+  })
+
+  it('6. a manual reply succeeds at zero balance and never touches the wallet', async () => {
+    const res = await postContactTemplate()
+
+    expect(res.status).toBe(200)
+    expect(sendTemplateMessage).toHaveBeenCalledTimes(1)
+    expect(sendWithCharge).not.toHaveBeenCalled()
   })
 })

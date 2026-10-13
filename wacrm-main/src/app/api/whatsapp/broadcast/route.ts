@@ -10,6 +10,8 @@ import {
   phoneVariants,
   isRecipientNotAllowedError,
 } from '@/lib/whatsapp/phone-utils'
+import { isBlockedSend, sendWithCharge } from '@/lib/wallet/charge'
+import { broadcastMessageKey } from '@/lib/wallet/keys'
 import {
   checkRateLimit,
   rateLimitResponse,
@@ -47,6 +49,11 @@ interface BroadcastResult {
  */
 interface NewRecipient {
   phone: string
+  /**
+   * The broadcast_recipients row this send is for. Keys the token-wallet
+   * charge, so a replayed batch or a later Resume never pays twice.
+   */
+  recipient_id?: string
   /** Body variable values, one per {{N}}. Legacy field. */
   params?: string[]
   /**
@@ -160,9 +167,24 @@ export async function POST(request: Request) {
     }
     const templateRow = resolvedTemplate.row
 
+    // Only trust recipient ids that belong to this account (RLS scopes
+    // the read). Anything else is charged under a one-off key.
+    const claimedIds = recipients
+      .map((r) => r.recipient_id)
+      .filter((id): id is string => typeof id === 'string' && /^[0-9a-f-]{36}$/i.test(id))
+    const ownIds = new Set<string>()
+    if (claimedIds.length > 0) {
+      const { data: owned } = await supabase
+        .from('broadcast_recipients')
+        .select('id')
+        .in('id', claimedIds)
+      for (const row of owned ?? []) ownIds.add(row.id as string)
+    }
+
     const results: BroadcastResult[] = []
     let sentCount = 0
     let failedCount = 0
+    let outOfTokens = false
 
     for (const recipient of recipients) {
       const sanitized = sanitizePhoneForMeta(recipient.phone)
@@ -183,30 +205,53 @@ export async function POST(request: Request) {
       let sentMessageId: string | null = null
       let lastError: string | null = null
 
-      for (const variant of variants) {
+      if (outOfTokens) {
+        lastError = 'insufficient_tokens'
+      } else {
         try {
-          const result = await sendTemplateMessage({
-            phoneNumberId: config.phone_number_id,
-            accessToken,
-            to: variant,
-            templateName: template_name,
-            language: resolvedTemplate.language,
-            template: templateRow ?? undefined,
-            messageParams: recipient.messageParams,
-            params: recipient.params ?? [],
+          // Token wallet: 500 units per recipient (src/lib/wallet/charge.ts).
+          sentMessageId = await sendWithCharge({
+            accountId,
+            charge: {
+              source: 'broadcast',
+              messageKey:
+                recipient.recipient_id && ownIds.has(recipient.recipient_id)
+                  ? broadcastMessageKey(recipient.recipient_id)
+                  : `bc-ui:${crypto.randomUUID()}`,
+            },
+            send: async () => {
+              let lastErr: unknown = null
+              for (const variant of variants) {
+                try {
+                  const result = await sendTemplateMessage({
+                    phoneNumberId: config.phone_number_id,
+                    accessToken,
+                    to: variant,
+                    templateName: template_name,
+                    language: resolvedTemplate.language,
+                    template: templateRow ?? undefined,
+                    messageParams: recipient.messageParams,
+                    params: recipient.params ?? [],
+                  })
+                  return result.messageId
+                } catch (error) {
+                  lastErr = error
+                  const errorMessage =
+                    error instanceof Error ? error.message : 'Unknown error'
+                  if (!isRecipientNotAllowedError(errorMessage)) throw error
+                  // retry with next variant
+                }
+              }
+              throw lastErr ?? new Error('no phone variant to try')
+            },
           })
-          sentMessageId = result.messageId
-          lastError = null
-          break
         } catch (error) {
-          const errorMessage =
-            error instanceof Error ? error.message : 'Unknown error'
-          if (!isRecipientNotAllowedError(errorMessage)) {
-            lastError = errorMessage
-            break
+          if (isBlockedSend(error)) {
+            lastError = error.reason
+            if (error.reason === 'insufficient_tokens') outOfTokens = true
+          } else {
+            lastError = error instanceof Error ? error.message : 'Unknown error'
           }
-          lastError = errorMessage
-          // retry with next variant
         }
       }
 

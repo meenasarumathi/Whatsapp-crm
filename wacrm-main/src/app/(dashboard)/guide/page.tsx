@@ -6,6 +6,7 @@ import {
   Bell,
   Bot,
   BookOpen,
+  Coins,
   FileText,
   GitBranch,
   GraduationCap,
@@ -48,6 +49,7 @@ const CHAPTER_ICONS: Record<string, LucideIcon> = {
   "faq-troubleshooting": HelpCircle,
   "train-ai": GraduationCap,
   demo: Presentation,
+  "token-wallet": Coins,
 };
 
 function chapterIcon(slug: string): LucideIcon {
