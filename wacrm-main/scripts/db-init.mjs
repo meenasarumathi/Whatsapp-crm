@@ -4,9 +4,13 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
+import { existsSync } from "node:fs";
+// Pick up DATABASE_URL from .env.local / .env like the app does (real environment variables win).
+for (const f of [".env.local", ".env"]) if (existsSync(f)) { try { process.loadEnvFile(f); } catch {} }
+const stripSchema = (u) => u.replace(/([?&])schema=[^&]*&?/, "$1").replace(/[?&]$/, "");
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const url = process.env.DATABASE_URL || "postgresql://postgres:strong_password@localhost:5433/wacrm";
+const url = stripSchema(process.env.DATABASE_URL || "postgresql://postgres:strong_password@localhost:5433/wacrm");
 const file = process.argv[2] || join(root, "db", "schema.sql");
 const client = new pg.Client({ connectionString: url });
 await client.connect();
