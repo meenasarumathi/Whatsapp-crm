@@ -40,6 +40,12 @@ try {
   const [t] = await q("select count(*)::int n from information_schema.tables where table_schema='public' and table_type='BASE TABLE' and table_name <> 'schema_migrations'");
   const [u] = await q("select to_regclass('public.users') is not null has");
   line(u.has, "schema applied", u.has ? `${t.n} tables in public` : "run: npm run db:init");
+  if (!u.has && t.n > 0) {
+    const names = (await q("select table_name from information_schema.tables where table_schema='public' and table_type='BASE TABLE' order by 1")).map((r) => r.table_name);
+    console.log(`INFO  ${t.n} table(s) already in public (kept by db:init): ${names.slice(0, 25).join(", ")}${names.length > 25 ? ", ..." : ""}`);
+    const fns = (await q("select count(*)::int n from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public'"))[0].n;
+    console.log(`INFO  ${fns} function(s) already in public`);
+  }
   if (u.has) {
     const [c] = await q("select (select count(*) from users)::int users, (select count(*) from contacts)::int contacts, (select count(*) from messages)::int messages");
     console.log(`INFO  rows: users=${c.users} contacts=${c.contacts} messages=${c.messages}`);

@@ -6,6 +6,9 @@
 // It never drops or truncates anything.
 // Usage:  npm run db:init            (apply if new or changed)
 //         npm run db:init -- --force (re-apply even if the checksum matches)
+//         npm run db:init -- --replace-functions
+//             (only if a stale function with a different return type has dependants: drops them
+//              with CASCADE; the schema re-creates its own triggers/policies right afterwards)
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -20,6 +23,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const url = stripSchema(process.env.DATABASE_URL || "postgresql://postgres:strong_password@localhost:5433/wacrm");
 const args = process.argv.slice(2);
 const force = args.includes("--force");
+const replaceFunctions = args.includes("--replace-functions");
 const file = args.find((a) => !a.startsWith("--")) || join(root, "db", "schema.sql");
 const VERSION = "schema.sql";
 
@@ -27,6 +31,78 @@ const sql = readFileSync(file, "utf8");
 const checksum = createHash("sha256").update(sql).digest("hex");
 
 const client = new pg.Client({ connectionString: url });
+
+// ---- statement splitter (understands comments, quotes and $tag$ bodies) -------------------------
+function splitStatements(text) {
+  const out = []; let start = 0, i = 0; const n = text.length;
+  while (i < n) {
+    const c = text[i];
+    if (text.startsWith("--", i)) { const j = text.indexOf("\n", i); i = j < 0 ? n : j; continue; }
+    if (text.startsWith("/*", i)) { const j = text.indexOf("*/", i); i = j < 0 ? n : j + 2; continue; }
+    if (c === "'") { i++; while (i < n) { if (text[i] === "'" && text[i + 1] === "'") { i += 2; continue; } if (text[i] === "'") break; i++; } i++; continue; }
+    if (c === '"') { const j = text.indexOf('"', i + 1); i = j < 0 ? n : j + 1; continue; }
+    if (c === "$") { const m = /^\$[A-Za-z_]*\$/.exec(text.slice(i, i + 64)); if (m) { const j = text.indexOf(m[0], i + m[0].length); i = j < 0 ? n : j + m[0].length; continue; } }
+    if (c === ";") { out.push(text.slice(start, i + 1)); start = i + 1; }
+    i++;
+  }
+  if (text.slice(start).trim()) out.push(text.slice(start));
+  return out.filter((st) => st.replace(/--[^\n]*/g, "").trim() !== "");
+}
+const splitTop = (body) => { const parts = []; let d = 0, cur = "", q = false;
+  for (const ch of body) { if (ch === "'") q = !q; if (!q) { if (ch === "(") d++; if (ch === ")") d--; if (ch === "," && d === 0) { parts.push(cur); cur = ""; continue; } } cur += ch; }
+  if (cur.trim()) parts.push(cur); return parts; };
+
+// "CREATE OR REPLACE FUNCTION public.f(a uuid, b account_role_enum DEFAULT 'x')" -> { schema, name, argTypes[] }
+async function functionIdentity(stmt) {
+  const m = /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+(?:("?[\w]+"?)\.)?("?[\w]+"?)\s*\(/i.exec(stmt);
+  if (!m) return null;
+  let i = m.index + m[0].length, d = 1, j = i;
+  while (j < stmt.length && d > 0) { if (stmt[j] === "(") d++; if (stmt[j] === ")") d--; j++; }
+  const argTypes = [];
+  for (let part of splitTop(stmt.slice(i, j - 1))) {
+    part = part.trim(); if (!part) continue;
+    if (/^(OUT|INOUT)\b/i.test(part)) { if (/^OUT\b/i.test(part)) continue; }
+    part = part.replace(/^(IN|INOUT|VARIADIC)\s+/i, "").replace(/\s+(DEFAULT\b|=).*$/is, "").trim();
+    let t = (await client.query("select to_regtype($1) t", [part])).rows[0].t;
+    if (!t) t = (await client.query("select to_regtype($1) t", [part.replace(/^\S+\s+/, "")])).rows[0].t;
+    if (!t) return null;
+    argTypes.push(t);
+  }
+  return { schema: (m[1] || "public").replace(/"/g, ""), name: m[2].replace(/"/g, ""), argTypes };
+}
+
+// Run one statement. A CREATE OR REPLACE FUNCTION that hits 42P13 (existing function has another
+// return type) is retried after dropping exactly that function signature (see header for dependants).
+async function run(stmt) {
+  const isFn = /^\s*(?:--[^\n]*\n\s*)*CREATE\s+OR\s+REPLACE\s+FUNCTION/i.test(stmt);
+  if (!isFn) { await client.query(stmt); return; }
+  await client.query("SAVEPOINT stmt");
+  try { await client.query(stmt); await client.query("RELEASE SAVEPOINT stmt"); return; }
+  catch (e) {
+    await client.query("ROLLBACK TO SAVEPOINT stmt");
+    if (e.code !== "42P13") throw e;
+    const id = await functionIdentity(stmt);
+    if (!id) throw e;
+    const { rows } = await client.query(
+      `select p.oid::regprocedure::text sig, pg_get_function_result(p.oid) result from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+        where n.nspname=$1 and p.proname=$2 and p.proargtypes::regtype[]::text[] = $3::text[]`, [id.schema, id.name, id.argTypes]);
+    if (!rows.length) throw e;
+    const { sig, result } = rows[0];
+    console.log(`  replacing stale function ${sig} (it returned ${result}; the schema needs a different return type)`);
+    await client.query("SAVEPOINT drop_fn");
+    try { await client.query(`DROP FUNCTION ${sig}`); await client.query("RELEASE SAVEPOINT drop_fn"); }
+    catch (de) {
+      await client.query("ROLLBACK TO SAVEPOINT drop_fn");
+      if (de.code !== "2BP01" || !replaceFunctions) {
+        de.message = `${de.message}\n  ${String(de.detail || "").replace(/\n/g, "\n  ")}\n  Re-run with  npm run db:init -- --replace-functions  to drop those dependants too (this schema re-creates its own).`;
+        throw de;
+      }
+      await client.query(`DROP FUNCTION ${sig} CASCADE`);
+    }
+    await client.query(stmt);
+  }
+}
+
 client.on("notice", (n) => { if (/already|skipping/i.test(n.message)) return; console.log("  notice:", n.message); });
 try {
   await client.connect();
@@ -53,7 +129,10 @@ try {
     await client.query("COMMIT");
     console.log(`Schema already up to date (applied ${prev.applied_at.toISOString()}, ${before.size} tables). Nothing to do. Use --force to re-apply.`);
   } else {
-    await client.query(sql);
+    for (const st of splitStatements(sql)) {
+      try { await run(st); }
+      catch (e) { e.statement = st.replace(/--[^\n]*/g, "").replace(/\s+/g, " ").trim().slice(0, 160); throw e; }
+    }
     await client.query(
       `INSERT INTO public.schema_migrations (version, checksum) VALUES ($1,$2)
        ON CONFLICT (version) DO UPDATE SET checksum = EXCLUDED.checksum, applied_at = now()`, [VERSION, checksum]);
@@ -69,7 +148,9 @@ try {
 } catch (e) {
   await client.query("ROLLBACK").catch(() => {});
   console.error(`\nSchema NOT applied - the transaction was rolled back, the database is unchanged.\n  ${e.code || ""} ${e.message}`);
-  if (e.where) console.error("  where:", String(e.where).split("\n")[0]);
+  if (e.statement) console.error("  statement:", e.statement);
+  if (e.detail) console.error("  detail:", e.detail);
+  if (e.hint) console.error("  hint:", e.hint);
   process.exit(1);
 } finally {
   await client.end().catch(() => {});
