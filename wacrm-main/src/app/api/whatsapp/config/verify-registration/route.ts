@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createUserDb } from '@/lib/db'
 import { decrypt } from '@/lib/whatsapp/encryption'
 import {
   getSubscribedApps,
@@ -29,11 +29,11 @@ import {
  * what the UI badges on.
  */
 export async function GET() {
-  const supabase = await createClient()
+  const db = await createUserDb()
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser()
+  } = await db.auth.getUser()
   if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -41,7 +41,7 @@ export async function GET() {
   // whatsapp_config is one-row-per-account post-017. Resolve the
   // caller's account_id so a teammate who joined an existing account
   // sees the same registration state as the admin who set it up.
-  const { data: profile } = await supabase
+  const { data: profile } = await db
     .from('profiles')
     .select('account_id')
     .eq('user_id', user.id)
@@ -55,7 +55,7 @@ export async function GET() {
     })
   }
 
-  const { data: config } = await supabase
+  const { data: config } = await db
     .from('whatsapp_config')
     .select('*')
     .eq('account_id', accountId)

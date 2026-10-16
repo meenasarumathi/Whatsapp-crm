@@ -1,3 +1,4 @@
+import type { Row } from "@/lib/db/types";
 /**
  * Flow runner.
  *
@@ -32,7 +33,7 @@
  *     INSERT raises 23505 and the runner catches & exits.
  */
 
-import { supabaseAdmin } from "./admin-client";
+import { serviceDb } from "./admin-client";
 import {
   engineSendInteractiveButtons,
   engineSendInteractiveList,
@@ -88,7 +89,7 @@ export {
 // readable. Errors surface as thrown — the entry point catches.
 // ============================================================
 
-type AdminClient = ReturnType<typeof supabaseAdmin>;
+type AdminClient = ReturnType<typeof serviceDb>;
 
 async function loadActiveRunForContact(
   db: AdminClient,
@@ -216,7 +217,7 @@ async function isDuplicateInbound(
     .eq("account_id", accountId)
     .eq("contact_id", contactId);
   if (!runs?.length) return false;
-  const runIds = runs.map((r) => (r as { id: string }).id);
+  const runIds = runs.map((r: Row) => (r as { id: string }).id);
 
   const { count } = await db
     .from("flow_run_events")
@@ -398,7 +399,7 @@ async function executeHandoff(
 /**
  * Resolve a condition node's subject value from DB / run state, then
  * call the pure `evaluateConditionPredicate`. Splits out so the
- * predicate itself stays unit-testable without a Supabase mock.
+ * predicate itself stays unit-testable without a database mock.
  *
  * Subject sources:
  *   - `var` → `flow_runs.vars[subject_key]` (captured by collect_input
@@ -786,7 +787,7 @@ async function advanceCurrentNodeKey(
 export async function dispatchInboundToFlows(
   input: DispatchInboundInput & { isFirstInboundMessage: boolean },
 ): Promise<DispatchInboundResult> {
-  const db = supabaseAdmin();
+  const db = serviceDb();
   try {
     const activeRun = await loadActiveRunForContact(
       db,

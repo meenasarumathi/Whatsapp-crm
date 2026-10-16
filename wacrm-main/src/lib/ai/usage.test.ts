@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest'
 import { logAiUsage } from './usage'
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { DbClient } from '@/lib/db';
 
 function fakeDb() {
   const insert = vi.fn().mockResolvedValue({ error: null })
   const db = { from: vi.fn(() => ({ insert })) }
-  return { db: db as unknown as SupabaseClient, insert, from: db.from }
+  return { db: db as unknown as DbClient, insert, from: db.from }
 }
 
 describe('logAiUsage', () => {
@@ -47,7 +47,7 @@ describe('logAiUsage', () => {
 
   it('never throws when the insert errors', async () => {
     const insert = vi.fn().mockResolvedValue({ error: { message: 'boom' } })
-    const db = { from: vi.fn(() => ({ insert })) } as unknown as SupabaseClient
+    const db = { from: vi.fn(() => ({ insert })) } as unknown as DbClient
     await expect(
       logAiUsage(db, {
         accountId: 'acct-1',

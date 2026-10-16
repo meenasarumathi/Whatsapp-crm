@@ -293,8 +293,8 @@ last page.
 ## Webhooks
 
 Rather than polling, register an endpoint and wacrm will POST to it when
-things happen in your account. **Migration required:** apply
-`supabase/migrations/028_webhook_endpoints.sql`.
+things happen in your account. **Migration required:** run
+`npm run db:init` (the `webhook_endpoints` table is part of `db/schema.sql`).
 
 ### Events
 

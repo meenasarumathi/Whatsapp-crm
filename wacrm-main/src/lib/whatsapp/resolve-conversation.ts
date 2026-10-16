@@ -18,7 +18,7 @@
 // them to the WhatsApp config owner — a stable account-level default.
 // ============================================================
 
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { DbClient } from '@/lib/db';
 
 import { findExistingContact, isUniqueViolation } from '@/lib/contacts/dedupe';
 import { parseInternationalPhone } from '@/lib/whatsapp/phone-utils';
@@ -39,7 +39,7 @@ export interface ResolvedConversation {
  * WhatsApp config, or a DB failure.
  */
 export async function resolveConversationByPhone(
-  db: SupabaseClient,
+  db: DbClient,
   accountId: string,
   phone: string,
   name?: string | null
@@ -162,7 +162,7 @@ export async function resolveConversationByPhone(
  * re-resolve the winning row rather than failing the send.
  */
 async function findOrCreateConversationRow(
-  db: SupabaseClient,
+  db: DbClient,
   accountId: string,
   contactId: string,
   ownerUserId: string

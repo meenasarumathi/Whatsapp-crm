@@ -10,8 +10,8 @@ import {
   useRef,
   type ReactNode,
 } from "react";
-import { createClient } from "@/lib/supabase/client";
-import type { User } from "@supabase/supabase-js";
+import { createBrowserDb } from "@/lib/db/browser";
+import type { BrowserUser as User } from "@/lib/auth/browser";
 import { DEFAULT_CURRENCY } from "@/lib/currency";
 import {
   canEditSettings as canEditSettingsFor,
@@ -157,7 +157,7 @@ interface ProfileRow {
 /**
  * AuthProvider — wrap this around the dashboard layout.
  * Makes ONE getSession() call for the whole tree instead of one per
- * component, avoiding internal lock contention in the Supabase client.
+ * component.
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -182,14 +182,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // refreshProfile() callback. Reads the current session's user id and
   // pulls the matching profile row along with its account summary.
   const fetchProfile = useCallback(async (userId: string) => {
-    const supabase = createClient();
+    const db = createBrowserDb();
     setProfileLoading(true);
     setStatusDetail(null);
     lastFetchedUserIdRef.current = userId;
     try {
       let data: ProfileRow | null = null;
       for (let attempt = 1; ; attempt++) {
-        const result = await supabase
+        const result = await db
           .from("profiles")
           .select(
             "id, full_name, email, avatar_url, role, beta_features, account_id, account_role",
@@ -235,7 +235,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // account name lookup itself can't.
         let accountRow: AccountSummary | null = null;
         if (data.account_id) {
-          const { data: account, error: accountErr } = await supabase
+          const { data: account, error: accountErr } = await db
             .from("accounts")
             // default_currency added in migration 021; narrowed to the
             // USD fallback below for older schemas where it reads null.
@@ -306,7 +306,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const supabase = createClient();
+    const db = createBrowserDb();
     let mounted = true;
 
     const safetyTimer = setTimeout(() => {
@@ -322,13 +322,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const {
           data: { session },
           error,
-        } = await supabase.auth.getSession();
+        } = await db.auth.getSession();
 
         if (error) console.error("[AuthProvider] getSession error:", error.message);
 
         if (!mounted) return;
         const currentUser = session?.user ?? null;
         setUser(currentUser);
+        hadUser = !!currentUser;
 
         if (currentUser) {
           // Don't block session loading on profile fetch — chrome
@@ -352,37 +353,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     init();
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    // The session lives in an HTTP-only cookie. When the tab regains focus,
+    // re-check it so a sign-out from another tab/device ("sign out
+    // everywhere", password reset) takes effect here without a manual reload.
+    let hadUser = false;
+    const recheck = async () => {
+      if (document.visibilityState !== "visible") return;
+      const {
+        data: { session },
+      } = await db.auth.getSession();
       if (!mounted) return;
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-
-      if (currentUser) {
-        if (currentUser.id !== lastFetchedUserIdRef.current) {
-          fetchProfile(currentUser.id);
-        }
-      } else {
-        lastFetchedUserIdRef.current = null;
-        setProfile(null);
-        setAccount(null);
-        setProfileLoading(false);
+      if (session) hadUser = true;
+      else if (hadUser) {
+        window.location.href = "/login";
       }
-
-      setLoading(false);
-    });
+    };
+    document.addEventListener("visibilitychange", recheck);
 
     return () => {
       mounted = false;
       clearTimeout(safetyTimer);
-      subscription.unsubscribe();
+      document.removeEventListener("visibilitychange", recheck);
     };
   }, [fetchProfile]);
 
   const signOut = useCallback(async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    const db = createBrowserDb();
+    await db.auth.signOut();
     setUser(null);
     setProfile(null);
     setAccount(null);

@@ -1,5 +1,6 @@
+import type { DbClient } from '@/lib/db'
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createUserDb } from '@/lib/db'
 import { requireRole, toErrorResponse } from '@/lib/auth/account'
 import {
   checkRateLimit,
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
     // still delivered a real WhatsApp message to the customer and merely
     // failed to record it (surfacing as "sent to Meta but failed to save
     // to DB"). RLS can't un-send that, so the role check belongs here.
-    const { supabase, accountId, userId } = await requireRole('agent')
+    const { db, accountId, userId } = await requireRole('agent')
 
     // Per-user rate limit. Bucket key is scoped to this route so
     // `/broadcast` has an independent budget.
@@ -95,7 +96,7 @@ export async function POST(request: Request) {
     let conversationId: string | null = null
 
     if (conversationIdInput) {
-      const { data, error: convError } = await supabase
+      const { data, error: convError } = await db
         .from('conversations')
         .select('id')
         .eq('id', conversationIdInput)
@@ -112,7 +113,7 @@ export async function POST(request: Request) {
     } else {
       // contact_id path: verify the contact is in this account first so a
       // caller can't open a conversation against someone else's contact.
-      const { data: contactRow, error: contactErr } = await supabase
+      const { data: contactRow, error: contactErr } = await db
         .from('contacts')
         .select('id')
         .eq('id', contact_id)
@@ -127,7 +128,7 @@ export async function POST(request: Request) {
       }
 
       const resolved = await findOrCreateConversation(
-        supabase,
+        db,
         accountId,
         userId,
         contact_id
@@ -153,7 +154,7 @@ export async function POST(request: Request) {
     // `SendMessageError` carries a machine code + HTTP status; the
     // dashboard maps it to the internal `{ error }` shape.
     try {
-      const result = await sendMessageToConversation(supabase, accountId, {
+      const result = await sendMessageToConversation(db, accountId, {
         conversationId,
         messageType: message_type,
         contentText: content_text,
@@ -189,7 +190,7 @@ export async function POST(request: Request) {
   }
 }
 
-type SendSupabase = Awaited<ReturnType<typeof createClient>>
+type SendDb = DbClient
 
 /**
  * Return the contact's conversation id in this account, creating one if
@@ -199,12 +200,12 @@ type SendSupabase = Awaited<ReturnType<typeof createClient>>
  * policy requires account agent membership, which the caller already is.
  */
 async function findOrCreateConversation(
-  supabase: SendSupabase,
+  db: SendDb,
   accountId: string,
   userId: string,
   contactId: string,
 ): Promise<string | null> {
-  const { data: existing } = await supabase
+  const { data: existing } = await db
     .from('conversations')
     .select('id')
     .eq('account_id', accountId)
@@ -213,7 +214,7 @@ async function findOrCreateConversation(
 
   if (existing) return existing.id
 
-  const { data: created, error } = await supabase
+  const { data: created, error } = await db
     .from('conversations')
     .insert({
       account_id: accountId,

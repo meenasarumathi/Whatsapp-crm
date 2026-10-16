@@ -1,3 +1,4 @@
+import type { Row } from "@/lib/db/types";
 // ============================================================
 // /api/platform/users — Settings → Subscription users
 //
@@ -9,6 +10,7 @@
 // role after the role checks in `@/lib/platform/access`.
 // ============================================================
 
+import { AuthError, createUserWithPassword } from "@/lib/auth/service";
 import { NextResponse } from "next/server";
 
 import { ForbiddenError, toErrorResponse } from "@/lib/auth/account";
@@ -150,17 +152,14 @@ export async function POST(request: Request) {
     }
 
     const db = platformAdminClient();
-    const { data: created, error: createErr } = await db.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: { full_name: fullName },
-    });
-    if (createErr || !created.user) {
-      return NextResponse.json(
-        { error: createErr?.message ?? "Could not create the user." },
-        { status: 400 },
-      );
+    let created: { user: { id: string } };
+    try {
+      created = { user: await createUserWithPassword(email, password, fullName) };
+    } catch (err) {
+      if (err instanceof AuthError) {
+        return NextResponse.json({ error: err.message }, { status: err.status });
+      }
+      throw err;
     }
 
     const now = new Date();
@@ -272,7 +271,7 @@ export async function PATCH(request: Request) {
     if (loadErr) throw loadErr;
 
     const roleOf = new Map(
-      (targets ?? []).map((t) => [t.user_id as string, t.platform_role as string]),
+      (targets ?? []).map((t: Row) => [t.user_id as string, t.platform_role as string]),
     );
     for (const id of userIds) {
       // A user with no row yet is a subscriber by default.

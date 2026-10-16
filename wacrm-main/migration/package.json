@@ -1,0 +1,16 @@
+{
+  "name": "wacrm-data-migration",
+  "private": true,
+  "type": "module",
+  "description": "One-time tooling: export the old hosted database to Excel + INSERT SQL and validate the import into the new PostgreSQL. Separate from the application (the app has no dependency on it).",
+  "scripts": {
+    "export": "node export.mjs",
+    "validate": "node validate.mjs",
+    "gen-target": "node gen-target-columns.mjs"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "exceljs": "^4.4.0",
+    "pg": "^8.13.0"
+  }
+}

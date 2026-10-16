@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { DbClient } from '@/lib/db';
 
 import { resolveConversationByPhone } from './resolve-conversation';
 import { SendMessageError } from './send-message';
 
 // ------------------------------------------------------------
-// Chainable Supabase stub, scripted per table. Terminal methods
+// Chainable database stub, scripted per table. Terminal methods
 // (like/maybeSingle/single) resolve to configured data; the builder
 // itself is thenable so an awaited `update().eq()` resolves cleanly.
 // ------------------------------------------------------------
@@ -29,7 +29,7 @@ interface Script {
   insertConversationError?: { code?: string } | null;
 }
 
-function makeDb(script: Script): SupabaseClient {
+function makeDb(script: Script): DbClient {
   let table = '';
   let mode: 'select' | 'insert' | 'update' = 'select';
   let likeCalls = 0;
@@ -106,7 +106,7 @@ function makeDb(script: Script): SupabaseClient {
       mode = 'select';
       return builder;
     },
-  } as unknown as SupabaseClient;
+  } as unknown as DbClient;
 }
 
 describe('resolveConversationByPhone', () => {
@@ -115,7 +115,7 @@ describe('resolveConversationByPhone', () => {
       from() {
         throw new Error('should not query');
       },
-    } as unknown as SupabaseClient;
+    } as unknown as DbClient;
     await expect(
       resolveConversationByPhone(db, 'acct', 'not-a-phone')
     ).rejects.toBeInstanceOf(SendMessageError);
@@ -126,7 +126,7 @@ describe('resolveConversationByPhone', () => {
       from() {
         throw new Error('should not query');
       },
-    } as unknown as SupabaseClient;
+    } as unknown as DbClient;
     // Would otherwise be sent to +41 55 555 12 12 (Switzerland) and
     // reported as a successful send.
     await expect(

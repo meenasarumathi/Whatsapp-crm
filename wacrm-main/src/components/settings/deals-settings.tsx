@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Coins, Loader2 } from "lucide-react";
 
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserDb } from "@/lib/db/browser";
 import { useAuth } from "@/hooks/use-auth";
 import { CURRENCIES } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ import { SettingsPanelHead } from "./settings-panel-head";
  * admins+, so non-admins see a disabled, read-only control.
  */
 export function DealsSettings() {
-  const supabase = createClient();
+  const db = createBrowserDb();
   const {
     accountId,
     defaultCurrency,
@@ -53,7 +53,7 @@ export function DealsSettings() {
   async function handleSave() {
     if (!accountId || !dirty) return;
     setSaving(true);
-    const { error } = await supabase
+    const { error } = await db
       .from("accounts")
       .update({ default_currency: selected })
       .eq("id", accountId);

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createUserDb } from '@/lib/db'
 import { listFlowTemplates } from '@/lib/flows/templates'
 
 /**
@@ -13,10 +13,10 @@ import { listFlowTemplates } from '@/lib/flows/templates'
  * Available to any signed-in user. Flows is in soft-GA.
  */
 export async function GET() {
-  const supabase = await createClient()
+  const db = await createUserDb()
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await db.auth.getUser()
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

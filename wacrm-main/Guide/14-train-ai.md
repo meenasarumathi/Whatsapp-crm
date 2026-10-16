@@ -56,4 +56,4 @@ A card for every AI feature in the CRM, with **On** / **Off** status: 24/7 auto-
 
 Owners, Admins and Agents can add and edit training. Viewers can look but not change anything.
 
-> **Tip:** First time? Run `supabase/migrations/044_ai_training.sql` in the Supabase SQL editor.
+> **Tip:** The AI-training tables are created by `db/schema.sql` (`npm run db:init`).

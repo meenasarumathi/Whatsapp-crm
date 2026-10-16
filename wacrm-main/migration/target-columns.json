@@ -1,0 +1,4380 @@
+{
+ "order": [
+  "users",
+  "accounts",
+  "db_maintenance_log",
+  "password_reset_tokens",
+  "platform_users",
+  "account_invitations",
+  "ai_configs",
+  "ai_knowledge_documents",
+  "ai_training_examples",
+  "ai_training_profiles",
+  "api_keys",
+  "automations",
+  "broadcasts",
+  "contacts",
+  "custom_fields",
+  "flows",
+  "member_presence",
+  "message_templates",
+  "pipelines",
+  "profiles",
+  "quick_replies",
+  "tags",
+  "webhook_endpoints",
+  "whatsapp_config",
+  "ai_knowledge_chunks",
+  "automation_logs",
+  "automation_steps",
+  "broadcast_recipients",
+  "contact_custom_values",
+  "contact_notes",
+  "contact_tags",
+  "conversations",
+  "flow_nodes",
+  "pipeline_stages",
+  "ai_usage_log",
+  "automation_pending_executions",
+  "deals",
+  "messages",
+  "notifications",
+  "flow_runs",
+  "message_reactions",
+  "flow_run_events"
+ ],
+ "tables": {
+  "account_invitations": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "token_hash",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "role",
+     "type": "account_role_enum",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_by_user_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "label",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "expires_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "accepted_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "accepted_by_user_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "account_invitations_created_by_user_id_fkey",
+     "columns": [
+      "created_by_user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "account_invitations_accepted_by_user_id_fkey",
+     "columns": [
+      "accepted_by_user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "account_invitations_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "accounts": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "owner_user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "updated_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "default_currency",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "accounts_owner_user_id_fkey",
+     "columns": [
+      "owner_user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "ai_configs": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_by",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "provider",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "model",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "api_key",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "system_prompt",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "is_active",
+     "type": "boolean",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "auto_reply_enabled",
+     "type": "boolean",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "auto_reply_max_per_conversation",
+     "type": "integer",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "updated_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "embeddings_api_key",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "handoff_agent_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "ai_configs_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "ai_configs_created_by_fkey",
+     "columns": [
+      "created_by"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "ai_configs_handoff_agent_id_fkey",
+     "columns": [
+      "handoff_agent_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "ai_knowledge_chunks": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "document_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "chunk_index",
+     "type": "integer",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "content",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "fts",
+     "type": "tsvector",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": true
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "embedding",
+     "type": "real[]",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "ai_knowledge_chunks_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "ai_knowledge_chunks_document_id_fkey",
+     "columns": [
+      "document_id"
+     ],
+     "refTable": "ai_knowledge_documents",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "ai_knowledge_documents": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_by",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "title",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "content",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "updated_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "ai_knowledge_documents_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "ai_knowledge_documents_created_by_fkey",
+     "columns": [
+      "created_by"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "ai_training_examples": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "kind",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "question",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "answer",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "category",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "source",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "is_active",
+     "type": "boolean",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "use_count",
+     "type": "integer",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "created_by",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "updated_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "ai_training_examples_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "ai_training_examples_created_by_fkey",
+     "columns": [
+      "created_by"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "ai_training_profiles": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "profile",
+     "type": "jsonb",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "updated_by",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "updated_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "ai_training_profiles_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "ai_training_profiles_updated_by_fkey",
+     "columns": [
+      "updated_by"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "ai_usage_log": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "conversation_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "mode",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "provider",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "model",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "prompt_tokens",
+     "type": "integer",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "completion_tokens",
+     "type": "integer",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "total_tokens",
+     "type": "integer",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "ai_usage_log_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "ai_usage_log_conversation_id_fkey",
+     "columns": [
+      "conversation_id"
+     ],
+     "refTable": "conversations",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "api_keys": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_by",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "key_prefix",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "key_hash",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "scopes",
+     "type": "text[]",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "last_used_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "expires_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "revoked_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "api_keys_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "api_keys_created_by_fkey",
+     "columns": [
+      "created_by"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "automation_logs": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "automation_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "contact_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "trigger_event",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "steps_executed",
+     "type": "jsonb",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "status",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "error_message",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "automation_logs_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "automation_logs_automation_id_fkey",
+     "columns": [
+      "automation_id"
+     ],
+     "refTable": "automations",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "automation_logs_contact_id_fkey",
+     "columns": [
+      "contact_id"
+     ],
+     "refTable": "contacts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "automation_logs_user_id_fkey",
+     "columns": [
+      "user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "automation_pending_executions": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "automation_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "contact_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "log_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "parent_step_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "branch",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "next_step_position",
+     "type": "integer",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "context",
+     "type": "jsonb",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "status",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "run_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "automation_pending_executions_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "automation_pending_executions_automation_id_fkey",
+     "columns": [
+      "automation_id"
+     ],
+     "refTable": "automations",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "automation_pending_executions_contact_id_fkey",
+     "columns": [
+      "contact_id"
+     ],
+     "refTable": "contacts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "automation_pending_executions_log_id_fkey",
+     "columns": [
+      "log_id"
+     ],
+     "refTable": "automation_logs",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "automation_pending_executions_parent_step_id_fkey",
+     "columns": [
+      "parent_step_id"
+     ],
+     "refTable": "automation_steps",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "automation_pending_executions_user_id_fkey",
+     "columns": [
+      "user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "automation_steps": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "automation_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "parent_step_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "branch",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "step_type",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "step_config",
+     "type": "jsonb",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "position",
+     "type": "integer",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "automation_steps_automation_id_fkey",
+     "columns": [
+      "automation_id"
+     ],
+     "refTable": "automations",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "automation_steps_parent_step_id_fkey",
+     "columns": [
+      "parent_step_id"
+     ],
+     "refTable": "automation_steps",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "automations": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "description",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "trigger_type",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "trigger_config",
+     "type": "jsonb",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "is_active",
+     "type": "boolean",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "execution_count",
+     "type": "integer",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "last_executed_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "updated_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "automations_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "automations_user_id_fkey",
+     "columns": [
+      "user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "broadcast_recipients": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "broadcast_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "contact_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "status",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "sent_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "delivered_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "read_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "replied_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "error_message",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "whatsapp_message_id",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "template_params",
+     "type": "jsonb",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "broadcast_recipients_broadcast_id_fkey",
+     "columns": [
+      "broadcast_id"
+     ],
+     "refTable": "broadcasts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "broadcast_recipients_contact_id_fkey",
+     "columns": [
+      "contact_id"
+     ],
+     "refTable": "contacts",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "broadcasts": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "template_name",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "template_language",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "template_variables",
+     "type": "jsonb",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "audience_filter",
+     "type": "jsonb",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "scheduled_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "status",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "total_recipients",
+     "type": "integer",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "sent_count",
+     "type": "integer",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "delivered_count",
+     "type": "integer",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "read_count",
+     "type": "integer",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "replied_count",
+     "type": "integer",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "failed_count",
+     "type": "integer",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "updated_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "delivery_locked_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "broadcasts_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "broadcasts_user_id_fkey",
+     "columns": [
+      "user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "contact_custom_values": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "contact_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "custom_field_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "value",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "contact_custom_values_contact_id_fkey",
+     "columns": [
+      "contact_id"
+     ],
+     "refTable": "contacts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "contact_custom_values_custom_field_id_fkey",
+     "columns": [
+      "custom_field_id"
+     ],
+     "refTable": "custom_fields",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "contact_notes": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "contact_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "note_text",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "contact_notes_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "contact_notes_contact_id_fkey",
+     "columns": [
+      "contact_id"
+     ],
+     "refTable": "contacts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "contact_notes_user_id_fkey",
+     "columns": [
+      "user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "contact_tags": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "contact_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "tag_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "contact_tags_contact_id_fkey",
+     "columns": [
+      "contact_id"
+     ],
+     "refTable": "contacts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "contact_tags_tag_id_fkey",
+     "columns": [
+      "tag_id"
+     ],
+     "refTable": "tags",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "contacts": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "phone",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "email",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "company",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "avatar_url",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "updated_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "phone_normalized",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": true
+    },
+    {
+     "name": "wa_user_id",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "wa_parent_user_id",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "wa_username",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "contacts_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "contacts_user_id_fkey",
+     "columns": [
+      "user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "conversations": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "contact_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "status",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "assigned_agent_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "last_message_text",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "last_message_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "unread_count",
+     "type": "integer",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "updated_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "ai_autoreply_disabled",
+     "type": "boolean",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "ai_reply_count",
+     "type": "integer",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "ai_handoff_summary",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "conversations_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "conversations_contact_id_fkey",
+     "columns": [
+      "contact_id"
+     ],
+     "refTable": "contacts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "conversations_user_id_fkey",
+     "columns": [
+      "user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "custom_fields": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "field_name",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "field_type",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "field_options",
+     "type": "jsonb",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "custom_fields_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "custom_fields_user_id_fkey",
+     "columns": [
+      "user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "db_maintenance_log": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "action",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "tables",
+     "type": "text[]",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "row_counts",
+     "type": "jsonb",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "performed_by",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "performed_by_email",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "db_maintenance_log_performed_by_fkey",
+     "columns": [
+      "performed_by"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "deals": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "pipeline_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "stage_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "contact_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "conversation_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "title",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "value",
+     "type": "numeric(12,2)",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "currency",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "notes",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "expected_close_date",
+     "type": "date",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "status",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "updated_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "assigned_to",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "deals_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "deals_assigned_to_fkey",
+     "columns": [
+      "assigned_to"
+     ],
+     "refTable": "profiles",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "deals_contact_id_fkey",
+     "columns": [
+      "contact_id"
+     ],
+     "refTable": "contacts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "deals_conversation_id_fkey",
+     "columns": [
+      "conversation_id"
+     ],
+     "refTable": "conversations",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "deals_pipeline_id_fkey",
+     "columns": [
+      "pipeline_id"
+     ],
+     "refTable": "pipelines",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "deals_stage_id_fkey",
+     "columns": [
+      "stage_id"
+     ],
+     "refTable": "pipeline_stages",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "deals_user_id_fkey",
+     "columns": [
+      "user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "flow_nodes": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "flow_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "node_key",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "node_type",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "config",
+     "type": "jsonb",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "position_x",
+     "type": "integer",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "position_y",
+     "type": "integer",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "flow_nodes_flow_id_fkey",
+     "columns": [
+      "flow_id"
+     ],
+     "refTable": "flows",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "flow_run_events": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "flow_run_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "event_type",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "node_key",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "payload",
+     "type": "jsonb",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "flow_run_events_flow_run_id_fkey",
+     "columns": [
+      "flow_run_id"
+     ],
+     "refTable": "flow_runs",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "flow_runs": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "flow_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "contact_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "conversation_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "status",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "current_node_key",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "last_prompt_message_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "vars",
+     "type": "jsonb",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "reprompt_count",
+     "type": "integer",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "started_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "last_advanced_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "ended_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "end_reason",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "flow_runs_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "flow_runs_contact_id_fkey",
+     "columns": [
+      "contact_id"
+     ],
+     "refTable": "contacts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "flow_runs_conversation_id_fkey",
+     "columns": [
+      "conversation_id"
+     ],
+     "refTable": "conversations",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "flow_runs_flow_id_fkey",
+     "columns": [
+      "flow_id"
+     ],
+     "refTable": "flows",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "flow_runs_last_prompt_message_id_fkey",
+     "columns": [
+      "last_prompt_message_id"
+     ],
+     "refTable": "messages",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "flow_runs_user_id_fkey",
+     "columns": [
+      "user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "flows": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "description",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "status",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "trigger_type",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "trigger_config",
+     "type": "jsonb",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "entry_node_id",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "fallback_policy",
+     "type": "jsonb",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "execution_count",
+     "type": "integer",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "last_executed_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "updated_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "flows_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "flows_user_id_fkey",
+     "columns": [
+      "user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "member_presence": {
+   "columns": [
+    {
+     "name": "user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "status",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "last_seen_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "user_id"
+   ],
+   "fks": [
+    {
+     "name": "member_presence_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "member_presence_user_id_fkey",
+     "columns": [
+      "user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "message_reactions": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "message_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "conversation_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "actor_type",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "actor_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "emoji",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "message_reactions_conversation_id_fkey",
+     "columns": [
+      "conversation_id"
+     ],
+     "refTable": "conversations",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "message_reactions_message_id_fkey",
+     "columns": [
+      "message_id"
+     ],
+     "refTable": "messages",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "message_templates": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "category",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "language",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "header_type",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "header_content",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "body_text",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "footer_text",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "buttons",
+     "type": "jsonb",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "status",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "updated_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "sample_values",
+     "type": "jsonb",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "meta_template_id",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "rejection_reason",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "quality_score",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "header_handle",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "header_media_url",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "submission_error",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "last_submitted_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "message_templates_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "message_templates_user_id_fkey",
+     "columns": [
+      "user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "messages": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "conversation_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "sender_type",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "sender_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "content_type",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "content_text",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "media_url",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "template_name",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "message_id",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "status",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "reply_to_message_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "interactive_reply_id",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "ai_generated",
+     "type": "boolean",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "interactive_payload",
+     "type": "jsonb",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "media_type",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "error_code",
+     "type": "integer",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "error_title",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "error_details",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "messages_conversation_id_fkey",
+     "columns": [
+      "conversation_id"
+     ],
+     "refTable": "conversations",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "messages_reply_to_message_id_fkey",
+     "columns": [
+      "reply_to_message_id"
+     ],
+     "refTable": "messages",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "notifications": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "type",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "conversation_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "contact_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "actor_user_id",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "title",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "body",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "read_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "notifications_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "notifications_actor_user_id_fkey",
+     "columns": [
+      "actor_user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "notifications_contact_id_fkey",
+     "columns": [
+      "contact_id"
+     ],
+     "refTable": "contacts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "notifications_conversation_id_fkey",
+     "columns": [
+      "conversation_id"
+     ],
+     "refTable": "conversations",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "notifications_user_id_fkey",
+     "columns": [
+      "user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "password_reset_tokens": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "token_hash",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "expires_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "used_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "password_reset_tokens_user_id_fkey",
+     "columns": [
+      "user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "pipeline_stages": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "pipeline_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "position",
+     "type": "integer",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "color",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "pipeline_stages_pipeline_id_fkey",
+     "columns": [
+      "pipeline_id"
+     ],
+     "refTable": "pipelines",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "pipelines": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "pipelines_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "pipelines_user_id_fkey",
+     "columns": [
+      "user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "platform_users": {
+   "columns": [
+    {
+     "name": "user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "platform_role",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "subscription_status",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "trial_days",
+     "type": "integer",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "trial_started_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "trial_ends_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "allowed_tabs",
+     "type": "text[]",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "notes",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "updated_by",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "updated_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "user_id"
+   ],
+   "fks": [
+    {
+     "name": "platform_users_updated_by_fkey",
+     "columns": [
+      "updated_by"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "platform_users_user_id_fkey",
+     "columns": [
+      "user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "profiles": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "full_name",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "email",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "avatar_url",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "role",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "updated_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "beta_features",
+     "type": "text[]",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "account_role",
+     "type": "account_role_enum",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "profiles_user_id_fkey",
+     "columns": [
+      "user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "profiles_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "quick_replies": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "title",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "kind",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "content_text",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "interactive_payload",
+     "type": "jsonb",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "updated_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "quick_replies_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "quick_replies_user_id_fkey",
+     "columns": [
+      "user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "tags": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "color",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "tags_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "tags_user_id_fkey",
+     "columns": [
+      "user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "users": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "email",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "password_hash",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "raw_user_meta_data",
+     "type": "jsonb",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "email_confirmed_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "session_version",
+     "type": "integer",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "updated_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "last_sign_in_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": []
+  },
+  "webhook_endpoints": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_by",
+     "type": "uuid",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "url",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "secret",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "events",
+     "type": "text[]",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "is_active",
+     "type": "boolean",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "last_delivery_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "failure_count",
+     "type": "integer",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "webhook_endpoints_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "webhook_endpoints_created_by_fkey",
+     "columns": [
+      "created_by"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  },
+  "whatsapp_config": {
+   "columns": [
+    {
+     "name": "id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "user_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "phone_number_id",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "waba_id",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "access_token",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "verify_token",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "status",
+     "type": "text",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "connected_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "created_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "updated_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": true,
+     "generated": false
+    },
+    {
+     "name": "registered_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "subscribed_apps_at",
+     "type": "timestamp with time zone",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "last_registration_error",
+     "type": "text",
+     "notnull": false,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "account_id",
+     "type": "uuid",
+     "notnull": true,
+     "hasDefault": false,
+     "generated": false
+    },
+    {
+     "name": "mirror_inbound_media",
+     "type": "boolean",
+     "notnull": true,
+     "hasDefault": true,
+     "generated": false
+    }
+   ],
+   "pk": [
+    "id"
+   ],
+   "fks": [
+    {
+     "name": "whatsapp_config_account_id_fkey",
+     "columns": [
+      "account_id"
+     ],
+     "refTable": "accounts",
+     "refColumns": [
+      "id"
+     ]
+    },
+    {
+     "name": "whatsapp_config_user_id_fkey",
+     "columns": [
+      "user_id"
+     ],
+     "refTable": "users",
+     "refColumns": [
+      "id"
+     ]
+    }
+   ]
+  }
+ }
+}

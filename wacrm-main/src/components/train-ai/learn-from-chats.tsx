@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserDb } from "@/lib/db/browser";
 import { pairsFromTurns } from "@/lib/ai/training";
 import { cn } from "@/lib/utils";
 
@@ -47,7 +47,7 @@ export function LearnFromChats({ canEdit, onSaved }: { canEdit: boolean; onSaved
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { data } = await createClient()
+      const { data } = await createBrowserDb()
         .from("conversations")
         .select("id, last_message_text, last_message_at, contact:contacts(name, phone)")
         .order("last_message_at", { ascending: false, nullsFirst: false })
@@ -62,7 +62,7 @@ export function LearnFromChats({ canEdit, onSaved }: { canEdit: boolean; onSaved
   const pick = async (c: ConversationOption) => {
     setSelected(c);
     setLoading(true);
-    const { data } = await createClient()
+    const { data } = await createBrowserDb()
       .from("messages")
       .select("sender_type, content_text, content_type")
       .eq("conversation_id", c.id)
@@ -80,7 +80,7 @@ export function LearnFromChats({ canEdit, onSaved }: { canEdit: boolean; onSaved
     const picked = suggestions.filter((s) => s.picked && s.question.trim() && s.answer.trim());
     if (picked.length === 0) return;
     setSaving(true);
-    const { error } = await createClient()
+    const { error } = await createBrowserDb()
       .from("ai_training_examples")
       .insert(
         picked.map((s) => ({

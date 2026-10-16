@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserDb } from "@/lib/db/browser";
 import { useAuth } from "@/hooks/use-auth";
 import { usePresence } from "@/hooks/use-presence";
 import { PresenceDot } from "@/components/presence/presence-dot";
@@ -214,8 +214,8 @@ export function MessageThread({
   // shape ready for shared-team workspaces without a refactor.
   useEffect(() => {
     let cancelled = false;
-    const supabase = createClient();
-    supabase
+    const db = createBrowserDb();
+    db
       .from("profiles")
       .select("*")
       .order("full_name")
@@ -294,13 +294,13 @@ export function MessageThread({
   useEffect(() => {
     if (!conversationId) return;
 
-    const supabase = createClient();
+    const db = createBrowserDb();
     let cancelled = false;
 
     (async () => {
       setLoading(true);
 
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("messages")
         .select("*")
         .eq("conversation_id", conversationId)
@@ -335,11 +335,11 @@ export function MessageThread({
       setReactions([]);
       return;
     }
-    const supabase = createClient();
+    const db = createBrowserDb();
     let cancelled = false;
 
     (async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("message_reactions")
         .select("*")
         .eq("conversation_id", conversationId);
@@ -361,9 +361,9 @@ export function MessageThread({
   // conversation and avoids cross-conversation chatter on a busy inbox.
   useEffect(() => {
     if (!conversationId) return;
-    const supabase = createClient();
+    const db = createBrowserDb();
 
-    const channel = supabase
+    const channel = db
       .channel(`reactions:${conversationId}`)
       .on(
         "postgres_changes",
@@ -425,7 +425,7 @@ export function MessageThread({
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      db.removeChannel(channel);
     };
   }, [conversationId]);
 
@@ -446,8 +446,8 @@ export function MessageThread({
   // is 0 the condition is false, so no further UPDATE is issued.
   useEffect(() => {
     if (!conversationId || !hasUnread) return;
-    const supabase = createClient();
-    supabase
+    const db = createBrowserDb();
+    db
       .from("conversations")
       .update({ unread_count: 0 })
       .eq("id", conversationId)
@@ -644,8 +644,8 @@ export function MessageThread({
     async (status: ConversationStatus) => {
       if (!conversation) return;
 
-      const supabase = createClient();
-      await supabase
+      const db = createBrowserDb();
+      await db
         .from("conversations")
         .update({ status })
         .eq("id", conversation.id);
@@ -845,8 +845,8 @@ export function MessageThread({
     async (agentId: string | null) => {
       if (!conversation) return;
 
-      const supabase = createClient();
-      const { error } = await supabase
+      const db = createBrowserDb();
+      const { error } = await db
         .from("conversations")
         .update({ assigned_agent_id: agentId })
         .eq("id", conversation.id);

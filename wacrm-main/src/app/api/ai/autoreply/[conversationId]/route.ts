@@ -26,7 +26,7 @@ type Params = { params: Promise<{ conversationId: string }> }
  */
 export async function POST(request: Request, { params }: Params) {
   try {
-    const { supabase, accountId, userId } = await requireRole('agent')
+    const { db, accountId, userId } = await requireRole('agent')
 
     // Reuse the send bucket: this is a cheap per-user inbox action and
     // toggling it in a tight loop has no legitimate use.
@@ -45,7 +45,7 @@ export async function POST(request: Request, { params }: Params) {
     const assignToMe = body.assign_to_me === true
 
     // Confirm the conversation is in the caller's account before writing.
-    const { data: conv, error: convErr } = await supabase
+    const { data: conv, error: convErr } = await db
       .from('conversations')
       .select('id')
       .eq('id', conversationId)
@@ -83,7 +83,7 @@ export async function POST(request: Request, { params }: Params) {
       update.ai_handoff_summary = null
     }
 
-    const { error: upErr } = await supabase
+    const { error: upErr } = await db
       .from('conversations')
       .update(update)
       .eq('id', conversationId)

@@ -1677,7 +1677,7 @@
       "mediaTitle": "Armazenamento de anexos",
       "mediaDesc": "A Meta exclui as mídias recebidas cerca de 30 dias após a chegada. Os anexos podem ser copiados para o seu próprio armazenamento para continuarem visíveis.",
       "mirrorInbound": "Manter anexos recebidos",
-      "mirrorInboundDesc": "Salva uma cópia de cada foto, vídeo, mensagem de voz e documento enviado pelos clientes. Usa seu armazenamento do Supabase; arquivos acima de 16 MB são ignorados.",
+      "mirrorInboundDesc": "Salva uma cópia de cada foto, vídeo, mensagem de voz e documento enviado pelos clientes. Usa o armazenamento de arquivos do seu servidor; arquivos acima de 16 MB são ignorados.",
       "mirrorInboundOffWarning": "Novos anexos deixarão de ser copiados e ficarão indisponíveis cerca de 30 dias após a chegada.",
       "mirrorInboundSaveFailed": "Não foi possível atualizar a configuração de anexos.",
       "loadFailed": "Falha ao carregar a configuração do WhatsApp",
@@ -2031,6 +2031,18 @@
     "sending": "Enviando...",
     "sendLink": "Enviar link de redefinição"
   },
+  "ResetPasswordPage": {
+    "title": "Escolha uma nova senha",
+    "desc": "Digite uma nova senha para a sua conta",
+    "newPassword": "Nova senha",
+    "confirmPassword": "Confirmar senha",
+    "submit": "Salvar senha",
+    "saving": "Salvando...",
+    "mismatch": "As senhas não coincidem",
+    "tooShort": "A senha deve ter pelo menos 6 caracteres",
+    "invalidLink": "Este link é inválido ou expirou",
+    "backToSignIn": "Voltar para o login"
+  },
   "JoinPage": {
     "fail": {
       "notFoundTitle": "Convite não encontrado",
@@ -2246,7 +2258,7 @@
       "loadFailed": "Couldn't load users.",
       "adminsOnly": "Only the Super admin, Admin 1 and Admin 2 can manage subscription users.",
       "notMigratedTitle": "One-time setup needed",
-      "notMigratedBody": "Run supabase/migrations/043_platform_users_subscriptions.sql in the Supabase SQL editor, then reload this page.",
+      "notMigratedBody": "The database is missing the subscriptions tables. Run `npm run db:init` (db/schema.sql), then reload this page.",
       "settingsAlwaysOn": "Settings is always available to everyone, so people can manage their profile, password and WhatsApp connection."
     }
   },
@@ -2254,7 +2266,7 @@
     "title": "Train AI",
     "description": "Teach your AI assistant to answer like your best team member. Fill in your business profile, add example answers and rules, learn from real chats, then test it — no technical skills needed.",
     "notMigratedTitle": "One-time setup needed",
-    "notMigratedBody": "Run supabase/migrations/044_ai_training.sql in the Supabase SQL editor, then reload this page.",
+    "notMigratedBody": "The database is missing the Train AI tables. Run `npm run db:init` (db/schema.sql), then reload this page.",
     "readiness": "AI readiness",
     "levelNew": "Just getting started",
     "levelLearning": "Learning",

@@ -1,7 +1,8 @@
 "use client";
 
+import type { Row } from "@/lib/db/types";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserDb } from "@/lib/db/browser";
 import type { Pipeline, PipelineStage, Deal } from "@/types";
 import { PipelineBoard } from "@/components/pipelines/pipeline-board";
 import { PipelineSettings } from "@/components/pipelines/pipeline-settings";
@@ -47,7 +48,7 @@ const SPEC_DEFAULT_STAGES = [
 
 export default function PipelinesPage() {
   const t = useTranslations("Pipelines.page");
-  const supabase = createClient();
+  const db = createBrowserDb();
   const canEditSettings = useCan("edit-settings");
   const canCreateDeals = useCan("send-messages");
   const { accountId } = useAuth();
@@ -74,7 +75,7 @@ export default function PipelinesPage() {
   const seedAttempted = useRef(false);
 
   const loadPipelines = useCallback(async () => {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from("pipelines")
       .select("*")
       .order("created_at");
@@ -83,42 +84,42 @@ export default function PipelinesPage() {
       return [];
     }
     return data ?? [];
-  }, [supabase]);
+  }, [db]);
 
   const loadStages = useCallback(
     async (pipelineId: string) => {
-      const { data } = await supabase
+      const { data } = await db
         .from("pipeline_stages")
         .select("*")
         .eq("pipeline_id", pipelineId)
         .order("position");
       return data ?? [];
     },
-    [supabase],
+    [db],
   );
 
   const loadDeals = useCallback(
     async (pipelineId: string) => {
-      const { data } = await supabase
+      const { data } = await db
         .from("deals")
         .select("*, contact:contacts(*), assignee:profiles!deals_assigned_to_fkey(*)")
         .eq("pipeline_id", pipelineId)
         .order("created_at", { ascending: false });
       return (data ?? []) as Deal[];
     },
-    [supabase],
+    [db],
   );
 
   const seedDefaultPipeline = useCallback(async (): Promise<Pipeline | null> => {
     const {
       data: { session },
-    } = await supabase.auth.getSession();
+    } = await db.auth.getSession();
     const user = session?.user;
     if (!user) return null;
     // pipelines.account_id is NOT NULL post-017 with no DB default.
     if (!accountId) return null;
 
-    const { data: pipeline, error } = await supabase
+    const { data: pipeline, error } = await db
       .from("pipelines")
       .insert({ user_id: user.id, account_id: accountId, name: "Sales Pipeline" })
       .select()
@@ -135,10 +136,10 @@ export default function PipelinesPage() {
       color: s.color,
       position: s.position,
     }));
-    await supabase.from("pipeline_stages").insert(stagesPayload);
+    await db.from("pipeline_stages").insert(stagesPayload);
 
     return pipeline as Pipeline;
-  }, [supabase, accountId]);
+  }, [db, accountId]);
 
   // Initial load + seed-if-empty
   useEffect(() => {
@@ -157,7 +158,7 @@ export default function PipelinesPage() {
       setPipelines(list);
       if (list.length > 0) {
         setSelectedPipelineId((prev) =>
-          prev && list.some((p) => p.id === prev) ? prev : list[0].id,
+          prev && list.some((p: Row) => p.id === prev) ? prev : list[0].id,
         );
       } else {
         setSelectedPipelineId("");
@@ -200,7 +201,7 @@ export default function PipelinesPage() {
     const list = await loadPipelines();
     setPipelines(list);
     if (list.length === 0) setSelectedPipelineId("");
-    else if (!list.some((p) => p.id === selectedPipelineId))
+    else if (!list.some((p: Row) => p.id === selectedPipelineId))
       setSelectedPipelineId(list[0].id);
   }, [loadPipelines, selectedPipelineId]);
 
@@ -220,7 +221,7 @@ export default function PipelinesPage() {
       setDeals((prev) =>
         prev.map((d) => (d.id === dealId ? { ...d, stage_id: newStageId } : d)),
       );
-      const { error } = await supabase
+      const { error } = await db
         .from("deals")
         .update({ stage_id: newStageId })
         .eq("id", dealId);
@@ -229,7 +230,7 @@ export default function PipelinesPage() {
         refreshDeals();
       }
     },
-    [supabase, refreshDeals, t],
+    [db, refreshDeals, t],
   );
 
   const handleAddDeal = useCallback(
@@ -254,7 +255,7 @@ export default function PipelinesPage() {
 
     const {
       data: { session },
-    } = await supabase.auth.getSession();
+    } = await db.auth.getSession();
     const user = session?.user;
     if (!user) {
       setCreating(false);
@@ -267,7 +268,7 @@ export default function PipelinesPage() {
       return;
     }
 
-    const { data: pipeline, error } = await supabase
+    const { data: pipeline, error } = await db
       .from("pipelines")
       .insert({ user_id: user.id, account_id: accountId, name })
       .select()
@@ -285,7 +286,7 @@ export default function PipelinesPage() {
       color: s.color,
       position: s.position,
     }));
-    await supabase.from("pipeline_stages").insert(stagesPayload);
+    await db.from("pipeline_stages").insert(stagesPayload);
 
     setNewPipelineName("");
     setNewPipelineOpen(false);

@@ -18,7 +18,7 @@ import {
   Loader2,
 } from "lucide-react"
 
-import { createClient } from "@/lib/supabase/client"
+import { createBrowserDb } from "@/lib/db/browser";
 import { useCan } from "@/hooks/use-can"
 import { useTranslations } from "next-intl"
 import type { Automation } from "@/types"
@@ -69,8 +69,8 @@ export default function AutomationsPage() {
 
   async function load() {
     try {
-      const supabase = createClient()
-      const { data, error: fetchErr } = await supabase
+      const db = createBrowserDb()
+      const { data, error: fetchErr } = await db
         .from("automations")
         .select("*")
         .order("created_at", { ascending: false })

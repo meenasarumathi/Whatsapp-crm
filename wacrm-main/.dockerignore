@@ -4,7 +4,11 @@
 node_modules
 docs
 mcp-server
-supabase
+db
+migration
+scripts/e2e
+uploads
+export
 *.md
 !README.md
 # The in-app Guide renders these at runtime — keep them in the image.

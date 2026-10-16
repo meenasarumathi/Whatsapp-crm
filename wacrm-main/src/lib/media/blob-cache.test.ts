@@ -8,7 +8,7 @@ import {
 } from "./blob-cache";
 
 const PROXY = "/api/whatsapp/media/";
-const BUCKET = "https://x.supabase.co/storage/v1/object/public/chat-media/a/1-p.png";
+const BUCKET = "https://crm.test/api/files/chat-media/a/1-p.png";
 
 function okResponse(body: string): Response {
   return new Response(body, { status: 200 });

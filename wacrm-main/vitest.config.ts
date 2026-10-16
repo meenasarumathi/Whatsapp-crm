@@ -8,7 +8,7 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
     // Dummy secrets — encryption.ts / webhook-signature.ts read these
-    // at module load. Tests never hit a real Meta/Supabase service, so
+    // at module load. Tests never hit a real Meta service, so
     // any 32-byte hex / non-empty string will do; keep them lexically
     // identical to the CI build env so behaviour matches.
     env: {

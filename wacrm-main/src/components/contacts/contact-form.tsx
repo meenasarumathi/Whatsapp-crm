@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserDb } from "@/lib/db/browser";
 import { useAuth } from '@/hooks/use-auth';
 import { addContactTag, deleteContactTag } from '@/lib/contacts/tag-api';
 import { toast } from 'sonner';
@@ -48,7 +48,7 @@ export function ContactForm({
   onViewExisting,
 }: ContactFormProps) {
   const t = useTranslations('Contacts.form');
-  const supabase = createClient();
+  const db = createBrowserDb();
   const { accountId } = useAuth();
   const isEdit = !!contact;
 
@@ -94,7 +94,7 @@ export function ContactForm({
     }
     setCheckingDup(true);
     try {
-      const existing = await findExistingContact(supabase, accountId, value);
+      const existing = await findExistingContact(db, accountId, value);
       setDupMatch(
         existing
           ? { contact: existing, exact: isExactMatch(existing, value) }
@@ -107,7 +107,7 @@ export function ContactForm({
 
   async function fetchTags() {
     setLoadingTags(true);
-    const { data } = await supabase
+    const { data } = await db
       .from('tags')
       .select('*')
       .order('name');
@@ -155,7 +155,7 @@ export function ContactForm({
     try {
       const {
         data: { session },
-      } = await supabase.auth.getSession();
+      } = await db.auth.getSession();
       const user = session?.user;
       if (!user) throw new Error('Not authenticated');
       if (!accountId) throw new Error('Your profile is not linked to an account.');
@@ -163,7 +163,7 @@ export function ContactForm({
       let contactId = contact?.id;
 
       if (isEdit && contactId) {
-        const { error } = await supabase
+        const { error } = await db
           .from('contacts')
           .update({
             name: name.trim() || null,
@@ -175,7 +175,7 @@ export function ContactForm({
           .eq('id', contactId);
         if (error) throw error;
       } else {
-        const { data, error } = await supabase
+        const { data, error } = await db
           .from('contacts')
           .insert({
             user_id: user.id,
@@ -218,7 +218,7 @@ export function ContactForm({
         toast.error(t('toastConflict'));
         if (!isEdit && accountId) {
           const existing = await findExistingContact(
-            supabase,
+            db,
             accountId,
             phone.trim(),
           );

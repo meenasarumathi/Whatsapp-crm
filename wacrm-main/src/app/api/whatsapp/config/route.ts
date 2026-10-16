@@ -1,6 +1,7 @@
+import type { DbClient } from '@/lib/db'
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { createUserDb } from '@/lib/db'
+import { createServiceDb } from '@/lib/db'
 import {
   getSubscribedApps,
   listWabaPhoneNumbers,
@@ -33,10 +34,10 @@ import { encrypt, decrypt } from '@/lib/whatsapp/encryption'
  * should treat that the same as "not connected".
  */
 async function resolveAccountId(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  db: DbClient,
   userId: string,
 ): Promise<string | null> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('profiles')
     .select('account_id')
     .eq('user_id', userId)
@@ -49,16 +50,10 @@ async function resolveAccountId(
 // phone_number_id already claimed by a *different* user — under RLS,
 // the user's own session can't see other users' rows, so the conflict
 // would be invisible without the service role.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let _adminClient: any = null
-function supabaseAdmin() {
-  if (!_adminClient) {
-    _adminClient = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
-  }
-  return _adminClient
+let _serviceDb: DbClient | null = null
+function serviceDb(): DbClient {
+  if (!_serviceDb) _serviceDb = createServiceDb()
+  return _serviceDb
 }
 
 /**
@@ -97,18 +92,18 @@ function metaFailure(err: unknown, step: MetaConnectStep, ctx: MetaErrorContext)
  */
 export async function GET() {
   try {
-    const supabase = await createClient()
+    const db = await createUserDb()
 
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser()
+    } = await db.auth.getUser()
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const accountId = await resolveAccountId(supabase, user.id)
+    const accountId = await resolveAccountId(db, user.id)
     if (!accountId) {
       return NextResponse.json(
         {
@@ -120,7 +115,7 @@ export async function GET() {
       )
     }
 
-    const { data: config, error: configError } = await supabase
+    const { data: config, error: configError } = await db
       .from('whatsapp_config')
       .select('phone_number_id, waba_id, access_token, status')
       .eq('account_id', accountId)
@@ -246,18 +241,18 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient()
+    const db = await createUserDb()
 
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser()
+    } = await db.auth.getUser()
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const accountId = await resolveAccountId(supabase, user.id)
+    const accountId = await resolveAccountId(db, user.id)
     if (!accountId) {
       return NextResponse.json(
         { error: 'Your profile is not linked to an account.' },
@@ -317,7 +312,7 @@ export async function POST(request: Request) {
     // inbound message. See issue #136. Post-multi-user we key on
     // account_id (not user_id) since teammates inside the same account
     // all share one config; the conflict is between accounts.
-    const { data: claimed, error: claimedError } = await supabaseAdmin()
+    const { data: claimed, error: claimedError } = await serviceDb()
       .from('whatsapp_config')
       .select('account_id')
       .eq('phone_number_id', phone_number_id)
@@ -407,7 +402,7 @@ export async function POST(request: Request) {
     // Look up any pre-existing row for this account so we know whether
     // this number is already registered with Meta — if so we can skip
     // /register when the user didn't provide a PIN this time around.
-    const { data: existing } = await supabase
+    const { data: existing } = await db
       .from('whatsapp_config')
       .select('id, registered_at, phone_number_id')
       .eq('account_id', accountId)
@@ -507,7 +502,7 @@ export async function POST(request: Request) {
     }
 
     if (existing) {
-      const { error: updateError } = await supabase
+      const { error: updateError } = await db
         .from('whatsapp_config')
         .update(baseRow)
         .eq('account_id', accountId)
@@ -524,7 +519,7 @@ export async function POST(request: Request) {
       // (NOT NULL post-017, UNIQUE so duplicates trip the constraint
       // up-front), `user_id` is the audit column identifying which
       // member of the account saved the config.
-      const { error: insertError } = await supabase
+      const { error: insertError } = await db
         .from('whatsapp_config')
         .insert({
           account_id: accountId,
@@ -582,18 +577,18 @@ export async function POST(request: Request) {
  */
 export async function DELETE() {
   try {
-    const supabase = await createClient()
+    const db = await createUserDb()
 
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser()
+    } = await db.auth.getUser()
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const accountId = await resolveAccountId(supabase, user.id)
+    const accountId = await resolveAccountId(db, user.id)
     if (!accountId) {
       return NextResponse.json(
         { error: 'Your profile is not linked to an account.' },
@@ -601,7 +596,7 @@ export async function DELETE() {
       )
     }
 
-    const { error: deleteError } = await supabase
+    const { error: deleteError } = await db
       .from('whatsapp_config')
       .delete()
       .eq('account_id', accountId)

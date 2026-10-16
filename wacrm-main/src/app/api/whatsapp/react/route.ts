@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     // reaction to Meta before mirroring it locally — so, as on /send, a
     // missing role check let a read-only viewer put a visible reaction on
     // the customer's message even though RLS blocked the local mirror.
-    const { supabase, accountId, userId } = await requireRole('agent');
+    const { db, accountId, userId } = await requireRole('agent');
 
     const limit = checkRateLimit(`react:${userId}`, RATE_LIMITS.react);
     if (!limit.success) {
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     }
 
     // Resolve target message + its conversation; verify ownership.
-    const { data: targetMessage, error: msgError } = await supabase
+    const { data: targetMessage, error: msgError } = await db
       .from('messages')
       .select('id, message_id, conversation_id')
       .eq('id', message_id)
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { data: conversation, error: convError } = await supabase
+    const { data: conversation, error: convError } = await db
       .from('conversations')
       .select('id, account_id, contact:contacts(phone, wa_user_id)')
       .eq('id', targetMessage.conversation_id)
@@ -92,7 +92,7 @@ export async function POST(request: Request) {
     }
 
     // WhatsApp config + access token. Account-scoped post-multi-user.
-    const { data: config, error: configError } = await supabase
+    const { data: config, error: configError } = await db
       .from('whatsapp_config')
       .select('phone_number_id, access_token')
       .eq('account_id', accountId)
@@ -127,7 +127,7 @@ export async function POST(request: Request) {
 
     // Mirror into DB. Empty emoji = removal.
     if (emoji === '') {
-      const { error: delError } = await supabase
+      const { error: delError } = await db
         .from('message_reactions')
         .delete()
         .eq('message_id', targetMessage.id)
@@ -144,7 +144,7 @@ export async function POST(request: Request) {
     } else {
       // Upsert. The unique constraint (message_id, actor_type, actor_id)
       // lets us swap emoji in a single statement.
-      const { error: upsertError } = await supabase.from('message_reactions').upsert(
+      const { error: upsertError } = await db.from('message_reactions').upsert(
         {
           message_id: targetMessage.id,
           conversation_id: targetMessage.conversation_id,

@@ -20,7 +20,7 @@ export async function GET(
     const ctx = await requireApiKey(request, 'conversations:read');
     const { id } = await params;
 
-    const { data, error } = await ctx.supabase
+    const { data, error } = await ctx.db
       .from('conversations')
       .select(CONVERSATION_SELECT)
       .eq('id', id)

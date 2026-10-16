@@ -13,11 +13,12 @@ updates:
     labels:
       - dependencies
     groups:
-      # Batch related upgrades into one PR so we're not closing six
-      # independent Supabase-bumps per week.
-      supabase:
+      # Batch related upgrades into one PR so we're not closing several
+      # independent database-driver bumps per week.
+      database:
         patterns:
-          - "@supabase/*"
+          - "pg"
+          - "@types/pg"
       types:
         patterns:
           - "@types/*"

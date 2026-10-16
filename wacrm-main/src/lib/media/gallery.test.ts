@@ -26,7 +26,7 @@ describe("collectMediaGallery", () => {
       msg("a1", "audio", { media_url: "/api/whatsapp/media/2" }),
       msg("v1", "video", { media_url: "/api/whatsapp/media/3" }),
       msg("d1", "document", { media_url: "/api/whatsapp/media/4" }),
-      msg("i2", "image", { media_url: "https://x.supabase.co/photo.png" }),
+      msg("i2", "image", { media_url: "https://crm.test/photo.png" }),
     ]);
 
     expect(items.map((i) => i.messageId)).toEqual(["i1", "v1", "i2"]);

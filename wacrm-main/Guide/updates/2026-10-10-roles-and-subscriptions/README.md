@@ -21,7 +21,7 @@ You can now run the CRM as a product: give free trials of 1, 7 or 15 days, and c
 
 ## How to use it
 
-1. Run `supabase/migrations/043_platform_users_subscriptions.sql` once in the Supabase SQL editor. The oldest user becomes the Super admin, and existing users stay active with all tabs.
+1. Apply the database schema once (`npm run db:init`; the table is part of `db/schema.sql`). The oldest user becomes the Super admin, and existing users stay active with all tabs.
 2. Open Settings → **Subscription users**.
 3. Click a user to give a trial, mark them paid, or tick their tabs and click **Save tabs**.
 4. To change many users at once, tick their checkboxes and use the bar that appears.

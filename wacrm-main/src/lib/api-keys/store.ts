@@ -2,7 +2,7 @@
 // API key store — the *auth-path* data access for public API keys.
 //
 // Only the read side lives here, and deliberately so: it runs with
-// the service-role client because a public-API caller has no Supabase
+// the service-role client because a public-API caller has no the database
 // session, so RLS (which keys off `auth.uid()`) can't scope the
 // lookup. The management side (list / create / revoke) runs in the
 // dashboard under a real cookie session and goes through the RLS
@@ -11,7 +11,7 @@
 // and read-only here makes it easy to audit.
 // ============================================================
 
-import { supabaseAdmin } from '@/lib/flows/admin-client';
+import { serviceDb } from '@/lib/flows/admin-client';
 
 /** Shape of an `api_keys` row as the auth path consumes it. */
 export interface ApiKeyRow {
@@ -34,7 +34,7 @@ export interface ApiKeyRow {
 export async function findActiveKeyByHash(
   hash: string
 ): Promise<ApiKeyRow | null> {
-  const { data, error } = await supabaseAdmin()
+  const { data, error } = await serviceDb()
     .from('api_keys')
     .select('id, account_id, created_by, name, scopes, expires_at, revoked_at')
     .eq('key_hash', hash)
@@ -64,7 +64,7 @@ export async function findActiveKeyByHash(
 export async function getAccountName(
   accountId: string
 ): Promise<string | null> {
-  const { data, error } = await supabaseAdmin()
+  const { data, error } = await serviceDb()
     .from('accounts')
     .select('name')
     .eq('id', accountId)
@@ -79,7 +79,7 @@ export async function getAccountName(
  * it must never fail the request the caller is actually making.
  */
 export function touchLastUsed(id: string): void {
-  void supabaseAdmin()
+  void serviceDb()
     .from('api_keys')
     .update({ last_used_at: new Date().toISOString() })
     .eq('id', id)

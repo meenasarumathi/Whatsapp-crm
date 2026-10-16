@@ -4,7 +4,7 @@ import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserDb } from "@/lib/db/browser";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,14 +42,14 @@ function LoginPageInner() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const supabase = createClient();
+  const db = createBrowserDb();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error } = await db.auth.signInWithPassword({
       email,
       password,
     });
@@ -61,7 +61,7 @@ function LoginPageInner() {
     }
 
     // Full-page navigation (not router.push) so the browser issues a
-    // fresh top-level request that carries the just-written Supabase
+    // fresh top-level request that carries the just-written the database
     // auth cookies to the middleware gating /dashboard. A soft
     // client-side navigation can reach the protected route before the
     // server observes the new session, so the middleware bounces it

@@ -31,7 +31,7 @@ vi.mock('@/lib/whatsapp/meta-api', () => ({
   sendTypingIndicator: h.sendTypingIndicator,
 }))
 vi.mock('./admin-client', () => ({
-  supabaseAdmin: () => ({
+  serviceDb: () => ({
     from: (table: string) => {
       if (table === 'automations') {
         // .select().eq().eq().in().limit() → active auto-responders

@@ -33,7 +33,7 @@ export async function POST(
     }
 
     const result = await addContactTagAndDispatch({
-      db: ctx.supabase,
+      db: ctx.db,
       accountId: ctx.accountId,
       contactId,
       tagId,
@@ -60,7 +60,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'tag_id required' }, { status: 400 });
     }
 
-    await removeContactTag(ctx.supabase, {
+    await removeContactTag(ctx.db, {
       accountId: ctx.accountId,
       contactId,
       tagId,

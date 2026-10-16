@@ -1,7 +1,8 @@
+import type { Row } from "@/lib/db/types";
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createUserDb } from '@/lib/db'
 import { requireRole, toErrorResponse } from '@/lib/auth/account'
-import { supabaseAdmin } from '@/lib/automations/admin-client'
+import { serviceDb } from '@/lib/automations/admin-client'
 
 export async function POST(
   _request: Request,
@@ -18,13 +19,13 @@ export async function POST(
     return toErrorResponse(err)
   }
 
-  const supabase = await createClient()
+  const db = await createUserDb()
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await db.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const admin = supabaseAdmin()
+  const admin = serviceDb()
   const { data: original, error: origErr } = await admin
     .from('automations')
     .select('*')
@@ -69,7 +70,7 @@ export async function POST(
         : Math.random().toString(36).slice(2) + Date.now().toString(36)
     for (const row of steps) idMap.set(row.id as string, uid())
 
-    const rows = steps.map((row) => ({
+    const rows = steps.map((row: Row) => ({
       id: idMap.get(row.id as string)!,
       automation_id: copy.id,
       parent_step_id: row.parent_step_id ? idMap.get(row.parent_step_id as string) : null,

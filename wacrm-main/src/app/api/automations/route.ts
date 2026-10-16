@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createUserDb } from '@/lib/db'
 import { requireRole, toErrorResponse } from '@/lib/auth/account'
-import { supabaseAdmin } from '@/lib/automations/admin-client'
+import { serviceDb } from '@/lib/automations/admin-client'
 import { getTemplate } from '@/lib/automations/templates'
 import { insertSteps, type BuilderStepInput } from '@/lib/automations/steps-tree'
 import {
@@ -10,13 +10,13 @@ import {
 } from '@/lib/automations/validate'
 
 export async function GET() {
-  const supabase = await createClient()
+  const db = await createUserDb()
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await db.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('automations')
     .select('*')
     .order('created_at', { ascending: false })
@@ -34,16 +34,16 @@ export async function POST(request: Request) {
     return toErrorResponse(err)
   }
 
-  const supabase = await createClient()
+  const db = await createUserDb()
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await db.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   // Resolve the caller's account_id — `automations.account_id` is NOT
   // NULL post-017, so an INSERT without it trips the not-null constraint
   // even though the admin client bypasses RLS.
-  const { data: profile } = await supabase
+  const { data: profile } = await db
     .from('profiles')
     .select('account_id')
     .eq('user_id', user.id)
@@ -104,7 +104,7 @@ export async function POST(request: Request) {
     }
   }
 
-  const admin = supabaseAdmin()
+  const admin = serviceDb()
   const { data: automation, error: insertErr } = await admin
     .from('automations')
     .insert({

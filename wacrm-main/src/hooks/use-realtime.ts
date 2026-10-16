@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useCallback, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserDb } from "@/lib/db/browser";
 import type { Message, Conversation } from "@/types";
-import type { RealtimeChannel } from "@supabase/supabase-js";
+import type { RealtimeChannelApi as RealtimeChannel } from "@/lib/db/realtime-client";
 
 interface RealtimeEvent<T> {
   eventType: "INSERT" | "UPDATE" | "DELETE";
@@ -42,9 +42,9 @@ export function useRealtime({
   useEffect(() => {
     if (!enabled) return;
 
-    const supabase = createClient();
+    const db = createBrowserDb();
 
-    const channel = supabase
+    const channel = db
       .channel(channelName)
       .on(
         "postgres_changes",
@@ -75,7 +75,7 @@ export function useRealtime({
     channelRef.current = channel;
 
     return () => {
-      supabase.removeChannel(channel);
+      db.removeChannel(channel);
       channelRef.current = null;
       setIsConnected(false);
     };
@@ -83,8 +83,8 @@ export function useRealtime({
 
   const unsubscribe = useCallback(() => {
     if (channelRef.current) {
-      const supabase = createClient();
-      supabase.removeChannel(channelRef.current);
+      const db = createBrowserDb();
+      db.removeChannel(channelRef.current);
       channelRef.current = null;
       setIsConnected(false);
     }

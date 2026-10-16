@@ -1,4 +1,4 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { DbClient } from '@/lib/db';
 import type { AiProvider, AiUsage } from './types'
 
 export interface LogAiUsageArgs {
@@ -27,7 +27,7 @@ export interface LogAiUsageArgs {
  * client).
  */
 export async function logAiUsage(
-  db: SupabaseClient,
+  db: DbClient,
   args: LogAiUsageArgs,
 ): Promise<void> {
   if (!args.usage) return

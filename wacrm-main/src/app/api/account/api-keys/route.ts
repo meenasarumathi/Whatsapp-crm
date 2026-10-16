@@ -48,7 +48,7 @@ export async function GET() {
     // resolved account context.
     const ctx = await getCurrentAccount();
 
-    const { data, error } = await ctx.supabase
+    const { data, error } = await ctx.db
       .from('api_keys')
       .select(SAFE_COLUMNS)
       .eq('account_id', ctx.accountId)
@@ -123,7 +123,7 @@ export async function POST(request: Request) {
 
     const { plaintext, hash, prefix } = generateApiKey();
 
-    const { data, error } = await ctx.supabase
+    const { data, error } = await ctx.db
       .from('api_keys')
       .insert({
         account_id: ctx.accountId,

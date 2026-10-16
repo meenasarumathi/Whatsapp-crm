@@ -1,13 +1,32 @@
 # Changelog
 
 User-visible changes in `wacrm`. Self-hosters: when pulling an update,
-check this file for any **migration required** notes and apply the
-matching SQL files from `supabase/migrations/` against your Supabase
-project before restarting the app.
+check this file for any **migration required** notes. Releases up to
+0.8.x shipped SQL files under `supabase/migrations/`; the schema now
+lives in a single `db/schema.sql` (see Unreleased below).
 
 Versions follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Pre-1.0, `MINOR` bumps cover new modules; `PATCH` bumps cover bug fixes
 and polish.
+
+## [Unreleased] — 2026-10-16
+
+Supabase has been removed. wacrm now runs on a plain PostgreSQL database.
+
+- **Database:** PostgreSQL 16 via `pg` (default `localhost:5433`, database
+  `wacrm`). `docker-compose.yml` runs `pgvector/pgvector:pg16` with a
+  persistent volume and a health check; `db/schema.sql` is applied on first
+  start (`npm run db:init` for an existing server).
+- **Auth:** built-in email + password (bcrypt, signed `wacrm_session`
+  cookie). Needs `AUTH_SECRET`. Sign-up signs you in immediately (no email
+  confirmation); password reset mails a link via `SMTP_*` or logs it.
+- **Storage:** uploads live on disk under `UPLOAD_DIR`, served from
+  `/api/files/<bucket>/…`.
+- **Realtime:** Postgres LISTEN/NOTIFY streamed over `/api/realtime`.
+- **Browser data access** goes through the authenticated `/api/db` gateway
+  (allow-listed operations, Row Level Security enforced per user).
+- **Migration required for existing Supabase installs:** follow
+  `migration/README.md` (export → import → validate).
 
 ## [0.8.1] — 2026-07-10
 

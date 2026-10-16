@@ -14,7 +14,7 @@
 // sends landed in the Inbox as empty bubbles.
 // ============================================================
 
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { DbClient } from '@/lib/db';
 
 import { isMessageTemplate } from '@/lib/whatsapp/template-row-guard';
 import type { MessageTemplate } from '@/types';
@@ -89,7 +89,7 @@ export interface ResolvedTemplate {
  * exact → same base language → a sensible default.
  */
 export async function resolveTemplateRow(
-  db: SupabaseClient,
+  db: DbClient,
   accountId: string,
   templateName: string,
   requestedLanguage?: string | null

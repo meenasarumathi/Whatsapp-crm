@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     // to arbitrary phone numbers from the account's WhatsApp number.
     // Nothing about that is recoverable after the fact, so the check has
     // to happen here.
-    const { supabase, accountId, userId } = await requireRole('agent')
+    const { db, accountId, userId } = await requireRole('agent')
 
     // Per-user broadcast budget. Note: this limits how often a user
     // can *start* a campaign, not how many messages go out inside
@@ -120,7 +120,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const { data: config, error: configError } = await supabase
+    const { data: config, error: configError } = await db
       .from('whatsapp_config')
       .select('*')
       .eq('account_id', accountId)
@@ -140,11 +140,11 @@ export async function POST(request: Request) {
 
     // Load the template row once so sendTemplateMessage can build
     // header + button components on each iteration. Loading inside
-    // the loop would N+1 against Supabase for every recipient.
+    // the loop would N+1 against the database for every recipient.
     // Guard against a malformed local row crashing every send in
     // the loop with the same opaque TypeError — fail loudly once.
     const resolvedTemplate = await resolveTemplateRow(
-      supabase,
+      db,
       accountId,
       template_name,
       template_language,

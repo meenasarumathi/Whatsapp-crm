@@ -18,7 +18,7 @@
 // ============================================================
 
 import { NextResponse } from "next/server";
-import type { PostgrestError } from "@supabase/supabase-js";
+import type { DbError } from '@/lib/db';
 
 import { hashInviteToken } from "@/lib/auth/invitations";
 import {
@@ -26,7 +26,7 @@ import {
   rateLimitResponse,
   RATE_LIMITS,
 } from "@/lib/rate-limit";
-import { createClient } from "@/lib/supabase/server";
+import { createUserDb } from '@/lib/db'
 
 function getClientIp(request: Request): string {
   const xff = request.headers.get("x-forwarded-for");
@@ -36,7 +36,7 @@ function getClientIp(request: Request): string {
   return "unknown";
 }
 
-function rpcErrorToResponse(err: PostgrestError): NextResponse {
+function rpcErrorToResponse(err: DbError): NextResponse {
   if (err.code === "42501") {
     return NextResponse.json({ error: err.message }, { status: 401 });
   }
@@ -69,19 +69,19 @@ export async function POST(
     );
   }
 
-  const supabase = await createClient();
+  const db = await createUserDb();
 
   // The RPC checks `auth.uid()` itself, but failing fast here
-  // gives a cleaner 401 without a Supabase round trip on the
+  // gives a cleaner 401 without a database round trip on the
   // common "user clicked the link before logging in" path.
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await db.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: accountId, error } = await supabase.rpc("redeem_invitation", {
+  const { data: accountId, error } = await db.rpc("redeem_invitation", {
     p_token_hash: hashInviteToken(token),
   });
 

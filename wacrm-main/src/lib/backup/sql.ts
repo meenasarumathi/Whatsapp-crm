@@ -2,7 +2,7 @@
 // SQL backup — turns rows into INSERT statements. Pure; no I/O.
 //
 // Used by GET /api/backup?format=sql. The output runs as-is in the
-// Supabase SQL editor (or psql). Every INSERT ends in ON CONFLICT DO
+// the database SQL editor (or psql). Every INSERT ends in ON CONFLICT DO
 // NOTHING, so replaying a file over existing data adds what is missing
 // and never overwrites or fails on a duplicate.
 // ============================================================

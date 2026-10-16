@@ -1,4 +1,4 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { DbClient } from '@/lib/db';
 import { decrypt } from '@/lib/whatsapp/encryption'
 import type { AiConfig } from './types'
 
@@ -29,7 +29,7 @@ const CONFIG_COLUMNS =
  * dashboard route, or the service-role admin client from the webhook.
  */
 export async function loadAiConfig(
-  db: SupabaseClient,
+  db: DbClient,
   accountId: string,
   opts: { requireActive?: boolean } = {},
 ): Promise<AiConfig | null> {
@@ -94,7 +94,7 @@ export async function loadAiConfig(
  * lexical-only and reporting success.
  */
 export async function loadEmbeddingsKey(
-  db: SupabaseClient,
+  db: DbClient,
   accountId: string,
 ): Promise<{ key: string | null; corrupt: boolean }> {
   const { data, error } = await db

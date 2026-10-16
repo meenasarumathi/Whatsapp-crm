@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserDb } from "@/lib/db/browser";
 import type { MessageTemplate } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -94,10 +94,10 @@ export function TemplatePicker({
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const supabase = createClient();
+      const db = createBrowserDb();
       const {
         data: { user },
-      } = await supabase.auth.getUser();
+      } = await db.auth.getUser();
 
       if (!user) {
         if (!cancelled) {
@@ -111,7 +111,7 @@ export function TemplatePicker({
       // user_id. Templates are account-owned, so filtering on the caller's
       // user_id hid templates that a teammate created — leaving them unable
       // to send approved templates in a shared account.
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("message_templates")
         .select("*")
         .eq("status", "APPROVED")

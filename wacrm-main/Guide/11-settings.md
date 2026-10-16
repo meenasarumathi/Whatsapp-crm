@@ -130,7 +130,7 @@ Click a row to open it:
 
 New sign-ups automatically get a **7-day free trial** with every tab. Settings is always available to everyone.
 
-> **Tip:** First time? Run `supabase/migrations/043_platform_users_subscriptions.sql` in the Supabase SQL editor. The oldest user becomes the Super admin.
+> **Tip:** The `platform_users` table is created by `db/schema.sql` (`npm run db:init`). The oldest user becomes the Super admin.
 
 ### API keys (admin)
 

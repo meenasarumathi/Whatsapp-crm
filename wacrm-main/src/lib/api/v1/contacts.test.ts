@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { DbClient } from '@/lib/db';
 
 // Mock the two collaborators `setContactTags` writes through so the
 // tests can assert exactly which joins it adds and removes.
@@ -65,7 +65,7 @@ describe('serializeContact', () => {
 });
 
 describe('findOrCreateContact', () => {
-  const noopDb = {} as SupabaseClient;
+  const noopDb = {} as DbClient;
 
   it('rejects a non-E.164 phone with a 400 ContactError', async () => {
     await expect(
@@ -91,7 +91,7 @@ describe('findOrCreateContact', () => {
 
 describe('setContactTags', () => {
   /**
-   * Fake just enough of the Supabase query builder for the two
+   * Fake just enough of the database query builder for the two
    * `contact_tags` calls `setContactTags` makes: the current-joins read
    * and the diff delete. Records which tag ids were removed.
    */
@@ -118,7 +118,7 @@ describe('setContactTags', () => {
         expect(table).toBe('contact_tags');
         return builder;
       },
-    } as unknown as SupabaseClient;
+    } as unknown as DbClient;
     return { db, removed };
   }
 

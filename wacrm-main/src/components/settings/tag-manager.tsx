@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Loader2, Plus, Tag as TagIcon, X } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserDb } from "@/lib/db/browser";
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,7 +44,7 @@ const PRESET_COLORS = [
  */
 export function TagManager() {
   const t = useTranslations('Settings.tagsAndFields');
-  const supabase = createClient();
+  const db = createBrowserDb();
   const { user, accountId, loading: authLoading } = useAuth();
 
   const [loading, setLoading] = useState(true);
@@ -69,7 +69,7 @@ export function TagManager() {
   async function fetchTags(userId: string) {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('tags')
         .select('*')
         .eq('user_id', userId)
@@ -100,7 +100,7 @@ export function TagManager() {
 
       // account_id is mandatory on every account-scoped insert (NOT
       // NULL + RLS, no DB default).
-      const { error } = await supabase.from('tags').insert({
+      const { error } = await db.from('tags').insert({
         user_id: user.id,
         account_id: accountId,
         name: newTagName.trim(),
@@ -131,7 +131,7 @@ export function TagManager() {
 
     try {
       setDeleting(true);
-      const { error } = await supabase
+      const { error } = await db
         .from('tags')
         .delete()
         .eq('id', tagToDelete.id);

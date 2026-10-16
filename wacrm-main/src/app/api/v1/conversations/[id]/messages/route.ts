@@ -26,7 +26,7 @@ export async function GET(
     const { limit, cursor } = parseListParams(request);
 
     // Gate on account ownership of the conversation first.
-    const { data: conv } = await ctx.supabase
+    const { data: conv } = await ctx.db
       .from('conversations')
       .select('id')
       .eq('id', id)
@@ -34,7 +34,7 @@ export async function GET(
       .maybeSingle();
     if (!conv) return fail('not_found', 'Conversation not found', 404);
 
-    let query = ctx.supabase
+    let query = ctx.db
       .from('messages')
       .select('*')
       .eq('conversation_id', id)

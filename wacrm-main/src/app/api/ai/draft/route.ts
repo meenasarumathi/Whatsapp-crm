@@ -9,7 +9,7 @@ import { buildSystemPrompt } from '@/lib/ai/defaults'
 import { loadTrainingBlock } from '@/lib/ai/training-server'
 import { latestUserMessage } from '@/lib/ai/query'
 import { logAiUsage } from '@/lib/ai/usage'
-import { supabaseAdmin } from '@/lib/ai/admin-client'
+import { serviceDb } from '@/lib/ai/admin-client'
 import { AiError } from '@/lib/ai/types'
 
 /**
@@ -23,7 +23,7 @@ import { AiError } from '@/lib/ai/types'
  */
 export async function POST(request: Request) {
   try {
-    const { supabase, accountId, userId } = await requireRole('agent')
+    const { db, accountId, userId } = await requireRole('agent')
 
     const userLimit = checkRateLimit(`ai-draft:${userId}`, RATE_LIMITS.aiDraft)
     if (!userLimit.success) return rateLimitResponse(userLimit)
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 
     // RLS scopes the SSR client to the caller's account, so a missing
     // row means "not yours / not found" either way.
-    const { data: conversation, error: convErr } = await supabase
+    const { data: conversation, error: convErr } = await db
       .from('conversations')
       .select('id')
       .eq('id', conversationId)
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Conversation not found' }, { status: 404 })
     }
 
-    const config = await loadAiConfig(supabase, accountId).catch((err) => {
+    const config = await loadAiConfig(db, accountId).catch((err) => {
       // Decrypt failure — surface distinctly from "not configured".
       console.error('[ai/draft] loadAiConfig error:', err)
       throw new AiError('Stored API key could not be decrypted.', {
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const messages = await buildConversationContext(supabase, conversationId)
+    const messages = await buildConversationContext(db, conversationId)
     // Nothing to draft from — a brand-new thread with no customer text
     // would otherwise produce a nonsensical reply-to-nothing.
     if (messages.length === 0) {
@@ -93,14 +93,14 @@ export async function POST(request: Request) {
     // Ground the draft in the account's knowledge base (best-effort —
     // returns [] when there's no KB or retrieval fails).
     const knowledge = await retrieveKnowledge(
-      supabase,
+      db,
       accountId,
       config,
       latestUserMessage(messages),
     )
     // Train AI: business profile, rules and the closest example answers.
     const training = await loadTrainingBlock(
-      supabase,
+      db,
       accountId,
       latestUserMessage(messages),
     )
@@ -122,7 +122,7 @@ export async function POST(request: Request) {
     //  - it's fire-and-forget (`void`), not awaited, so the response
     //    isn't held for a DB round-trip.
     try {
-      void logAiUsage(supabaseAdmin(), {
+      void logAiUsage(serviceDb(), {
         accountId,
         conversationId,
         mode: 'draft',

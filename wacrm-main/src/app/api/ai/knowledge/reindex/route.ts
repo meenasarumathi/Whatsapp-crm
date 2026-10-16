@@ -15,11 +15,11 @@ import { AiError } from '@/lib/ai/types'
  */
 export async function POST() {
   try {
-    const { supabase, accountId, userId } = await requireRole('admin')
+    const { db, accountId, userId } = await requireRole('admin')
     const limit = checkRateLimit(`ai-kb-reindex:${userId}`, RATE_LIMITS.adminAction)
     if (!limit.success) return rateLimitResponse(limit)
 
-    const { data: docs, error } = await supabase
+    const { data: docs, error } = await db
       .from('ai_knowledge_documents')
       .select('id, content')
       .eq('account_id', accountId)
@@ -32,7 +32,7 @@ export async function POST() {
     }
 
     const { key: embeddingsApiKey, corrupt } = await loadEmbeddingsKey(
-      supabase,
+      db,
       accountId,
     )
     // The whole point of Reindex is usually to backfill embeddings — so
@@ -53,7 +53,7 @@ export async function POST() {
     let reindexed = 0
     for (const doc of docs ?? []) {
       try {
-        await ingestDocument(supabase, accountId, { embeddingsApiKey }, doc.id, doc.content)
+        await ingestDocument(db, accountId, { embeddingsApiKey }, doc.id, doc.content)
         reindexed += 1
       } catch (err) {
         // One bad document (e.g. a mid-run embeddings rate-limit) should

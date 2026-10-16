@@ -3,7 +3,7 @@
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserDb } from "@/lib/db/browser";
 import type { Message } from "@/types";
 import {
   DEFAULT_NOTIFICATION_LABELS,
@@ -77,13 +77,13 @@ export function useBrowserNotifications(): void {
     if (!enabled) return;
     if (getNotificationPermission() === "unsupported") return;
 
-    const supabase = createClient();
+    const db = createBrowserDb();
     let cancelled = false;
 
     const notify = async (msg: Message) => {
       // One small select to put the contact's name in the title. A
       // failure here just means the generic fallback title.
-      const { data } = await supabase
+      const { data } = await db
         .from("conversations")
         .select("contact:contacts(name, wa_username, phone)")
         .eq("id", msg.conversation_id)
@@ -119,7 +119,7 @@ export function useBrowserNotifications(): void {
       }
     };
 
-    const channel = supabase
+    const channel = db
       .channel("browser-notifications")
       .on(
         "postgres_changes",
@@ -145,7 +145,7 @@ export function useBrowserNotifications(): void {
 
     return () => {
       cancelled = true;
-      supabase.removeChannel(channel);
+      db.removeChannel(channel);
     };
   }, [enabled, router]);
 }

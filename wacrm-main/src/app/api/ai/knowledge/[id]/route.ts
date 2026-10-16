@@ -16,9 +16,9 @@ type Params = { params: Promise<{ id: string }> }
  */
 export async function GET(_request: Request, { params }: Params) {
   try {
-    const { supabase, accountId } = await getCurrentAccount()
+    const { db, accountId } = await getCurrentAccount()
     const { id } = await params
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('ai_knowledge_documents')
       .select('id, title, content, updated_at')
       .eq('account_id', accountId)
@@ -41,7 +41,7 @@ export async function GET(_request: Request, { params }: Params) {
  */
 export async function PATCH(request: Request, { params }: Params) {
   try {
-    const { supabase, accountId, userId } = await requireRole('admin')
+    const { db, accountId, userId } = await requireRole('admin')
     const limit = checkRateLimit(`ai-kb:${userId}`, RATE_LIMITS.adminAction)
     if (!limit.success) return rateLimitResponse(limit)
 
@@ -63,7 +63,7 @@ export async function PATCH(request: Request, { params }: Params) {
     if (title !== undefined) update.title = title
     if (content !== undefined) update.content = content
 
-    const { data: updated, error } = await supabase
+    const { data: updated, error } = await db
       .from('ai_knowledge_documents')
       .update(update)
       .eq('account_id', accountId)
@@ -78,11 +78,11 @@ export async function PATCH(request: Request, { params }: Params) {
 
     if (content !== undefined) {
       const { key: embeddingsApiKey, corrupt } = await loadEmbeddingsKey(
-        supabase,
+        db,
         accountId,
       )
       try {
-        await ingestDocument(supabase, accountId, { embeddingsApiKey }, id, content)
+        await ingestDocument(db, accountId, { embeddingsApiKey }, id, content)
       } catch (err) {
         const message = err instanceof AiError ? err.message : 'indexing failed'
         console.error('[ai/knowledge/[id] PATCH] ingest error:', err)
@@ -114,9 +114,9 @@ export async function PATCH(request: Request, { params }: Params) {
  */
 export async function DELETE(_request: Request, { params }: Params) {
   try {
-    const { supabase, accountId } = await requireRole('admin')
+    const { db, accountId } = await requireRole('admin')
     const { id } = await params
-    const { error } = await supabase
+    const { error } = await db
       .from('ai_knowledge_documents')
       .delete()
       .eq('account_id', accountId)

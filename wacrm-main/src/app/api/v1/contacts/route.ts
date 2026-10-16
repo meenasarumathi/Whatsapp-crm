@@ -50,7 +50,7 @@ export async function GET(request: Request) {
       ? `${CONTACT_SELECT}, tag_filter:contact_tags!inner(tag_id)`
       : CONTACT_SELECT;
 
-    let query = ctx.supabase
+    let query = ctx.db
       .from('contacts')
       .select(selectClause)
       .eq('account_id', ctx.accountId);
@@ -78,7 +78,7 @@ export async function GET(request: Request) {
     }
 
     // Cast via unknown: the conditional `selectClause` (with the
-    // tag_filter alias) is a runtime string, so supabase-js can't infer
+    // tag_filter alias) is a runtime string, so the result type can't be inferred
     // a row type from it.
     const { items, nextCursor } = buildPage(
       (data ?? []) as unknown as Array<{ created_at: string; id: string }>,
@@ -110,10 +110,10 @@ export async function POST(request: Request) {
       return fail('bad_request', "'phone' is required", 400);
     }
 
-    const auditUserId = await resolveAuditUserId(ctx.supabase, ctx.accountId);
+    const auditUserId = await resolveAuditUserId(ctx.db, ctx.accountId);
 
     const { id, created } = await findOrCreateContact(
-      ctx.supabase,
+      ctx.db,
       ctx.accountId,
       auditUserId,
       {
@@ -126,7 +126,7 @@ export async function POST(request: Request) {
 
     if (Array.isArray(body.tags)) {
       await setContactTags(
-        ctx.supabase,
+        ctx.db,
         ctx.accountId,
         auditUserId,
         id,
@@ -134,7 +134,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const contact = await getContactById(ctx.supabase, ctx.accountId, id);
+    const contact = await getContactById(ctx.db, ctx.accountId, id);
     return ok(contact, created ? 201 : 200);
   } catch (err) {
     if (err instanceof ContactError) {

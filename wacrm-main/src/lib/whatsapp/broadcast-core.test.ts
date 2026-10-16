@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { DbClient } from '@/lib/db';
 import {
   createBroadcast,
   finalizeBroadcastStatus,
@@ -16,8 +16,8 @@ vi.mock('@/lib/api/v1/contacts', () => ({
 }));
 
 // These assertions all fire in the pure validation prologue, before
-// any Supabase call — a bare stub is enough.
-const db = {} as SupabaseClient;
+// any database call — a bare stub is enough.
+const db = {} as DbClient;
 
 describe('createBroadcast validation', () => {
   it('rejects a missing template_name', async () => {
@@ -48,7 +48,7 @@ describe('createBroadcast validation', () => {
   });
 });
 
-// Build a Supabase-shaped mock that gets createBroadcast past its config +
+// Build a database-client-shaped mock that gets createBroadcast past its config +
 // template lookups and into persistence. `rpcResult` is what the atomic
 // create_broadcast_with_recipients RPC returns.
 function makeDb(rpcResult: { data: unknown; error: unknown }) {
@@ -98,7 +98,7 @@ function makeDb(rpcResult: { data: unknown; error: unknown }) {
       calls.rpc.push({ name, args });
       return Promise.resolve(rpcResult);
     },
-  } as unknown as SupabaseClient;
+  } as unknown as DbClient;
   return { db: database, calls };
 }
 
@@ -211,7 +211,7 @@ function statusDb(
       };
       return b;
     },
-  } as unknown as SupabaseClient;
+  } as unknown as DbClient;
 }
 
 describe('finalizeBroadcastStatus', () => {

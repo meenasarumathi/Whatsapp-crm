@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { RealtimeChannel } from "@supabase/supabase-js";
+import type { RealtimeChannelApi as RealtimeChannel } from "@/lib/db/realtime-client";
 
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserDb } from "@/lib/db/browser";
 import { useAuth } from "@/hooks/use-auth";
 import {
   derivePresence,
@@ -58,7 +58,7 @@ export function usePresence(enabled = true): UsePresenceResult {
   useEffect(() => {
     if (!active || !accountId) return;
 
-    const supabase = createClient();
+    const db = createBrowserDb();
     let cancelled = false;
 
     const applyRow = (row: {
@@ -80,7 +80,7 @@ export function usePresence(enabled = true): UsePresenceResult {
     // Realtime has already delivered (keeping the newer last_seen_at)
     // rather than replacing the map — so an event that lands while the
     // fetch is in flight isn't clobbered by a staler snapshot row.
-    const channel: RealtimeChannel = supabase
+    const channel: RealtimeChannel = db
       .channel(`presence:${accountId}`)
       .on(
         "postgres_changes",
@@ -113,7 +113,7 @@ export function usePresence(enabled = true): UsePresenceResult {
       )
       .subscribe();
 
-    supabase
+    db
       .from("member_presence")
       .select("user_id, status, last_seen_at")
       .eq("account_id", accountId)
@@ -150,7 +150,7 @@ export function usePresence(enabled = true): UsePresenceResult {
     return () => {
       cancelled = true;
       clearInterval(tick);
-      supabase.removeChannel(channel);
+      db.removeChannel(channel);
     };
   }, [active, accountId]);
 

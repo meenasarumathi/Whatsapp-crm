@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserDb } from "@/lib/db/browser";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import type { Contact, Deal, ContactNote, Tag } from "@/types";
@@ -48,21 +48,21 @@ export function ContactSidebar({ contact, conversationId = null }: ContactSideba
   const fetchContactData = useCallback(async () => {
     if (!contact) return;
 
-    const supabase = createClient();
+    const db = createBrowserDb();
 
     // Fetch deals, notes, and tags in parallel
     const [dealsRes, notesRes, tagsRes] = await Promise.all([
-      supabase
+      db
         .from("deals")
         .select("*, stage:pipeline_stages(*)")
         .eq("contact_id", contact.id)
         .order("created_at", { ascending: false }),
-      supabase
+      db
         .from("contact_notes")
         .select("*")
         .eq("contact_id", contact.id)
         .order("created_at", { ascending: false }),
-      supabase
+      db
         .from("contact_tags")
         .select("id, tag_id, tags(*)")
         .eq("contact_id", contact.id),
@@ -82,7 +82,7 @@ export function ContactSidebar({ contact, conversationId = null }: ContactSideba
   }, [contact]);
 
   // Load on contact change. setContactData/setTags run inside async
-  // Supabase callbacks, not synchronously in the effect body.
+  // database callbacks, not synchronously in the effect body.
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchContactData();
@@ -106,13 +106,13 @@ export function ContactSidebar({ contact, conversationId = null }: ContactSideba
     if (!accountId) return;
     setAddingNote(true);
 
-    const supabase = createClient();
+    const db = createBrowserDb();
     const {
       data: { session },
-    } = await supabase.auth.getSession();
+    } = await db.auth.getSession();
     const user = session?.user;
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from("contact_notes")
       .insert({
         contact_id: contact.id,

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createUserDb } from '@/lib/db'
 import { getMediaUrl, downloadMedia } from '@/lib/whatsapp/meta-api'
 import { decrypt } from '@/lib/whatsapp/encryption'
 
@@ -17,12 +17,12 @@ export async function GET(
       )
     }
 
-    const supabase = await createClient()
+    const db = await createUserDb()
 
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser()
+    } = await db.auth.getUser()
 
     if (authError || !user) {
       return NextResponse.json(
@@ -35,7 +35,7 @@ export async function GET(
     // account post-multi-user, so a teammate fetching media for a
     // conversation in the shared inbox needs the account's config,
     // not their personal (non-existent) row.
-    const { data: profile } = await supabase
+    const { data: profile } = await db
       .from('profiles')
       .select('account_id')
       .eq('user_id', user.id)
@@ -49,7 +49,7 @@ export async function GET(
     }
 
     // Fetch and decrypt WhatsApp config
-    const { data: config, error: configError } = await supabase
+    const { data: config, error: configError } = await db
       .from('whatsapp_config')
       .select('*')
       .eq('account_id', accountId)

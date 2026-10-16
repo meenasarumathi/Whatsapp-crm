@@ -1,7 +1,8 @@
 'use client';
 
+import type { Row } from "@/lib/db/types";
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserDb } from "@/lib/db/browser";
 import { toast } from 'sonner';
 import type { Contact, Tag, ContactTag } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -66,7 +67,7 @@ interface ContactWithTags extends Contact {
 
 export default function ContactsPage() {
   const t = useTranslations('Contacts.page');
-  const supabase = createClient();
+  const db = createBrowserDb();
   const canEdit = useCan('send-messages');
   const canEditSettings = useCan('edit-settings');
 
@@ -104,10 +105,10 @@ export default function ContactsPage() {
   const fetchSeq = useRef(0);
 
   const fetchTags = useCallback(async () => {
-    const { data } = await supabase.from('tags').select('*');
+    const { data } = await db.from('tags').select('*');
     if (data) {
       const map: Record<string, Tag> = {};
-      data.forEach((t) => (map[t.id] = t));
+      data.forEach((t: Row) => (map[t.id] = t as Tag));
       setTagsMap(map);
       // Drop any filter selections whose tag no longer exists (e.g. a tag
       // deleted elsewhere) so it can't linger invisibly in the query.
@@ -116,7 +117,7 @@ export default function ContactsPage() {
         return pruned.length === prev.length ? prev : pruned;
       });
     }
-  }, [supabase]);
+  }, [db]);
 
   const fetchContacts = useCallback(async () => {
     const seq = ++fetchSeq.current;
@@ -138,7 +139,7 @@ export default function ContactsPage() {
       // windowed total count + pagination) so a tag covering many
       // contacts can't silently truncate the result or overflow an IN
       // clause. See migration 025_filter_contacts_by_tags.
-      const { data, error } = await supabase.rpc('filter_contacts_by_tags', {
+      const { data, error } = await db.rpc('filter_contacts_by_tags', {
         p_tag_ids: selectedTagIds,
         p_search: term || null,
         p_limit: PAGE_SIZE,
@@ -154,7 +155,7 @@ export default function ContactsPage() {
       contactRows = rows.map((r) => r.contact);
       count = rows.length > 0 ? Number(rows[0].total_count) : 0;
     } else {
-      let query = supabase
+      let query = db
         .from('contacts')
         .select('*', { count: 'exact' })
         .order('created_at', { ascending: false })
@@ -186,14 +187,14 @@ export default function ContactsPage() {
 
     // Fetch tags for these contacts
     const contactIds = contactRows.map((c) => c.id);
-    const { data: contactTags } = await supabase
+    const { data: contactTags } = await db
       .from('contact_tags')
       .select('contact_id, tag_id')
       .in('contact_id', contactIds);
     if (seq !== fetchSeq.current) return; // superseded by a newer fetch
 
     const tagsByContact: Record<string, string[]> = {};
-    contactTags?.forEach((ct) => {
+    contactTags?.forEach((ct: Row) => {
       if (!tagsByContact[ct.contact_id]) tagsByContact[ct.contact_id] = [];
       tagsByContact[ct.contact_id].push(ct.tag_id);
     });
@@ -207,10 +208,10 @@ export default function ContactsPage() {
 
     setContacts(enriched);
     setLoading(false);
-  }, [supabase, page, search, selectedTagIds, tagsMap, t]);
+  }, [db, page, search, selectedTagIds, tagsMap, t]);
 
   // Load-once-on-mount-ish data fetches. Each setter inside runs
-  // inside an async promise completion (Supabase await), not
+  // inside an async promise completion (database await), not
   // synchronously in the effect body, so the cascade the lint rule
   // warns about doesn't apply here.
   useEffect(() => {
@@ -230,7 +231,7 @@ export default function ContactsPage() {
   }
 
   async function openEditForm(contact: Contact) {
-    const { data } = await supabase
+    const { data } = await db
       .from('contact_tags')
       .select('*')
       .eq('contact_id', contact.id);
@@ -253,7 +254,7 @@ export default function ContactsPage() {
     if (!deleteTarget) return;
     setDeleting(true);
 
-    const { error } = await supabase
+    const { error } = await db
       .from('contacts')
       .delete()
       .eq('id', deleteTarget.id);
@@ -300,7 +301,7 @@ export default function ContactsPage() {
     if (ids.length === 0) return;
     setDeleting(true);
 
-    const { error } = await supabase.from('contacts').delete().in('id', ids);
+    const { error } = await db.from('contacts').delete().in('id', ids);
 
     if (error) {
       toast.error(t('toastBulkFailedDelete'));

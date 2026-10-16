@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserDb } from "@/lib/db/browser";
 import { MessageTemplate } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Loader2, FileText, ArrowRight } from 'lucide-react';
@@ -29,11 +29,11 @@ export function Step1ChooseTemplate({ selectedTemplate, onSelect, onNext, onBack
   useEffect(() => {
     async function fetchTemplates() {
       try {
-        const supabase = createClient();
+        const db = createBrowserDb();
         // Only APPROVED templates can be sent via Meta — anything else
         // would 400 at broadcast time. Hide them rather than letting
         // the user pick a template that will fail.
-        const { data, error: fetchError } = await supabase
+        const { data, error: fetchError } = await db
           .from('message_templates')
           .select('*')
           .eq('status', 'APPROVED')

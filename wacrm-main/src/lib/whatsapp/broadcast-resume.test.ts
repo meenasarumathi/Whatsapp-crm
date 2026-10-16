@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { DbClient } from '@/lib/db';
 
 import { BroadcastError } from './broadcast-core';
 import {
@@ -23,7 +23,7 @@ interface ClaimCall {
   or?: string;
 }
 
-function claimDb(returnedRows: unknown[], calls: ClaimCall[]): SupabaseClient {
+function claimDb(returnedRows: unknown[], calls: ClaimCall[]): DbClient {
   return {
     from() {
       const call: ClaimCall = { update: {}, filters: {} };
@@ -47,7 +47,7 @@ function claimDb(returnedRows: unknown[], calls: ClaimCall[]): SupabaseClient {
       };
       return b;
     },
-  } as unknown as SupabaseClient;
+  } as unknown as DbClient;
 }
 
 describe('claimBroadcastDelivery', () => {
@@ -125,7 +125,7 @@ interface PlanWrites {
   failedUpdate?: Record<string, unknown>;
 }
 
-function planDb(fx: PlanFixture, writes: PlanWrites = {}): SupabaseClient {
+function planDb(fx: PlanFixture, writes: PlanWrites = {}): DbClient {
   return {
     from(table: string) {
       const b: Record<string, unknown> = {
@@ -161,7 +161,7 @@ function planDb(fx: PlanFixture, writes: PlanWrites = {}): SupabaseClient {
       };
       return b;
     },
-  } as unknown as SupabaseClient;
+  } as unknown as DbClient;
 }
 
 const BROADCAST = {

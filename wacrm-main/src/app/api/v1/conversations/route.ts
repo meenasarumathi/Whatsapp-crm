@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     const status = url.searchParams.get('status');
     const contactId = url.searchParams.get('contact_id');
 
-    let query = ctx.supabase
+    let query = ctx.db
       .from('conversations')
       .select(CONVERSATION_SELECT)
       .eq('account_id', ctx.accountId);

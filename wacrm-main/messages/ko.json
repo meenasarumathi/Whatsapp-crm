@@ -1677,7 +1677,7 @@
       "mediaTitle": "첨부파일 저장",
       "mediaDesc": "Meta는 수신된 미디어를 도착 후 약 30일이 지나면 삭제합니다. 첨부파일을 자체 스토리지에 복사해 두면 계속 볼 수 있습니다.",
       "mirrorInbound": "수신 첨부파일 보관",
-      "mirrorInboundDesc": "고객이 보낸 사진, 동영상, 음성 메모, 문서를 모두 복사해 저장합니다. Supabase 스토리지를 사용하며 16MB를 초과하는 파일은 건너뜁니다.",
+      "mirrorInboundDesc": "고객이 보낸 사진, 동영상, 음성 메모, 문서를 모두 복사해 저장합니다. 서버의 파일 저장소를 사용하며 16MB를 초과하는 파일은 건너뜁니다.",
       "mirrorInboundOffWarning": "새 첨부파일이 더 이상 복사되지 않으며, 도착 후 약 30일이 지나면 볼 수 없게 됩니다.",
       "mirrorInboundSaveFailed": "첨부파일 설정을 업데이트하지 못했습니다.",
       "loadFailed": "WhatsApp 설정을 불러오지 못했습니다",
@@ -2031,6 +2031,18 @@
     "sending": "전송 중...",
     "sendLink": "재설정 링크 보내기"
   },
+  "ResetPasswordPage": {
+    "title": "새 비밀번호 설정",
+    "desc": "계정의 새 비밀번호를 입력하세요",
+    "newPassword": "새 비밀번호",
+    "confirmPassword": "비밀번호 확인",
+    "submit": "비밀번호 저장",
+    "saving": "저장 중...",
+    "mismatch": "비밀번호가 일치하지 않습니다",
+    "tooShort": "비밀번호는 6자 이상이어야 합니다",
+    "invalidLink": "이 링크가 유효하지 않거나 만료되었습니다",
+    "backToSignIn": "로그인으로 돌아가기"
+  },
   "JoinPage": {
     "fail": {
       "notFoundTitle": "초대를 찾을 수 없습니다",
@@ -2246,7 +2258,7 @@
       "loadFailed": "Couldn't load users.",
       "adminsOnly": "Only the Super admin, Admin 1 and Admin 2 can manage subscription users.",
       "notMigratedTitle": "One-time setup needed",
-      "notMigratedBody": "Run supabase/migrations/043_platform_users_subscriptions.sql in the Supabase SQL editor, then reload this page.",
+      "notMigratedBody": "The database is missing the subscriptions tables. Run `npm run db:init` (db/schema.sql), then reload this page.",
       "settingsAlwaysOn": "Settings is always available to everyone, so people can manage their profile, password and WhatsApp connection."
     }
   },
@@ -2254,7 +2266,7 @@
     "title": "Train AI",
     "description": "Teach your AI assistant to answer like your best team member. Fill in your business profile, add example answers and rules, learn from real chats, then test it — no technical skills needed.",
     "notMigratedTitle": "One-time setup needed",
-    "notMigratedBody": "Run supabase/migrations/044_ai_training.sql in the Supabase SQL editor, then reload this page.",
+    "notMigratedBody": "The database is missing the Train AI tables. Run `npm run db:init` (db/schema.sql), then reload this page.",
     "readiness": "AI readiness",
     "levelNew": "Just getting started",
     "levelLearning": "Learning",

@@ -4,7 +4,7 @@
 // user is the Super admin first.
 // ============================================================
 
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { DbClient } from '@/lib/db';
 
 import { platformAdminClient } from '@/lib/platform/server';
 import { parseDbTables, type DbTable } from './tables';
@@ -14,7 +14,7 @@ export class DbConfigNotMigratedError extends Error {
   readonly status = 503 as const;
   constructor() {
     super(
-      'Database config is not set up yet. Run supabase/migrations/045_db_config.sql in the Supabase SQL editor.'
+      'Database config is not set up yet. Apply db/schema.sql (npm run db:init).'
     );
     this.name = 'DbConfigNotMigratedError';
   }
@@ -42,7 +42,7 @@ function isMissingFunction(
 }
 
 export async function fetchDbTables(
-  db: SupabaseClient = platformAdminClient()
+  db: DbClient = platformAdminClient()
 ): Promise<DbTable[]> {
   const { data, error } = await db.rpc('db_config_tables');
   if (isMissingFunction(error)) throw new DbConfigNotMigratedError();
@@ -51,7 +51,7 @@ export async function fetchDbTables(
 }
 
 export async function fetchSchemaSql(
-  db: SupabaseClient = platformAdminClient()
+  db: DbClient = platformAdminClient()
 ): Promise<string> {
   const { data, error } = await db.rpc('db_config_schema_sql');
   if (isMissingFunction(error)) throw new DbConfigNotMigratedError();
@@ -62,7 +62,7 @@ export async function fetchSchemaSql(
 /** TRUNCATE the tables; returns the number of rows each held. */
 export async function truncateTables(
   tables: string[],
-  db: SupabaseClient = platformAdminClient()
+  db: DbClient = platformAdminClient()
 ): Promise<Record<string, number>> {
   const { data, error } = await db.rpc('db_config_truncate', {
     p_tables: tables,
@@ -87,7 +87,7 @@ export interface MaintenanceLogEntry {
 }
 
 export async function recentMaintenance(
-  db: SupabaseClient = platformAdminClient(),
+  db: DbClient = platformAdminClient(),
   limit = 10
 ): Promise<MaintenanceLogEntry[]> {
   const { data, error } = await db
@@ -107,7 +107,7 @@ export async function logMaintenance(
     performed_by: string;
     performed_by_email: string | null;
   },
-  db: SupabaseClient = platformAdminClient()
+  db: DbClient = platformAdminClient()
 ): Promise<void> {
   const { error } = await db.from('db_maintenance_log').insert(entry);
   if (error)

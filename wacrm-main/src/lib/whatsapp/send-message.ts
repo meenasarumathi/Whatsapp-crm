@@ -10,7 +10,7 @@
 //   4. persists the message + updates the conversation,
 //   5. pauses any active Flow run for the contact (agent stepped in).
 //
-// It is transport-agnostic: it takes a `SupabaseClient` and an
+// It is transport-agnostic: it takes a `DbClient` and an
 // `accountId` and throws `SendMessageError` on failure. The callers
 // own auth, rate-limiting, body parsing, and mapping the error to
 // their respective response shapes (internal `{ error }` vs the v1
@@ -19,7 +19,7 @@
 // without duplicating ~250 lines of Meta plumbing.
 // ============================================================
 
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { DbClient } from '@/lib/db';
 
 import {
   sendTextMessage,
@@ -35,7 +35,7 @@ import {
   type InteractiveMessagePayload,
 } from '@/lib/whatsapp/interactive';
 import { decrypt, encrypt, isLegacyFormat } from '@/lib/whatsapp/encryption';
-import { supabaseAdmin } from '@/lib/flows/admin-client';
+import { serviceDb } from '@/lib/flows/admin-client';
 import {
   phoneVariants,
   isRecipientNotAllowedError,
@@ -184,7 +184,7 @@ export function validateSendMessageParams(params: {
 }
 
 export async function sendMessageToConversation(
-  db: SupabaseClient,
+  db: DbClient,
   accountId: string,
   params: SendMessageParams
 ): Promise<SendMessageResult> {
@@ -517,7 +517,7 @@ export async function sendMessageToConversation(
   // Pause any active Flow run for this contact — the agent stepping in
   // is the strongest "yield, human is here" signal. Best-effort.
   try {
-    const { error: pauseErr } = await supabaseAdmin()
+    const { error: pauseErr } = await serviceDb()
       .from('flow_runs')
       .update({
         status: 'paused_by_agent',

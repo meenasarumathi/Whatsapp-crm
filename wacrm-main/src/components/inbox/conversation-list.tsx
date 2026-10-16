@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserDb } from "@/lib/db/browser";
 import {
   CONVERSATION_SELECT,
   matchesContactFilters,
@@ -91,11 +91,11 @@ export function ConversationList({
   });
 
   useEffect(() => {
-    const supabase = createClient();
+    const db = createBrowserDb();
     let cancelled = false;
 
     (async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("conversations")
         .select(CONVERSATION_SELECT)
         .order("last_message_at", { ascending: false });
@@ -103,7 +103,7 @@ export function ConversationList({
       if (cancelled) return;
 
       if (error) {
-        // Supabase errors have non-enumerable properties — log fields explicitly
+        // Database errors have non-enumerable properties — log fields explicitly
         console.error("Failed to fetch conversations:", {
           message: error.message,
           details: error.details,
@@ -129,10 +129,10 @@ export function ConversationList({
   // Tag definitions for the filter picker — loaded once so labels/colours
   // stay stable regardless of which conversations happen to be loaded.
   useEffect(() => {
-    const supabase = createClient();
+    const db = createBrowserDb();
     let cancelled = false;
     (async () => {
-      const { data } = await supabase.from("tags").select("*").order("name");
+      const { data } = await db.from("tags").select("*").order("name");
       if (!cancelled && data) setTags(data as Tag[]);
     })();
     return () => {
