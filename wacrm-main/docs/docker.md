@@ -59,9 +59,16 @@ docker run -d --env-file .env.local -e PORT=3000 -p 3000:3000 \
 ## Notes
 
 - The schema is applied by the Postgres container on first start only.
-  For an already-running server (for example a container that is already
-  using port 5433) run `npm run db:init` instead. It is safe to repeat: one transaction, nothing is dropped, objects that
-  already exist are kept, and an unchanged schema is skipped (`--force` re-applies it to repair missing parts).
+  For a database that already exists (for example your own container on
+  port 5433) use `npm run db:plan` to see what would change, then
+  `npm run db:init`. It compares the live database with the expected schema
+  and repairs differences in ONE transaction (any error rolls everything
+  back): missing tables/columns/constraints/indexes are added, old policies
+  and foreign keys (for example ones pointing at Supabase's `auth.users`)
+  are replaced, columns with another type are converted, stale functions are
+  re-created, and users from a legacy `auth.users` are copied across. Rows
+  are never deleted. `--force` re-applies an unchanged schema;
+  `--replace-functions` also drops objects depending on a stale function.
   `docker compose up -d postgres` alone starts just the database for local
   development with `npm run dev`.
 - Uploads (avatars, chat media, flow media) are stored in the
