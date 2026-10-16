@@ -38,6 +38,7 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "db:test": "node scripts/db-test.mjs",
     "db:init": "node scripts/db-init.mjs",
     "db:import": "node scripts/db-import.mjs",
     "db:up": "docker compose up -d postgres"
