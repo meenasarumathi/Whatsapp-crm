@@ -60,7 +60,8 @@ docker run -d --env-file .env.local -e PORT=3000 -p 3000:3000 \
 
 - The schema is applied by the Postgres container on first start only.
   For an already-running server (for example a container that is already
-  using port 5433) run `npm run db:init` instead; it is idempotent.
+  using port 5433) run `npm run db:init` instead. It is safe to repeat: one transaction, nothing is dropped, objects that
+  already exist are kept, and an unchanged schema is skipped (`--force` re-applies it to repair missing parts).
   `docker compose up -d postgres` alone starts just the database for local
   development with `npm run dev`.
 - Uploads (avatars, chat media, flow media) are stored in the

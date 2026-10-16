@@ -36,4 +36,4 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'on_user_created') THEN RAISE EXCEPTION 'trigger on_user_created is missing'; END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'notify_messages') THEN RAISE EXCEPTION 'trigger notify_messages is missing'; END IF;
 END $$;
-SELECT 'schema OK: ' || count(*) || ' tables' AS result FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE';
+SELECT 'schema OK: ' || count(*) || ' tables' AS result FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE' AND table_name <> 'schema_migrations';

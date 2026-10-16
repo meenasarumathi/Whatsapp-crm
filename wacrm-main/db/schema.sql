@@ -1,3 +1,8 @@
+-- RE-RUNNABLE: every statement tolerates objects that already exist (CREATE TABLE/INDEX IF NOT EXISTS,
+-- ADD COLUMN IF NOT EXISTS for each declared column, enums created or verified, policies/triggers re-created,
+-- foreign keys added only when missing). Nothing here drops or truncates data. `npm run db:init` applies it
+-- in a single transaction and records its checksum in public.schema_migrations.
+-- (Generated: tools/mkschema.py, then tools/idempotent.py.)
 -- ============================================================================
 -- WACRM — PostgreSQL schema (plain PostgreSQL 15+, no external services)
 --
@@ -52,7 +57,19 @@ SET check_function_bodies = off;   -- functions may mention tables created later
 -- 1. ENUMS
 -- ======================================================================
 
-CREATE TYPE public.account_role_enum AS ENUM ('owner', 'admin', 'agent', 'viewer');
+DO $enum$
+DECLARE expected text[] := ARRAY['owner', 'admin', 'agent', 'viewer']; missing text[];
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = 'public' AND t.typname = 'account_role_enum') THEN
+    CREATE TYPE public.account_role_enum AS ENUM ('owner', 'admin', 'agent', 'viewer');
+  ELSE
+    SELECT array_agg(l) INTO missing FROM unnest(expected) l
+     WHERE NOT EXISTS (SELECT 1 FROM pg_enum e WHERE e.enumtypid = 'public.account_role_enum'::regtype AND e.enumlabel = l);
+    IF missing IS NOT NULL THEN
+      RAISE EXCEPTION 'enum public.account_role_enum exists but lacks value(s) %; add them manually (ALTER TYPE ... ADD VALUE) and re-run', missing;
+    END IF;
+  END IF;
+END $enum$;
 
 -- Note: every other 'enum-like' column (status, kind, trigger_type, ...) is plain text
 -- guarded by a CHECK constraint in section 2, exactly as in the migrations.
@@ -68,7 +85,7 @@ CREATE TYPE public.account_role_enum AS ENUM ('owner', 'admin', 'agent', 'viewer
 -- Sign-in accounts (replaces the former external auth service).
 -- password_hash is bcrypt. session_version is bumped to sign a user out of every device.
 -- ----------------------------------------------------------------------
-CREATE TABLE public.users (
+CREATE TABLE IF NOT EXISTS public.users (
   id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   email               text NOT NULL,
   password_hash       text,
@@ -79,10 +96,19 @@ CREATE TABLE public.users (
   updated_at          timestamptz NOT NULL DEFAULT now(),
   last_sign_in_at     timestamptz
 );
-CREATE UNIQUE INDEX users_email_lower_key ON public.users (lower(email));
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS id                  uuid PRIMARY KEY DEFAULT gen_random_uuid();
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS email               text NOT NULL;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS password_hash       text;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS raw_user_meta_data  jsonb NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS email_confirmed_at  timestamptz;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS session_version     integer NOT NULL DEFAULT 1;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS created_at          timestamptz NOT NULL DEFAULT now();
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS updated_at          timestamptz NOT NULL DEFAULT now();
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS last_sign_in_at     timestamptz;
+CREATE UNIQUE INDEX IF NOT EXISTS users_email_lower_key ON public.users (lower(email));
 COMMENT ON TABLE public.users IS 'Sign-in accounts. Every other user_id / created_by column points here.';
 
-CREATE TABLE public.password_reset_tokens (
+CREATE TABLE IF NOT EXISTS public.password_reset_tokens (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id     uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   token_hash  text NOT NULL UNIQUE,
@@ -90,7 +116,13 @@ CREATE TABLE public.password_reset_tokens (
   used_at     timestamptz,
   created_at  timestamptz NOT NULL DEFAULT now()
 );
-CREATE INDEX idx_password_reset_tokens_user ON public.password_reset_tokens (user_id);
+ALTER TABLE public.password_reset_tokens ADD COLUMN IF NOT EXISTS id          uuid PRIMARY KEY DEFAULT gen_random_uuid();
+ALTER TABLE public.password_reset_tokens ADD COLUMN IF NOT EXISTS user_id     uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE;
+ALTER TABLE public.password_reset_tokens ADD COLUMN IF NOT EXISTS token_hash  text NOT NULL UNIQUE;
+ALTER TABLE public.password_reset_tokens ADD COLUMN IF NOT EXISTS expires_at  timestamptz NOT NULL;
+ALTER TABLE public.password_reset_tokens ADD COLUMN IF NOT EXISTS used_at     timestamptz;
+ALTER TABLE public.password_reset_tokens ADD COLUMN IF NOT EXISTS created_at  timestamptz NOT NULL DEFAULT now();
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user ON public.password_reset_tokens (user_id);
 COMMENT ON TABLE public.password_reset_tokens IS 'One-time password reset links (SHA-256 of the token is stored).';
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.password_reset_tokens ENABLE ROW LEVEL SECURITY;
@@ -100,7 +132,7 @@ ALTER TABLE public.password_reset_tokens ENABLE ROW LEVEL SECURITY;
 -- MODULE 1. Accounts, users and team roles
 -- ----------------------------------------------------------------------
 
-CREATE TABLE public.accounts (
+CREATE TABLE IF NOT EXISTS public.accounts (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   name text NOT NULL,
   owner_user_id uuid NOT NULL,
@@ -110,9 +142,15 @@ CREATE TABLE public.accounts (
   CONSTRAINT accounts_pkey PRIMARY KEY (id),
   CONSTRAINT accounts_default_currency_format CHECK ((default_currency ~ '^[A-Z]{3}$'::text))
 );
+ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS name text NOT NULL;
+ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS owner_user_id uuid NOT NULL;
+ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
+ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now() NOT NULL;
+ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS default_currency text DEFAULT 'USD'::text NOT NULL;
 COMMENT ON TABLE public.accounts IS 'Workspace (tenant). Every business table is scoped by account_id. One account per owner (idx_accounts_one_per_owner).';
 
-CREATE TABLE public.profiles (
+CREATE TABLE IF NOT EXISTS public.profiles (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   user_id uuid NOT NULL,
   full_name text NOT NULL,
@@ -127,9 +165,20 @@ CREATE TABLE public.profiles (
   CONSTRAINT profiles_user_id_key UNIQUE (user_id),
   CONSTRAINT profiles_pkey PRIMARY KEY (id)
 );
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS user_id uuid NOT NULL;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS full_name text NOT NULL;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email text NOT NULL;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_url text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS role text DEFAULT 'user'::text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now();
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS beta_features text[] DEFAULT ARRAY[]::text[] NOT NULL;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS account_role account_role_enum NOT NULL;
 COMMENT ON TABLE public.profiles IS 'One row per auth user: name, avatar, beta flags, the account the user belongs to and their account_role (owner/admin/agent/viewer).';
 
-CREATE TABLE public.account_invitations (
+CREATE TABLE IF NOT EXISTS public.account_invitations (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   account_id uuid NOT NULL,
   token_hash text NOT NULL,
@@ -144,9 +193,19 @@ CREATE TABLE public.account_invitations (
   CONSTRAINT account_invitations_pkey PRIMARY KEY (id),
   CONSTRAINT account_invitations_role_check CHECK ((role <> 'owner'::account_role_enum))
 );
+ALTER TABLE public.account_invitations ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.account_invitations ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
+ALTER TABLE public.account_invitations ADD COLUMN IF NOT EXISTS token_hash text NOT NULL;
+ALTER TABLE public.account_invitations ADD COLUMN IF NOT EXISTS role account_role_enum NOT NULL;
+ALTER TABLE public.account_invitations ADD COLUMN IF NOT EXISTS created_by_user_id uuid;
+ALTER TABLE public.account_invitations ADD COLUMN IF NOT EXISTS label text;
+ALTER TABLE public.account_invitations ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
+ALTER TABLE public.account_invitations ADD COLUMN IF NOT EXISTS expires_at timestamp with time zone NOT NULL;
+ALTER TABLE public.account_invitations ADD COLUMN IF NOT EXISTS accepted_at timestamp with time zone;
+ALTER TABLE public.account_invitations ADD COLUMN IF NOT EXISTS accepted_by_user_id uuid;
 COMMENT ON TABLE public.account_invitations IS 'Invite links. Only the SHA-256 token_hash is stored; redeemed through redeem_invitation().';
 
-CREATE TABLE public.member_presence (
+CREATE TABLE IF NOT EXISTS public.member_presence (
   user_id uuid NOT NULL,
   account_id uuid NOT NULL,
   status text DEFAULT 'online'::text NOT NULL,
@@ -154,13 +213,17 @@ CREATE TABLE public.member_presence (
   CONSTRAINT member_presence_pkey PRIMARY KEY (user_id),
   CONSTRAINT member_presence_status_check CHECK ((status = ANY (ARRAY['online'::text, 'away'::text])))
 );
+ALTER TABLE public.member_presence ADD COLUMN IF NOT EXISTS user_id uuid NOT NULL;
+ALTER TABLE public.member_presence ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
+ALTER TABLE public.member_presence ADD COLUMN IF NOT EXISTS status text DEFAULT 'online'::text NOT NULL;
+ALTER TABLE public.member_presence ADD COLUMN IF NOT EXISTS last_seen_at timestamp with time zone DEFAULT now() NOT NULL;
 COMMENT ON TABLE public.member_presence IS 'Online/away status of each team member per account (Realtime-enabled).';
 
 -- ----------------------------------------------------------------------
 -- MODULE 2. Platform roles and subscriptions
 -- ----------------------------------------------------------------------
 
-CREATE TABLE public.platform_users (
+CREATE TABLE IF NOT EXISTS public.platform_users (
   user_id uuid NOT NULL,
   platform_role text DEFAULT 'subscriber'::text NOT NULL,
   subscription_status text DEFAULT 'trial'::text NOT NULL,
@@ -177,13 +240,24 @@ CREATE TABLE public.platform_users (
   CONSTRAINT platform_users_subscription_status_check CHECK ((subscription_status = ANY (ARRAY['trial'::text, 'active'::text, 'expired'::text, 'suspended'::text]))),
   CONSTRAINT platform_users_trial_days_check CHECK (((trial_days IS NULL) OR (trial_days = ANY (ARRAY[1, 7, 15]))))
 );
+ALTER TABLE public.platform_users ADD COLUMN IF NOT EXISTS user_id uuid NOT NULL;
+ALTER TABLE public.platform_users ADD COLUMN IF NOT EXISTS platform_role text DEFAULT 'subscriber'::text NOT NULL;
+ALTER TABLE public.platform_users ADD COLUMN IF NOT EXISTS subscription_status text DEFAULT 'trial'::text NOT NULL;
+ALTER TABLE public.platform_users ADD COLUMN IF NOT EXISTS trial_days integer;
+ALTER TABLE public.platform_users ADD COLUMN IF NOT EXISTS trial_started_at timestamp with time zone;
+ALTER TABLE public.platform_users ADD COLUMN IF NOT EXISTS trial_ends_at timestamp with time zone;
+ALTER TABLE public.platform_users ADD COLUMN IF NOT EXISTS allowed_tabs text[];
+ALTER TABLE public.platform_users ADD COLUMN IF NOT EXISTS notes text;
+ALTER TABLE public.platform_users ADD COLUMN IF NOT EXISTS updated_by uuid;
+ALTER TABLE public.platform_users ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
+ALTER TABLE public.platform_users ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now() NOT NULL;
 COMMENT ON TABLE public.platform_users IS 'Platform-level role (super_admin/admin1/admin2/subscriber), subscription status, trial window and per-user sidebar tab access. Written only by /api/platform/* under the service role.';
 
 -- ----------------------------------------------------------------------
 -- MODULE 3. WhatsApp connection and message templates
 -- ----------------------------------------------------------------------
 
-CREATE TABLE public.whatsapp_config (
+CREATE TABLE IF NOT EXISTS public.whatsapp_config (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   user_id uuid NOT NULL,
   phone_number_id text NOT NULL,
@@ -204,9 +278,24 @@ CREATE TABLE public.whatsapp_config (
   CONSTRAINT whatsapp_config_pkey PRIMARY KEY (id),
   CONSTRAINT whatsapp_config_status_check CHECK ((status = ANY (ARRAY['connected'::text, 'disconnected'::text])))
 );
+ALTER TABLE public.whatsapp_config ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.whatsapp_config ADD COLUMN IF NOT EXISTS user_id uuid NOT NULL;
+ALTER TABLE public.whatsapp_config ADD COLUMN IF NOT EXISTS phone_number_id text NOT NULL;
+ALTER TABLE public.whatsapp_config ADD COLUMN IF NOT EXISTS waba_id text;
+ALTER TABLE public.whatsapp_config ADD COLUMN IF NOT EXISTS access_token text NOT NULL;
+ALTER TABLE public.whatsapp_config ADD COLUMN IF NOT EXISTS verify_token text;
+ALTER TABLE public.whatsapp_config ADD COLUMN IF NOT EXISTS status text DEFAULT 'disconnected'::text NOT NULL;
+ALTER TABLE public.whatsapp_config ADD COLUMN IF NOT EXISTS connected_at timestamp with time zone;
+ALTER TABLE public.whatsapp_config ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
+ALTER TABLE public.whatsapp_config ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now();
+ALTER TABLE public.whatsapp_config ADD COLUMN IF NOT EXISTS registered_at timestamp with time zone;
+ALTER TABLE public.whatsapp_config ADD COLUMN IF NOT EXISTS subscribed_apps_at timestamp with time zone;
+ALTER TABLE public.whatsapp_config ADD COLUMN IF NOT EXISTS last_registration_error text;
+ALTER TABLE public.whatsapp_config ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
+ALTER TABLE public.whatsapp_config ADD COLUMN IF NOT EXISTS mirror_inbound_media boolean DEFAULT true NOT NULL;
 COMMENT ON TABLE public.whatsapp_config IS 'Meta Cloud API connection for an account (one per account, phone_number_id unique across the install). access_token is stored AES-256-GCM encrypted.';
 
-CREATE TABLE public.message_templates (
+CREATE TABLE IF NOT EXISTS public.message_templates (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   user_id uuid NOT NULL,
   name text NOT NULL,
@@ -236,13 +325,35 @@ CREATE TABLE public.message_templates (
   CONSTRAINT message_templates_quality_score_check CHECK (((quality_score IS NULL) OR (quality_score = ANY (ARRAY['GREEN'::text, 'YELLOW'::text, 'RED'::text])))),
   CONSTRAINT message_templates_status_meta_check CHECK ((status = ANY (ARRAY['DRAFT'::text, 'PENDING'::text, 'APPROVED'::text, 'REJECTED'::text, 'PAUSED'::text, 'DISABLED'::text, 'IN_APPEAL'::text, 'PENDING_DELETION'::text])))
 );
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS user_id uuid NOT NULL;
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS name text NOT NULL;
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS category text DEFAULT 'Marketing'::text NOT NULL;
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS language text DEFAULT 'en_US'::text;
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS header_type text;
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS header_content text;
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS body_text text NOT NULL;
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS footer_text text;
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS buttons jsonb;
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS status text DEFAULT 'DRAFT'::text;
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now();
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS sample_values jsonb;
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS meta_template_id text;
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS rejection_reason text;
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS quality_score text;
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS header_handle text;
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS header_media_url text;
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS submission_error text;
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS last_submitted_at timestamp with time zone;
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
 COMMENT ON TABLE public.message_templates IS 'WhatsApp message templates and their Meta approval state (status, meta_template_id, rejection_reason, quality_score).';
 
 -- ----------------------------------------------------------------------
 -- MODULE 4. Contacts, tags and custom fields
 -- ----------------------------------------------------------------------
 
-CREATE TABLE public.contacts (
+CREATE TABLE IF NOT EXISTS public.contacts (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   user_id uuid NOT NULL,
   phone text NOT NULL,
@@ -259,9 +370,23 @@ CREATE TABLE public.contacts (
   wa_username text,
   CONSTRAINT contacts_pkey PRIMARY KEY (id)
 );
+ALTER TABLE public.contacts ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.contacts ADD COLUMN IF NOT EXISTS user_id uuid NOT NULL;
+ALTER TABLE public.contacts ADD COLUMN IF NOT EXISTS phone text NOT NULL;
+ALTER TABLE public.contacts ADD COLUMN IF NOT EXISTS name text;
+ALTER TABLE public.contacts ADD COLUMN IF NOT EXISTS email text;
+ALTER TABLE public.contacts ADD COLUMN IF NOT EXISTS company text;
+ALTER TABLE public.contacts ADD COLUMN IF NOT EXISTS avatar_url text;
+ALTER TABLE public.contacts ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
+ALTER TABLE public.contacts ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now();
+ALTER TABLE public.contacts ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
+ALTER TABLE public.contacts ADD COLUMN IF NOT EXISTS phone_normalized text GENERATED ALWAYS AS (regexp_replace(phone, '\D'::text, ''::text, 'g'::text)) STORED;
+ALTER TABLE public.contacts ADD COLUMN IF NOT EXISTS wa_user_id text;
+ALTER TABLE public.contacts ADD COLUMN IF NOT EXISTS wa_parent_user_id text;
+ALTER TABLE public.contacts ADD COLUMN IF NOT EXISTS wa_username text;
 COMMENT ON TABLE public.contacts IS 'People the business talks to. phone_normalized is unique per account; wa_user_id / wa_parent_user_id / wa_username hold Meta business-scoped ids.';
 
-CREATE TABLE public.tags (
+CREATE TABLE IF NOT EXISTS public.tags (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   user_id uuid NOT NULL,
   name text NOT NULL,
@@ -270,9 +395,15 @@ CREATE TABLE public.tags (
   account_id uuid NOT NULL,
   CONSTRAINT tags_pkey PRIMARY KEY (id)
 );
+ALTER TABLE public.tags ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.tags ADD COLUMN IF NOT EXISTS user_id uuid NOT NULL;
+ALTER TABLE public.tags ADD COLUMN IF NOT EXISTS name text NOT NULL;
+ALTER TABLE public.tags ADD COLUMN IF NOT EXISTS color text DEFAULT '#3b82f6'::text NOT NULL;
+ALTER TABLE public.tags ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
+ALTER TABLE public.tags ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
 COMMENT ON TABLE public.tags IS 'Account-level labels that can be put on contacts.';
 
-CREATE TABLE public.contact_tags (
+CREATE TABLE IF NOT EXISTS public.contact_tags (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   contact_id uuid NOT NULL,
   tag_id uuid NOT NULL,
@@ -280,9 +411,13 @@ CREATE TABLE public.contact_tags (
   CONSTRAINT contact_tags_contact_id_tag_id_key UNIQUE (contact_id, tag_id),
   CONSTRAINT contact_tags_pkey PRIMARY KEY (id)
 );
+ALTER TABLE public.contact_tags ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.contact_tags ADD COLUMN IF NOT EXISTS contact_id uuid NOT NULL;
+ALTER TABLE public.contact_tags ADD COLUMN IF NOT EXISTS tag_id uuid NOT NULL;
+ALTER TABLE public.contact_tags ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
 COMMENT ON TABLE public.contact_tags IS 'Junction table: contacts <-> tags (many-to-many).';
 
-CREATE TABLE public.custom_fields (
+CREATE TABLE IF NOT EXISTS public.custom_fields (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   user_id uuid NOT NULL,
   field_name text NOT NULL,
@@ -292,9 +427,16 @@ CREATE TABLE public.custom_fields (
   account_id uuid NOT NULL,
   CONSTRAINT custom_fields_pkey PRIMARY KEY (id)
 );
+ALTER TABLE public.custom_fields ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.custom_fields ADD COLUMN IF NOT EXISTS user_id uuid NOT NULL;
+ALTER TABLE public.custom_fields ADD COLUMN IF NOT EXISTS field_name text NOT NULL;
+ALTER TABLE public.custom_fields ADD COLUMN IF NOT EXISTS field_type text DEFAULT 'text'::text NOT NULL;
+ALTER TABLE public.custom_fields ADD COLUMN IF NOT EXISTS field_options jsonb;
+ALTER TABLE public.custom_fields ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
+ALTER TABLE public.custom_fields ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
 COMMENT ON TABLE public.custom_fields IS 'Account-defined extra contact fields (name, type, options).';
 
-CREATE TABLE public.contact_custom_values (
+CREATE TABLE IF NOT EXISTS public.contact_custom_values (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   contact_id uuid NOT NULL,
   custom_field_id uuid NOT NULL,
@@ -303,9 +445,14 @@ CREATE TABLE public.contact_custom_values (
   CONSTRAINT contact_custom_values_contact_id_custom_field_id_key UNIQUE (contact_id, custom_field_id),
   CONSTRAINT contact_custom_values_pkey PRIMARY KEY (id)
 );
+ALTER TABLE public.contact_custom_values ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.contact_custom_values ADD COLUMN IF NOT EXISTS contact_id uuid NOT NULL;
+ALTER TABLE public.contact_custom_values ADD COLUMN IF NOT EXISTS custom_field_id uuid NOT NULL;
+ALTER TABLE public.contact_custom_values ADD COLUMN IF NOT EXISTS value text;
+ALTER TABLE public.contact_custom_values ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
 COMMENT ON TABLE public.contact_custom_values IS 'Junction table: value of a custom field for a contact (one per contact + field).';
 
-CREATE TABLE public.contact_notes (
+CREATE TABLE IF NOT EXISTS public.contact_notes (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   contact_id uuid NOT NULL,
   user_id uuid NOT NULL,
@@ -314,13 +461,19 @@ CREATE TABLE public.contact_notes (
   account_id uuid NOT NULL,
   CONSTRAINT contact_notes_pkey PRIMARY KEY (id)
 );
+ALTER TABLE public.contact_notes ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.contact_notes ADD COLUMN IF NOT EXISTS contact_id uuid NOT NULL;
+ALTER TABLE public.contact_notes ADD COLUMN IF NOT EXISTS user_id uuid NOT NULL;
+ALTER TABLE public.contact_notes ADD COLUMN IF NOT EXISTS note_text text NOT NULL;
+ALTER TABLE public.contact_notes ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
+ALTER TABLE public.contact_notes ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
 COMMENT ON TABLE public.contact_notes IS 'Internal notes written on a contact.';
 
 -- ----------------------------------------------------------------------
 -- MODULE 5. Inbox: conversations, messages and quick replies
 -- ----------------------------------------------------------------------
 
-CREATE TABLE public.conversations (
+CREATE TABLE IF NOT EXISTS public.conversations (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   user_id uuid NOT NULL,
   contact_id uuid NOT NULL,
@@ -338,9 +491,23 @@ CREATE TABLE public.conversations (
   CONSTRAINT conversations_pkey PRIMARY KEY (id),
   CONSTRAINT conversations_status_check CHECK ((status = ANY (ARRAY['open'::text, 'pending'::text, 'closed'::text])))
 );
+ALTER TABLE public.conversations ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.conversations ADD COLUMN IF NOT EXISTS user_id uuid NOT NULL;
+ALTER TABLE public.conversations ADD COLUMN IF NOT EXISTS contact_id uuid NOT NULL;
+ALTER TABLE public.conversations ADD COLUMN IF NOT EXISTS status text DEFAULT 'open'::text NOT NULL;
+ALTER TABLE public.conversations ADD COLUMN IF NOT EXISTS assigned_agent_id uuid;
+ALTER TABLE public.conversations ADD COLUMN IF NOT EXISTS last_message_text text;
+ALTER TABLE public.conversations ADD COLUMN IF NOT EXISTS last_message_at timestamp with time zone;
+ALTER TABLE public.conversations ADD COLUMN IF NOT EXISTS unread_count integer DEFAULT 0;
+ALTER TABLE public.conversations ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
+ALTER TABLE public.conversations ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now();
+ALTER TABLE public.conversations ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
+ALTER TABLE public.conversations ADD COLUMN IF NOT EXISTS ai_autoreply_disabled boolean DEFAULT false NOT NULL;
+ALTER TABLE public.conversations ADD COLUMN IF NOT EXISTS ai_reply_count integer DEFAULT 0 NOT NULL;
+ALTER TABLE public.conversations ADD COLUMN IF NOT EXISTS ai_handoff_summary text;
 COMMENT ON TABLE public.conversations IS 'One thread per contact (unique account_id + contact_id). Holds assignment, status, unread count and AI auto-reply state.';
 
-CREATE TABLE public.messages (
+CREATE TABLE IF NOT EXISTS public.messages (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   conversation_id uuid NOT NULL,
   sender_type text NOT NULL,
@@ -365,9 +532,28 @@ CREATE TABLE public.messages (
   CONSTRAINT messages_sender_type_check CHECK ((sender_type = ANY (ARRAY['customer'::text, 'agent'::text, 'bot'::text]))),
   CONSTRAINT messages_status_check CHECK ((status = ANY (ARRAY['sending'::text, 'sent'::text, 'delivered'::text, 'read'::text, 'failed'::text])))
 );
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS conversation_id uuid NOT NULL;
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS sender_type text NOT NULL;
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS sender_id uuid;
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS content_type text DEFAULT 'text'::text NOT NULL;
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS content_text text;
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS media_url text;
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS template_name text;
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS message_id text;
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS status text DEFAULT 'sent'::text NOT NULL;
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS reply_to_message_id uuid;
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS interactive_reply_id text;
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS ai_generated boolean DEFAULT false NOT NULL;
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS interactive_payload jsonb;
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS media_type text;
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS error_code integer;
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS error_title text;
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS error_details text;
 COMMENT ON TABLE public.messages IS 'Every inbound/outbound/internal message of a conversation, including media, interactive payloads, delivery status and failure details. Realtime-enabled.';
 
-CREATE TABLE public.message_reactions (
+CREATE TABLE IF NOT EXISTS public.message_reactions (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   message_id uuid NOT NULL,
   conversation_id uuid NOT NULL,
@@ -379,9 +565,16 @@ CREATE TABLE public.message_reactions (
   CONSTRAINT message_reactions_pkey PRIMARY KEY (id),
   CONSTRAINT message_reactions_actor_type_check CHECK ((actor_type = ANY (ARRAY['customer'::text, 'agent'::text])))
 );
+ALTER TABLE public.message_reactions ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.message_reactions ADD COLUMN IF NOT EXISTS message_id uuid NOT NULL;
+ALTER TABLE public.message_reactions ADD COLUMN IF NOT EXISTS conversation_id uuid NOT NULL;
+ALTER TABLE public.message_reactions ADD COLUMN IF NOT EXISTS actor_type text NOT NULL;
+ALTER TABLE public.message_reactions ADD COLUMN IF NOT EXISTS actor_id uuid;
+ALTER TABLE public.message_reactions ADD COLUMN IF NOT EXISTS emoji text NOT NULL;
+ALTER TABLE public.message_reactions ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
 COMMENT ON TABLE public.message_reactions IS 'Emoji reactions by an agent or the contact on a message (one per message + actor). Realtime-enabled.';
 
-CREATE TABLE public.quick_replies (
+CREATE TABLE IF NOT EXISTS public.quick_replies (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   account_id uuid NOT NULL,
   user_id uuid NOT NULL,
@@ -394,13 +587,22 @@ CREATE TABLE public.quick_replies (
   CONSTRAINT quick_replies_pkey PRIMARY KEY (id),
   CONSTRAINT quick_replies_kind_check CHECK ((kind = ANY (ARRAY['text'::text, 'interactive'::text])))
 );
+ALTER TABLE public.quick_replies ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.quick_replies ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
+ALTER TABLE public.quick_replies ADD COLUMN IF NOT EXISTS user_id uuid NOT NULL;
+ALTER TABLE public.quick_replies ADD COLUMN IF NOT EXISTS title text NOT NULL;
+ALTER TABLE public.quick_replies ADD COLUMN IF NOT EXISTS kind text DEFAULT 'text'::text NOT NULL;
+ALTER TABLE public.quick_replies ADD COLUMN IF NOT EXISTS content_text text;
+ALTER TABLE public.quick_replies ADD COLUMN IF NOT EXISTS interactive_payload jsonb;
+ALTER TABLE public.quick_replies ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
+ALTER TABLE public.quick_replies ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now() NOT NULL;
 COMMENT ON TABLE public.quick_replies IS 'Saved replies (plain text or interactive buttons/lists) agents can insert in the inbox.';
 
 -- ----------------------------------------------------------------------
 -- MODULE 6. Sales pipelines and deals
 -- ----------------------------------------------------------------------
 
-CREATE TABLE public.pipelines (
+CREATE TABLE IF NOT EXISTS public.pipelines (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   user_id uuid NOT NULL,
   name text NOT NULL,
@@ -408,9 +610,14 @@ CREATE TABLE public.pipelines (
   account_id uuid NOT NULL,
   CONSTRAINT pipelines_pkey PRIMARY KEY (id)
 );
+ALTER TABLE public.pipelines ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.pipelines ADD COLUMN IF NOT EXISTS user_id uuid NOT NULL;
+ALTER TABLE public.pipelines ADD COLUMN IF NOT EXISTS name text NOT NULL;
+ALTER TABLE public.pipelines ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
+ALTER TABLE public.pipelines ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
 COMMENT ON TABLE public.pipelines IS 'Kanban sales pipelines.';
 
-CREATE TABLE public.pipeline_stages (
+CREATE TABLE IF NOT EXISTS public.pipeline_stages (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   pipeline_id uuid NOT NULL,
   name text NOT NULL,
@@ -419,9 +626,15 @@ CREATE TABLE public.pipeline_stages (
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT pipeline_stages_pkey PRIMARY KEY (id)
 );
+ALTER TABLE public.pipeline_stages ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.pipeline_stages ADD COLUMN IF NOT EXISTS pipeline_id uuid NOT NULL;
+ALTER TABLE public.pipeline_stages ADD COLUMN IF NOT EXISTS name text NOT NULL;
+ALTER TABLE public.pipeline_stages ADD COLUMN IF NOT EXISTS position integer DEFAULT 0 NOT NULL;
+ALTER TABLE public.pipeline_stages ADD COLUMN IF NOT EXISTS color text DEFAULT '#3b82f6'::text NOT NULL;
+ALTER TABLE public.pipeline_stages ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
 COMMENT ON TABLE public.pipeline_stages IS 'Ordered stages (columns) of a pipeline.';
 
-CREATE TABLE public.deals (
+CREATE TABLE IF NOT EXISTS public.deals (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   user_id uuid NOT NULL,
   pipeline_id uuid NOT NULL,
@@ -441,13 +654,29 @@ CREATE TABLE public.deals (
   CONSTRAINT deals_pkey PRIMARY KEY (id),
   CONSTRAINT deals_status_check CHECK ((status = ANY (ARRAY['open'::text, 'won'::text, 'lost'::text])))
 );
+ALTER TABLE public.deals ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.deals ADD COLUMN IF NOT EXISTS user_id uuid NOT NULL;
+ALTER TABLE public.deals ADD COLUMN IF NOT EXISTS pipeline_id uuid NOT NULL;
+ALTER TABLE public.deals ADD COLUMN IF NOT EXISTS stage_id uuid NOT NULL;
+ALTER TABLE public.deals ADD COLUMN IF NOT EXISTS contact_id uuid;
+ALTER TABLE public.deals ADD COLUMN IF NOT EXISTS conversation_id uuid;
+ALTER TABLE public.deals ADD COLUMN IF NOT EXISTS title text NOT NULL;
+ALTER TABLE public.deals ADD COLUMN IF NOT EXISTS value numeric(12,2) DEFAULT 0 NOT NULL;
+ALTER TABLE public.deals ADD COLUMN IF NOT EXISTS currency text DEFAULT 'USD'::text;
+ALTER TABLE public.deals ADD COLUMN IF NOT EXISTS notes text;
+ALTER TABLE public.deals ADD COLUMN IF NOT EXISTS expected_close_date date;
+ALTER TABLE public.deals ADD COLUMN IF NOT EXISTS status text DEFAULT 'open'::text;
+ALTER TABLE public.deals ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
+ALTER TABLE public.deals ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now();
+ALTER TABLE public.deals ADD COLUMN IF NOT EXISTS assigned_to uuid;
+ALTER TABLE public.deals ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
 COMMENT ON TABLE public.deals IS 'Opportunities placed in a pipeline stage, linked to a contact and optionally a conversation and an assignee.';
 
 -- ----------------------------------------------------------------------
 -- MODULE 7. Broadcasts
 -- ----------------------------------------------------------------------
 
-CREATE TABLE public.broadcasts (
+CREATE TABLE IF NOT EXISTS public.broadcasts (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   user_id uuid NOT NULL,
   name text NOT NULL,
@@ -470,9 +699,28 @@ CREATE TABLE public.broadcasts (
   CONSTRAINT broadcasts_pkey PRIMARY KEY (id),
   CONSTRAINT broadcasts_status_check CHECK ((status = ANY (ARRAY['draft'::text, 'scheduled'::text, 'sending'::text, 'sent'::text, 'failed'::text])))
 );
+ALTER TABLE public.broadcasts ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.broadcasts ADD COLUMN IF NOT EXISTS user_id uuid NOT NULL;
+ALTER TABLE public.broadcasts ADD COLUMN IF NOT EXISTS name text NOT NULL;
+ALTER TABLE public.broadcasts ADD COLUMN IF NOT EXISTS template_name text NOT NULL;
+ALTER TABLE public.broadcasts ADD COLUMN IF NOT EXISTS template_language text DEFAULT 'en_US'::text NOT NULL;
+ALTER TABLE public.broadcasts ADD COLUMN IF NOT EXISTS template_variables jsonb;
+ALTER TABLE public.broadcasts ADD COLUMN IF NOT EXISTS audience_filter jsonb;
+ALTER TABLE public.broadcasts ADD COLUMN IF NOT EXISTS scheduled_at timestamp with time zone;
+ALTER TABLE public.broadcasts ADD COLUMN IF NOT EXISTS status text DEFAULT 'draft'::text NOT NULL;
+ALTER TABLE public.broadcasts ADD COLUMN IF NOT EXISTS total_recipients integer DEFAULT 0;
+ALTER TABLE public.broadcasts ADD COLUMN IF NOT EXISTS sent_count integer DEFAULT 0;
+ALTER TABLE public.broadcasts ADD COLUMN IF NOT EXISTS delivered_count integer DEFAULT 0;
+ALTER TABLE public.broadcasts ADD COLUMN IF NOT EXISTS read_count integer DEFAULT 0;
+ALTER TABLE public.broadcasts ADD COLUMN IF NOT EXISTS replied_count integer DEFAULT 0;
+ALTER TABLE public.broadcasts ADD COLUMN IF NOT EXISTS failed_count integer DEFAULT 0;
+ALTER TABLE public.broadcasts ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
+ALTER TABLE public.broadcasts ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now();
+ALTER TABLE public.broadcasts ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
+ALTER TABLE public.broadcasts ADD COLUMN IF NOT EXISTS delivery_locked_at timestamp with time zone;
 COMMENT ON TABLE public.broadcasts IS 'A template campaign sent to an audience; carries the delivery counters and the delivery lock used by resume.';
 
-CREATE TABLE public.broadcast_recipients (
+CREATE TABLE IF NOT EXISTS public.broadcast_recipients (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   broadcast_id uuid NOT NULL,
   contact_id uuid,
@@ -488,13 +736,25 @@ CREATE TABLE public.broadcast_recipients (
   CONSTRAINT broadcast_recipients_pkey PRIMARY KEY (id),
   CONSTRAINT broadcast_recipients_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'sent'::text, 'delivered'::text, 'read'::text, 'replied'::text, 'failed'::text])))
 );
+ALTER TABLE public.broadcast_recipients ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.broadcast_recipients ADD COLUMN IF NOT EXISTS broadcast_id uuid NOT NULL;
+ALTER TABLE public.broadcast_recipients ADD COLUMN IF NOT EXISTS contact_id uuid;
+ALTER TABLE public.broadcast_recipients ADD COLUMN IF NOT EXISTS status text DEFAULT 'pending'::text NOT NULL;
+ALTER TABLE public.broadcast_recipients ADD COLUMN IF NOT EXISTS sent_at timestamp with time zone;
+ALTER TABLE public.broadcast_recipients ADD COLUMN IF NOT EXISTS delivered_at timestamp with time zone;
+ALTER TABLE public.broadcast_recipients ADD COLUMN IF NOT EXISTS read_at timestamp with time zone;
+ALTER TABLE public.broadcast_recipients ADD COLUMN IF NOT EXISTS replied_at timestamp with time zone;
+ALTER TABLE public.broadcast_recipients ADD COLUMN IF NOT EXISTS error_message text;
+ALTER TABLE public.broadcast_recipients ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
+ALTER TABLE public.broadcast_recipients ADD COLUMN IF NOT EXISTS whatsapp_message_id text;
+ALTER TABLE public.broadcast_recipients ADD COLUMN IF NOT EXISTS template_params jsonb;
 COMMENT ON TABLE public.broadcast_recipients IS 'One row per contact in a broadcast with per-recipient status timestamps and wamid; a trigger keeps the broadcast counters in sync.';
 
 -- ----------------------------------------------------------------------
 -- MODULE 8. Automations
 -- ----------------------------------------------------------------------
 
-CREATE TABLE public.automations (
+CREATE TABLE IF NOT EXISTS public.automations (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   user_id uuid NOT NULL,
   name text NOT NULL,
@@ -509,9 +769,21 @@ CREATE TABLE public.automations (
   account_id uuid NOT NULL,
   CONSTRAINT automations_pkey PRIMARY KEY (id)
 );
+ALTER TABLE public.automations ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.automations ADD COLUMN IF NOT EXISTS user_id uuid NOT NULL;
+ALTER TABLE public.automations ADD COLUMN IF NOT EXISTS name text NOT NULL;
+ALTER TABLE public.automations ADD COLUMN IF NOT EXISTS description text;
+ALTER TABLE public.automations ADD COLUMN IF NOT EXISTS trigger_type text NOT NULL;
+ALTER TABLE public.automations ADD COLUMN IF NOT EXISTS trigger_config jsonb DEFAULT '{}'::jsonb NOT NULL;
+ALTER TABLE public.automations ADD COLUMN IF NOT EXISTS is_active boolean DEFAULT false NOT NULL;
+ALTER TABLE public.automations ADD COLUMN IF NOT EXISTS execution_count integer DEFAULT 0 NOT NULL;
+ALTER TABLE public.automations ADD COLUMN IF NOT EXISTS last_executed_at timestamp with time zone;
+ALTER TABLE public.automations ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
+ALTER TABLE public.automations ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now() NOT NULL;
+ALTER TABLE public.automations ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
 COMMENT ON TABLE public.automations IS 'No-code automations: trigger type/config and an execution counter.';
 
-CREATE TABLE public.automation_steps (
+CREATE TABLE IF NOT EXISTS public.automation_steps (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   automation_id uuid NOT NULL,
   parent_step_id uuid,
@@ -523,9 +795,17 @@ CREATE TABLE public.automation_steps (
   CONSTRAINT automation_steps_pkey PRIMARY KEY (id),
   CONSTRAINT automation_steps_branch_check CHECK ((branch = ANY (ARRAY['yes'::text, 'no'::text])))
 );
+ALTER TABLE public.automation_steps ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.automation_steps ADD COLUMN IF NOT EXISTS automation_id uuid NOT NULL;
+ALTER TABLE public.automation_steps ADD COLUMN IF NOT EXISTS parent_step_id uuid;
+ALTER TABLE public.automation_steps ADD COLUMN IF NOT EXISTS branch text;
+ALTER TABLE public.automation_steps ADD COLUMN IF NOT EXISTS step_type text NOT NULL;
+ALTER TABLE public.automation_steps ADD COLUMN IF NOT EXISTS step_config jsonb DEFAULT '{}'::jsonb NOT NULL;
+ALTER TABLE public.automation_steps ADD COLUMN IF NOT EXISTS position integer NOT NULL;
+ALTER TABLE public.automation_steps ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
 COMMENT ON TABLE public.automation_steps IS 'Steps of an automation, nested by parent_step_id and branch (condition yes/no).';
 
-CREATE TABLE public.automation_logs (
+CREATE TABLE IF NOT EXISTS public.automation_logs (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   automation_id uuid NOT NULL,
   user_id uuid NOT NULL,
@@ -539,9 +819,19 @@ CREATE TABLE public.automation_logs (
   CONSTRAINT automation_logs_pkey PRIMARY KEY (id),
   CONSTRAINT automation_logs_status_check CHECK ((status = ANY (ARRAY['success'::text, 'partial'::text, 'failed'::text])))
 );
+ALTER TABLE public.automation_logs ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.automation_logs ADD COLUMN IF NOT EXISTS automation_id uuid NOT NULL;
+ALTER TABLE public.automation_logs ADD COLUMN IF NOT EXISTS user_id uuid NOT NULL;
+ALTER TABLE public.automation_logs ADD COLUMN IF NOT EXISTS contact_id uuid;
+ALTER TABLE public.automation_logs ADD COLUMN IF NOT EXISTS trigger_event text NOT NULL;
+ALTER TABLE public.automation_logs ADD COLUMN IF NOT EXISTS steps_executed jsonb DEFAULT '[]'::jsonb NOT NULL;
+ALTER TABLE public.automation_logs ADD COLUMN IF NOT EXISTS status text NOT NULL;
+ALTER TABLE public.automation_logs ADD COLUMN IF NOT EXISTS error_message text;
+ALTER TABLE public.automation_logs ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
+ALTER TABLE public.automation_logs ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
 COMMENT ON TABLE public.automation_logs IS 'One row per automation run with its outcome and the steps executed.';
 
-CREATE TABLE public.automation_pending_executions (
+CREATE TABLE IF NOT EXISTS public.automation_pending_executions (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   automation_id uuid NOT NULL,
   user_id uuid NOT NULL,
@@ -559,13 +849,26 @@ CREATE TABLE public.automation_pending_executions (
   CONSTRAINT automation_pending_executions_branch_check CHECK ((branch = ANY (ARRAY['yes'::text, 'no'::text]))),
   CONSTRAINT automation_pending_executions_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'running'::text, 'done'::text, 'failed'::text])))
 );
+ALTER TABLE public.automation_pending_executions ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.automation_pending_executions ADD COLUMN IF NOT EXISTS automation_id uuid NOT NULL;
+ALTER TABLE public.automation_pending_executions ADD COLUMN IF NOT EXISTS user_id uuid NOT NULL;
+ALTER TABLE public.automation_pending_executions ADD COLUMN IF NOT EXISTS contact_id uuid;
+ALTER TABLE public.automation_pending_executions ADD COLUMN IF NOT EXISTS log_id uuid;
+ALTER TABLE public.automation_pending_executions ADD COLUMN IF NOT EXISTS parent_step_id uuid;
+ALTER TABLE public.automation_pending_executions ADD COLUMN IF NOT EXISTS branch text;
+ALTER TABLE public.automation_pending_executions ADD COLUMN IF NOT EXISTS next_step_position integer NOT NULL;
+ALTER TABLE public.automation_pending_executions ADD COLUMN IF NOT EXISTS context jsonb DEFAULT '{}'::jsonb NOT NULL;
+ALTER TABLE public.automation_pending_executions ADD COLUMN IF NOT EXISTS status text DEFAULT 'pending'::text NOT NULL;
+ALTER TABLE public.automation_pending_executions ADD COLUMN IF NOT EXISTS run_at timestamp with time zone NOT NULL;
+ALTER TABLE public.automation_pending_executions ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
+ALTER TABLE public.automation_pending_executions ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
 COMMENT ON TABLE public.automation_pending_executions IS 'Delayed (wait) steps queued to resume at run_at.';
 
 -- ----------------------------------------------------------------------
 -- MODULE 9. Flows (chatbot builder)
 -- ----------------------------------------------------------------------
 
-CREATE TABLE public.flows (
+CREATE TABLE IF NOT EXISTS public.flows (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   user_id uuid NOT NULL,
   name text NOT NULL,
@@ -584,9 +887,23 @@ CREATE TABLE public.flows (
   CONSTRAINT flows_status_check CHECK ((status = ANY (ARRAY['draft'::text, 'active'::text, 'archived'::text]))),
   CONSTRAINT flows_trigger_type_check CHECK ((trigger_type = ANY (ARRAY['keyword'::text, 'first_inbound_message'::text, 'manual'::text])))
 );
+ALTER TABLE public.flows ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.flows ADD COLUMN IF NOT EXISTS user_id uuid NOT NULL;
+ALTER TABLE public.flows ADD COLUMN IF NOT EXISTS name text NOT NULL;
+ALTER TABLE public.flows ADD COLUMN IF NOT EXISTS description text;
+ALTER TABLE public.flows ADD COLUMN IF NOT EXISTS status text DEFAULT 'draft'::text NOT NULL;
+ALTER TABLE public.flows ADD COLUMN IF NOT EXISTS trigger_type text NOT NULL;
+ALTER TABLE public.flows ADD COLUMN IF NOT EXISTS trigger_config jsonb DEFAULT '{}'::jsonb NOT NULL;
+ALTER TABLE public.flows ADD COLUMN IF NOT EXISTS entry_node_id text;
+ALTER TABLE public.flows ADD COLUMN IF NOT EXISTS fallback_policy jsonb DEFAULT '{"on_exhaust": "handoff", "max_reprompts": 2, "on_timeout_hours": 24, "on_unknown_reply": "reprompt"}'::jsonb NOT NULL;
+ALTER TABLE public.flows ADD COLUMN IF NOT EXISTS execution_count integer DEFAULT 0 NOT NULL;
+ALTER TABLE public.flows ADD COLUMN IF NOT EXISTS last_executed_at timestamp with time zone;
+ALTER TABLE public.flows ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
+ALTER TABLE public.flows ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now() NOT NULL;
+ALTER TABLE public.flows ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
 COMMENT ON TABLE public.flows IS 'Chatbot flows (visual builder): trigger, entry node, fallback policy.';
 
-CREATE TABLE public.flow_nodes (
+CREATE TABLE IF NOT EXISTS public.flow_nodes (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   flow_id uuid NOT NULL,
   node_key text NOT NULL,
@@ -599,9 +916,17 @@ CREATE TABLE public.flow_nodes (
   CONSTRAINT flow_nodes_pkey PRIMARY KEY (id),
   CONSTRAINT flow_nodes_node_type_check CHECK ((node_type = ANY (ARRAY['start'::text, 'send_buttons'::text, 'send_list'::text, 'send_message'::text, 'send_media'::text, 'collect_input'::text, 'condition'::text, 'set_tag'::text, 'handoff'::text, 'http_fetch'::text, 'end'::text])))
 );
+ALTER TABLE public.flow_nodes ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.flow_nodes ADD COLUMN IF NOT EXISTS flow_id uuid NOT NULL;
+ALTER TABLE public.flow_nodes ADD COLUMN IF NOT EXISTS node_key text NOT NULL;
+ALTER TABLE public.flow_nodes ADD COLUMN IF NOT EXISTS node_type text NOT NULL;
+ALTER TABLE public.flow_nodes ADD COLUMN IF NOT EXISTS config jsonb DEFAULT '{}'::jsonb NOT NULL;
+ALTER TABLE public.flow_nodes ADD COLUMN IF NOT EXISTS position_x integer DEFAULT 0 NOT NULL;
+ALTER TABLE public.flow_nodes ADD COLUMN IF NOT EXISTS position_y integer DEFAULT 0 NOT NULL;
+ALTER TABLE public.flow_nodes ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
 COMMENT ON TABLE public.flow_nodes IS 'Nodes of a flow, keyed by node_key with canvas position and JSON config.';
 
-CREATE TABLE public.flow_runs (
+CREATE TABLE IF NOT EXISTS public.flow_runs (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   flow_id uuid NOT NULL,
   user_id uuid NOT NULL,
@@ -620,9 +945,24 @@ CREATE TABLE public.flow_runs (
   CONSTRAINT flow_runs_pkey PRIMARY KEY (id),
   CONSTRAINT flow_runs_status_check CHECK ((status = ANY (ARRAY['active'::text, 'completed'::text, 'handed_off'::text, 'timed_out'::text, 'paused_by_agent'::text, 'failed'::text])))
 );
+ALTER TABLE public.flow_runs ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.flow_runs ADD COLUMN IF NOT EXISTS flow_id uuid NOT NULL;
+ALTER TABLE public.flow_runs ADD COLUMN IF NOT EXISTS user_id uuid NOT NULL;
+ALTER TABLE public.flow_runs ADD COLUMN IF NOT EXISTS contact_id uuid;
+ALTER TABLE public.flow_runs ADD COLUMN IF NOT EXISTS conversation_id uuid;
+ALTER TABLE public.flow_runs ADD COLUMN IF NOT EXISTS status text DEFAULT 'active'::text NOT NULL;
+ALTER TABLE public.flow_runs ADD COLUMN IF NOT EXISTS current_node_key text;
+ALTER TABLE public.flow_runs ADD COLUMN IF NOT EXISTS last_prompt_message_id uuid;
+ALTER TABLE public.flow_runs ADD COLUMN IF NOT EXISTS vars jsonb DEFAULT '{}'::jsonb NOT NULL;
+ALTER TABLE public.flow_runs ADD COLUMN IF NOT EXISTS reprompt_count integer DEFAULT 0 NOT NULL;
+ALTER TABLE public.flow_runs ADD COLUMN IF NOT EXISTS started_at timestamp with time zone DEFAULT now() NOT NULL;
+ALTER TABLE public.flow_runs ADD COLUMN IF NOT EXISTS last_advanced_at timestamp with time zone DEFAULT now() NOT NULL;
+ALTER TABLE public.flow_runs ADD COLUMN IF NOT EXISTS ended_at timestamp with time zone;
+ALTER TABLE public.flow_runs ADD COLUMN IF NOT EXISTS end_reason text;
+ALTER TABLE public.flow_runs ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
 COMMENT ON TABLE public.flow_runs IS 'A contact''s progress through a flow; at most one active run per contact (idx_one_active_run_per_contact). Realtime-enabled.';
 
-CREATE TABLE public.flow_run_events (
+CREATE TABLE IF NOT EXISTS public.flow_run_events (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   flow_run_id uuid NOT NULL,
   event_type text NOT NULL,
@@ -632,13 +972,19 @@ CREATE TABLE public.flow_run_events (
   CONSTRAINT flow_run_events_pkey PRIMARY KEY (id),
   CONSTRAINT flow_run_events_event_type_check CHECK ((event_type = ANY (ARRAY['started'::text, 'node_entered'::text, 'message_sent'::text, 'reply_received'::text, 'fallback_fired'::text, 'handoff'::text, 'timeout'::text, 'error'::text, 'completed'::text])))
 );
+ALTER TABLE public.flow_run_events ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.flow_run_events ADD COLUMN IF NOT EXISTS flow_run_id uuid NOT NULL;
+ALTER TABLE public.flow_run_events ADD COLUMN IF NOT EXISTS event_type text NOT NULL;
+ALTER TABLE public.flow_run_events ADD COLUMN IF NOT EXISTS node_key text;
+ALTER TABLE public.flow_run_events ADD COLUMN IF NOT EXISTS payload jsonb DEFAULT '{}'::jsonb NOT NULL;
+ALTER TABLE public.flow_run_events ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
 COMMENT ON TABLE public.flow_run_events IS 'Event log of a flow run, used by the test panel and the errors panel.';
 
 -- ----------------------------------------------------------------------
 -- MODULE 10. AI agent, knowledge base and Train AI
 -- ----------------------------------------------------------------------
 
-CREATE TABLE public.ai_configs (
+CREATE TABLE IF NOT EXISTS public.ai_configs (
   id uuid DEFAULT gen_random_uuid() NOT NULL,
   account_id uuid NOT NULL,
   created_by uuid,
@@ -658,9 +1004,23 @@ CREATE TABLE public.ai_configs (
   CONSTRAINT ai_configs_auto_reply_max_per_conversation_check CHECK (((auto_reply_max_per_conversation >= 1) AND (auto_reply_max_per_conversation <= 20))),
   CONSTRAINT ai_configs_provider_check CHECK ((provider = ANY (ARRAY['openai'::text, 'anthropic'::text])))
 );
+ALTER TABLE public.ai_configs ADD COLUMN IF NOT EXISTS id uuid DEFAULT gen_random_uuid() NOT NULL;
+ALTER TABLE public.ai_configs ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
+ALTER TABLE public.ai_configs ADD COLUMN IF NOT EXISTS created_by uuid;
+ALTER TABLE public.ai_configs ADD COLUMN IF NOT EXISTS provider text NOT NULL;
+ALTER TABLE public.ai_configs ADD COLUMN IF NOT EXISTS model text NOT NULL;
+ALTER TABLE public.ai_configs ADD COLUMN IF NOT EXISTS api_key text NOT NULL;
+ALTER TABLE public.ai_configs ADD COLUMN IF NOT EXISTS system_prompt text;
+ALTER TABLE public.ai_configs ADD COLUMN IF NOT EXISTS is_active boolean DEFAULT false NOT NULL;
+ALTER TABLE public.ai_configs ADD COLUMN IF NOT EXISTS auto_reply_enabled boolean DEFAULT false NOT NULL;
+ALTER TABLE public.ai_configs ADD COLUMN IF NOT EXISTS auto_reply_max_per_conversation integer DEFAULT 3 NOT NULL;
+ALTER TABLE public.ai_configs ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
+ALTER TABLE public.ai_configs ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now() NOT NULL;
+ALTER TABLE public.ai_configs ADD COLUMN IF NOT EXISTS embeddings_api_key text;
+ALTER TABLE public.ai_configs ADD COLUMN IF NOT EXISTS handoff_agent_id uuid;
 COMMENT ON TABLE public.ai_configs IS 'AI reply assistant settings per account: provider, model, encrypted keys, auto-reply and handoff target.';
 
-CREATE TABLE public.ai_knowledge_documents (
+CREATE TABLE IF NOT EXISTS public.ai_knowledge_documents (
   id uuid DEFAULT gen_random_uuid() NOT NULL,
   account_id uuid NOT NULL,
   created_by uuid,
@@ -670,9 +1030,16 @@ CREATE TABLE public.ai_knowledge_documents (
   updated_at timestamp with time zone DEFAULT now() NOT NULL,
   CONSTRAINT ai_knowledge_documents_pkey PRIMARY KEY (id)
 );
+ALTER TABLE public.ai_knowledge_documents ADD COLUMN IF NOT EXISTS id uuid DEFAULT gen_random_uuid() NOT NULL;
+ALTER TABLE public.ai_knowledge_documents ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
+ALTER TABLE public.ai_knowledge_documents ADD COLUMN IF NOT EXISTS created_by uuid;
+ALTER TABLE public.ai_knowledge_documents ADD COLUMN IF NOT EXISTS title text NOT NULL;
+ALTER TABLE public.ai_knowledge_documents ADD COLUMN IF NOT EXISTS content text NOT NULL;
+ALTER TABLE public.ai_knowledge_documents ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
+ALTER TABLE public.ai_knowledge_documents ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now() NOT NULL;
 COMMENT ON TABLE public.ai_knowledge_documents IS 'Knowledge-base documents (FAQs, policies) the AI answers from.';
 
-CREATE TABLE public.ai_knowledge_chunks (
+CREATE TABLE IF NOT EXISTS public.ai_knowledge_chunks (
   id uuid DEFAULT gen_random_uuid() NOT NULL,
   document_id uuid NOT NULL,
   account_id uuid NOT NULL,
@@ -682,9 +1049,16 @@ CREATE TABLE public.ai_knowledge_chunks (
   created_at timestamp with time zone DEFAULT now() NOT NULL,
   CONSTRAINT ai_knowledge_chunks_pkey PRIMARY KEY (id)
 );
+ALTER TABLE public.ai_knowledge_chunks ADD COLUMN IF NOT EXISTS id uuid DEFAULT gen_random_uuid() NOT NULL;
+ALTER TABLE public.ai_knowledge_chunks ADD COLUMN IF NOT EXISTS document_id uuid NOT NULL;
+ALTER TABLE public.ai_knowledge_chunks ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
+ALTER TABLE public.ai_knowledge_chunks ADD COLUMN IF NOT EXISTS chunk_index integer DEFAULT 0 NOT NULL;
+ALTER TABLE public.ai_knowledge_chunks ADD COLUMN IF NOT EXISTS content text NOT NULL;
+ALTER TABLE public.ai_knowledge_chunks ADD COLUMN IF NOT EXISTS fts tsvector GENERATED ALWAYS AS (to_tsvector('simple'::regconfig, content)) STORED;
+ALTER TABLE public.ai_knowledge_chunks ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
 COMMENT ON TABLE public.ai_knowledge_chunks IS 'Searchable chunks of a knowledge document: full-text vector (fts) and optional pgvector embedding.';
 
-CREATE TABLE public.ai_usage_log (
+CREATE TABLE IF NOT EXISTS public.ai_usage_log (
   id uuid DEFAULT gen_random_uuid() NOT NULL,
   account_id uuid NOT NULL,
   conversation_id uuid,
@@ -699,9 +1073,19 @@ CREATE TABLE public.ai_usage_log (
   CONSTRAINT ai_usage_log_mode_check CHECK ((mode = ANY (ARRAY['auto_reply'::text, 'draft'::text]))),
   CONSTRAINT ai_usage_log_provider_check CHECK ((provider = ANY (ARRAY['openai'::text, 'anthropic'::text])))
 );
+ALTER TABLE public.ai_usage_log ADD COLUMN IF NOT EXISTS id uuid DEFAULT gen_random_uuid() NOT NULL;
+ALTER TABLE public.ai_usage_log ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
+ALTER TABLE public.ai_usage_log ADD COLUMN IF NOT EXISTS conversation_id uuid;
+ALTER TABLE public.ai_usage_log ADD COLUMN IF NOT EXISTS mode text NOT NULL;
+ALTER TABLE public.ai_usage_log ADD COLUMN IF NOT EXISTS provider text NOT NULL;
+ALTER TABLE public.ai_usage_log ADD COLUMN IF NOT EXISTS model text NOT NULL;
+ALTER TABLE public.ai_usage_log ADD COLUMN IF NOT EXISTS prompt_tokens integer DEFAULT 0 NOT NULL;
+ALTER TABLE public.ai_usage_log ADD COLUMN IF NOT EXISTS completion_tokens integer DEFAULT 0 NOT NULL;
+ALTER TABLE public.ai_usage_log ADD COLUMN IF NOT EXISTS total_tokens integer DEFAULT 0 NOT NULL;
+ALTER TABLE public.ai_usage_log ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
 COMMENT ON TABLE public.ai_usage_log IS 'Token usage of every AI draft/auto-reply, shown on the dashboard.';
 
-CREATE TABLE public.ai_training_profiles (
+CREATE TABLE IF NOT EXISTS public.ai_training_profiles (
   id uuid DEFAULT gen_random_uuid() NOT NULL,
   account_id uuid NOT NULL,
   profile jsonb DEFAULT '{}'::jsonb NOT NULL,
@@ -711,9 +1095,15 @@ CREATE TABLE public.ai_training_profiles (
   CONSTRAINT ai_training_profiles_account_id_key UNIQUE (account_id),
   CONSTRAINT ai_training_profiles_pkey PRIMARY KEY (id)
 );
+ALTER TABLE public.ai_training_profiles ADD COLUMN IF NOT EXISTS id uuid DEFAULT gen_random_uuid() NOT NULL;
+ALTER TABLE public.ai_training_profiles ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
+ALTER TABLE public.ai_training_profiles ADD COLUMN IF NOT EXISTS profile jsonb DEFAULT '{}'::jsonb NOT NULL;
+ALTER TABLE public.ai_training_profiles ADD COLUMN IF NOT EXISTS updated_by uuid;
+ALTER TABLE public.ai_training_profiles ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
+ALTER TABLE public.ai_training_profiles ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now() NOT NULL;
 COMMENT ON TABLE public.ai_training_profiles IS 'Train AI: one business profile (JSON) per account.';
 
-CREATE TABLE public.ai_training_examples (
+CREATE TABLE IF NOT EXISTS public.ai_training_examples (
   id uuid DEFAULT gen_random_uuid() NOT NULL,
   account_id uuid NOT NULL,
   kind text DEFAULT 'qa'::text NOT NULL,
@@ -731,13 +1121,25 @@ CREATE TABLE public.ai_training_examples (
   CONSTRAINT ai_training_examples_kind_check CHECK ((kind = ANY (ARRAY['qa'::text, 'rule'::text]))),
   CONSTRAINT ai_training_examples_source_check CHECK ((source = ANY (ARRAY['manual'::text, 'conversation'::text, 'import'::text])))
 );
+ALTER TABLE public.ai_training_examples ADD COLUMN IF NOT EXISTS id uuid DEFAULT gen_random_uuid() NOT NULL;
+ALTER TABLE public.ai_training_examples ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
+ALTER TABLE public.ai_training_examples ADD COLUMN IF NOT EXISTS kind text DEFAULT 'qa'::text NOT NULL;
+ALTER TABLE public.ai_training_examples ADD COLUMN IF NOT EXISTS question text;
+ALTER TABLE public.ai_training_examples ADD COLUMN IF NOT EXISTS answer text NOT NULL;
+ALTER TABLE public.ai_training_examples ADD COLUMN IF NOT EXISTS category text;
+ALTER TABLE public.ai_training_examples ADD COLUMN IF NOT EXISTS source text DEFAULT 'manual'::text NOT NULL;
+ALTER TABLE public.ai_training_examples ADD COLUMN IF NOT EXISTS is_active boolean DEFAULT true NOT NULL;
+ALTER TABLE public.ai_training_examples ADD COLUMN IF NOT EXISTS use_count integer DEFAULT 0 NOT NULL;
+ALTER TABLE public.ai_training_examples ADD COLUMN IF NOT EXISTS created_by uuid;
+ALTER TABLE public.ai_training_examples ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
+ALTER TABLE public.ai_training_examples ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now() NOT NULL;
 COMMENT ON TABLE public.ai_training_examples IS 'Train AI: Q&A examples and rules (kind), with usage counter.';
 
 -- ----------------------------------------------------------------------
 -- MODULE 11. Public API and outbound webhooks
 -- ----------------------------------------------------------------------
 
-CREATE TABLE public.api_keys (
+CREATE TABLE IF NOT EXISTS public.api_keys (
   id uuid DEFAULT gen_random_uuid() NOT NULL,
   account_id uuid NOT NULL,
   created_by uuid,
@@ -752,9 +1154,20 @@ CREATE TABLE public.api_keys (
   CONSTRAINT api_keys_key_hash_key UNIQUE (key_hash),
   CONSTRAINT api_keys_pkey PRIMARY KEY (id)
 );
+ALTER TABLE public.api_keys ADD COLUMN IF NOT EXISTS id uuid DEFAULT gen_random_uuid() NOT NULL;
+ALTER TABLE public.api_keys ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
+ALTER TABLE public.api_keys ADD COLUMN IF NOT EXISTS created_by uuid;
+ALTER TABLE public.api_keys ADD COLUMN IF NOT EXISTS name text NOT NULL;
+ALTER TABLE public.api_keys ADD COLUMN IF NOT EXISTS key_prefix text NOT NULL;
+ALTER TABLE public.api_keys ADD COLUMN IF NOT EXISTS key_hash text NOT NULL;
+ALTER TABLE public.api_keys ADD COLUMN IF NOT EXISTS scopes text[] DEFAULT '{}'::text[] NOT NULL;
+ALTER TABLE public.api_keys ADD COLUMN IF NOT EXISTS last_used_at timestamp with time zone;
+ALTER TABLE public.api_keys ADD COLUMN IF NOT EXISTS expires_at timestamp with time zone;
+ALTER TABLE public.api_keys ADD COLUMN IF NOT EXISTS revoked_at timestamp with time zone;
+ALTER TABLE public.api_keys ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
 COMMENT ON TABLE public.api_keys IS 'Public REST API keys; only the hash and a display prefix are stored.';
 
-CREATE TABLE public.webhook_endpoints (
+CREATE TABLE IF NOT EXISTS public.webhook_endpoints (
   id uuid DEFAULT gen_random_uuid() NOT NULL,
   account_id uuid NOT NULL,
   created_by uuid,
@@ -767,13 +1180,23 @@ CREATE TABLE public.webhook_endpoints (
   created_at timestamp with time zone DEFAULT now() NOT NULL,
   CONSTRAINT webhook_endpoints_pkey PRIMARY KEY (id)
 );
+ALTER TABLE public.webhook_endpoints ADD COLUMN IF NOT EXISTS id uuid DEFAULT gen_random_uuid() NOT NULL;
+ALTER TABLE public.webhook_endpoints ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
+ALTER TABLE public.webhook_endpoints ADD COLUMN IF NOT EXISTS created_by uuid;
+ALTER TABLE public.webhook_endpoints ADD COLUMN IF NOT EXISTS url text NOT NULL;
+ALTER TABLE public.webhook_endpoints ADD COLUMN IF NOT EXISTS secret text NOT NULL;
+ALTER TABLE public.webhook_endpoints ADD COLUMN IF NOT EXISTS events text[] DEFAULT '{}'::text[] NOT NULL;
+ALTER TABLE public.webhook_endpoints ADD COLUMN IF NOT EXISTS is_active boolean DEFAULT true NOT NULL;
+ALTER TABLE public.webhook_endpoints ADD COLUMN IF NOT EXISTS last_delivery_at timestamp with time zone;
+ALTER TABLE public.webhook_endpoints ADD COLUMN IF NOT EXISTS failure_count integer DEFAULT 0 NOT NULL;
+ALTER TABLE public.webhook_endpoints ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
 COMMENT ON TABLE public.webhook_endpoints IS 'Outbound webhook subscriptions with signing secret and failure counter.';
 
 -- ----------------------------------------------------------------------
 -- MODULE 12. Notifications
 -- ----------------------------------------------------------------------
 
-CREATE TABLE public.notifications (
+CREATE TABLE IF NOT EXISTS public.notifications (
   id uuid DEFAULT uuid_generate_v4() NOT NULL,
   account_id uuid NOT NULL,
   user_id uuid NOT NULL,
@@ -788,13 +1211,24 @@ CREATE TABLE public.notifications (
   CONSTRAINT notifications_pkey PRIMARY KEY (id),
   CONSTRAINT notifications_type_check CHECK ((type = 'conversation_assigned'::text))
 );
+ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
+ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
+ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS user_id uuid NOT NULL;
+ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS type text DEFAULT 'conversation_assigned'::text NOT NULL;
+ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS conversation_id uuid;
+ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS contact_id uuid;
+ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS actor_user_id uuid;
+ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS title text NOT NULL;
+ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS body text;
+ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS read_at timestamp with time zone;
+ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
 COMMENT ON TABLE public.notifications IS 'In-app notifications per user (assignment, mentions). Users may only update read_at.';
 
 -- ----------------------------------------------------------------------
 -- MODULE 13. Database administration (Backup > Database config)
 -- ----------------------------------------------------------------------
 
-CREATE TABLE public.db_maintenance_log (
+CREATE TABLE IF NOT EXISTS public.db_maintenance_log (
   id uuid DEFAULT gen_random_uuid() NOT NULL,
   action text NOT NULL,
   tables text[] DEFAULT '{}'::text[] NOT NULL,
@@ -804,6 +1238,13 @@ CREATE TABLE public.db_maintenance_log (
   created_at timestamp with time zone DEFAULT now() NOT NULL,
   CONSTRAINT db_maintenance_log_pkey PRIMARY KEY (id)
 );
+ALTER TABLE public.db_maintenance_log ADD COLUMN IF NOT EXISTS id uuid DEFAULT gen_random_uuid() NOT NULL;
+ALTER TABLE public.db_maintenance_log ADD COLUMN IF NOT EXISTS action text NOT NULL;
+ALTER TABLE public.db_maintenance_log ADD COLUMN IF NOT EXISTS tables text[] DEFAULT '{}'::text[] NOT NULL;
+ALTER TABLE public.db_maintenance_log ADD COLUMN IF NOT EXISTS row_counts jsonb DEFAULT '{}'::jsonb NOT NULL;
+ALTER TABLE public.db_maintenance_log ADD COLUMN IF NOT EXISTS performed_by uuid;
+ALTER TABLE public.db_maintenance_log ADD COLUMN IF NOT EXISTS performed_by_email text;
+ALTER TABLE public.db_maintenance_log ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now() NOT NULL;
 COMMENT ON TABLE public.db_maintenance_log IS 'Audit log of Super-admin database maintenance such as table truncates. Service role only.';
 COMMENT ON COLUMN public.broadcast_recipients.template_params IS 'Positional body values for this recipient''s template send ({{1}}, {{2}}, ...), frozen when the broadcast was planned. NULL on rows created before migration 038; a resume treats that as no params.';
 COMMENT ON COLUMN public.broadcasts.delivery_locked_at IS 'Set while a server-side delivery pass is fanning out; NULL when idle. See 038_broadcast_resume.sql.';
@@ -823,127 +1264,515 @@ COMMENT ON COLUMN public.whatsapp_config.mirror_inbound_media IS 'When true (def
 -- ======================================================================
 
 -- 1. Accounts, users and team roles
-ALTER TABLE public.accounts ADD CONSTRAINT accounts_owner_user_id_fkey FOREIGN KEY (owner_user_id) REFERENCES public.users(id) ON DELETE RESTRICT;
-ALTER TABLE public.profiles ADD CONSTRAINT profiles_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.profiles ADD CONSTRAINT profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-ALTER TABLE public.account_invitations ADD CONSTRAINT account_invitations_accepted_by_user_id_fkey FOREIGN KEY (accepted_by_user_id) REFERENCES public.users(id) ON DELETE SET NULL;
-ALTER TABLE public.account_invitations ADD CONSTRAINT account_invitations_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.account_invitations ADD CONSTRAINT account_invitations_created_by_user_id_fkey FOREIGN KEY (created_by_user_id) REFERENCES public.users(id) ON DELETE SET NULL;
-ALTER TABLE public.member_presence ADD CONSTRAINT member_presence_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.member_presence ADD CONSTRAINT member_presence_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'accounts_owner_user_id_fkey' AND conrelid = 'public.accounts'::regclass) THEN
+    ALTER TABLE public.accounts ADD CONSTRAINT accounts_owner_user_id_fkey FOREIGN KEY (owner_user_id) REFERENCES public.users(id) ON DELETE RESTRICT;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'profiles_account_id_fkey' AND conrelid = 'public.profiles'::regclass) THEN
+    ALTER TABLE public.profiles ADD CONSTRAINT profiles_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'profiles_user_id_fkey' AND conrelid = 'public.profiles'::regclass) THEN
+    ALTER TABLE public.profiles ADD CONSTRAINT profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'account_invitations_accepted_by_user_id_fkey' AND conrelid = 'public.account_invitations'::regclass) THEN
+    ALTER TABLE public.account_invitations ADD CONSTRAINT account_invitations_accepted_by_user_id_fkey FOREIGN KEY (accepted_by_user_id) REFERENCES public.users(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'account_invitations_account_id_fkey' AND conrelid = 'public.account_invitations'::regclass) THEN
+    ALTER TABLE public.account_invitations ADD CONSTRAINT account_invitations_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'account_invitations_created_by_user_id_fkey' AND conrelid = 'public.account_invitations'::regclass) THEN
+    ALTER TABLE public.account_invitations ADD CONSTRAINT account_invitations_created_by_user_id_fkey FOREIGN KEY (created_by_user_id) REFERENCES public.users(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'member_presence_account_id_fkey' AND conrelid = 'public.member_presence'::regclass) THEN
+    ALTER TABLE public.member_presence ADD CONSTRAINT member_presence_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'member_presence_user_id_fkey' AND conrelid = 'public.member_presence'::regclass) THEN
+    ALTER TABLE public.member_presence ADD CONSTRAINT member_presence_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
 
 -- 2. Platform roles and subscriptions
-ALTER TABLE public.platform_users ADD CONSTRAINT platform_users_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id) ON DELETE SET NULL;
-ALTER TABLE public.platform_users ADD CONSTRAINT platform_users_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'platform_users_updated_by_fkey' AND conrelid = 'public.platform_users'::regclass) THEN
+    ALTER TABLE public.platform_users ADD CONSTRAINT platform_users_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'platform_users_user_id_fkey' AND conrelid = 'public.platform_users'::regclass) THEN
+    ALTER TABLE public.platform_users ADD CONSTRAINT platform_users_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
 
 -- 3. WhatsApp connection and message templates
-ALTER TABLE public.whatsapp_config ADD CONSTRAINT whatsapp_config_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.whatsapp_config ADD CONSTRAINT whatsapp_config_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-ALTER TABLE public.message_templates ADD CONSTRAINT message_templates_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.message_templates ADD CONSTRAINT message_templates_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'whatsapp_config_account_id_fkey' AND conrelid = 'public.whatsapp_config'::regclass) THEN
+    ALTER TABLE public.whatsapp_config ADD CONSTRAINT whatsapp_config_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'whatsapp_config_user_id_fkey' AND conrelid = 'public.whatsapp_config'::regclass) THEN
+    ALTER TABLE public.whatsapp_config ADD CONSTRAINT whatsapp_config_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'message_templates_account_id_fkey' AND conrelid = 'public.message_templates'::regclass) THEN
+    ALTER TABLE public.message_templates ADD CONSTRAINT message_templates_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'message_templates_user_id_fkey' AND conrelid = 'public.message_templates'::regclass) THEN
+    ALTER TABLE public.message_templates ADD CONSTRAINT message_templates_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
 
 -- 4. Contacts, tags and custom fields
-ALTER TABLE public.contacts ADD CONSTRAINT contacts_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.contacts ADD CONSTRAINT contacts_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-ALTER TABLE public.tags ADD CONSTRAINT tags_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.tags ADD CONSTRAINT tags_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-ALTER TABLE public.contact_tags ADD CONSTRAINT contact_tags_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE;
-ALTER TABLE public.contact_tags ADD CONSTRAINT contact_tags_tag_id_fkey FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE;
-ALTER TABLE public.custom_fields ADD CONSTRAINT custom_fields_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.custom_fields ADD CONSTRAINT custom_fields_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-ALTER TABLE public.contact_custom_values ADD CONSTRAINT contact_custom_values_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE;
-ALTER TABLE public.contact_custom_values ADD CONSTRAINT contact_custom_values_custom_field_id_fkey FOREIGN KEY (custom_field_id) REFERENCES custom_fields(id) ON DELETE CASCADE;
-ALTER TABLE public.contact_notes ADD CONSTRAINT contact_notes_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.contact_notes ADD CONSTRAINT contact_notes_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE;
-ALTER TABLE public.contact_notes ADD CONSTRAINT contact_notes_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contacts_account_id_fkey' AND conrelid = 'public.contacts'::regclass) THEN
+    ALTER TABLE public.contacts ADD CONSTRAINT contacts_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contacts_user_id_fkey' AND conrelid = 'public.contacts'::regclass) THEN
+    ALTER TABLE public.contacts ADD CONSTRAINT contacts_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tags_account_id_fkey' AND conrelid = 'public.tags'::regclass) THEN
+    ALTER TABLE public.tags ADD CONSTRAINT tags_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tags_user_id_fkey' AND conrelid = 'public.tags'::regclass) THEN
+    ALTER TABLE public.tags ADD CONSTRAINT tags_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_tags_contact_id_fkey' AND conrelid = 'public.contact_tags'::regclass) THEN
+    ALTER TABLE public.contact_tags ADD CONSTRAINT contact_tags_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_tags_tag_id_fkey' AND conrelid = 'public.contact_tags'::regclass) THEN
+    ALTER TABLE public.contact_tags ADD CONSTRAINT contact_tags_tag_id_fkey FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'custom_fields_account_id_fkey' AND conrelid = 'public.custom_fields'::regclass) THEN
+    ALTER TABLE public.custom_fields ADD CONSTRAINT custom_fields_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'custom_fields_user_id_fkey' AND conrelid = 'public.custom_fields'::regclass) THEN
+    ALTER TABLE public.custom_fields ADD CONSTRAINT custom_fields_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_custom_values_contact_id_fkey' AND conrelid = 'public.contact_custom_values'::regclass) THEN
+    ALTER TABLE public.contact_custom_values ADD CONSTRAINT contact_custom_values_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_custom_values_custom_field_id_fkey' AND conrelid = 'public.contact_custom_values'::regclass) THEN
+    ALTER TABLE public.contact_custom_values ADD CONSTRAINT contact_custom_values_custom_field_id_fkey FOREIGN KEY (custom_field_id) REFERENCES custom_fields(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_notes_account_id_fkey' AND conrelid = 'public.contact_notes'::regclass) THEN
+    ALTER TABLE public.contact_notes ADD CONSTRAINT contact_notes_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_notes_contact_id_fkey' AND conrelid = 'public.contact_notes'::regclass) THEN
+    ALTER TABLE public.contact_notes ADD CONSTRAINT contact_notes_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'contact_notes_user_id_fkey' AND conrelid = 'public.contact_notes'::regclass) THEN
+    ALTER TABLE public.contact_notes ADD CONSTRAINT contact_notes_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
 
 -- 5. Inbox: conversations, messages and quick replies
-ALTER TABLE public.conversations ADD CONSTRAINT conversations_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.conversations ADD CONSTRAINT conversations_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE;
-ALTER TABLE public.conversations ADD CONSTRAINT conversations_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-ALTER TABLE public.messages ADD CONSTRAINT messages_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE;
-ALTER TABLE public.messages ADD CONSTRAINT messages_reply_to_message_id_fkey FOREIGN KEY (reply_to_message_id) REFERENCES messages(id) ON DELETE SET NULL;
-ALTER TABLE public.message_reactions ADD CONSTRAINT message_reactions_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE;
-ALTER TABLE public.message_reactions ADD CONSTRAINT message_reactions_message_id_fkey FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE;
-ALTER TABLE public.quick_replies ADD CONSTRAINT quick_replies_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.quick_replies ADD CONSTRAINT quick_replies_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'conversations_account_id_fkey' AND conrelid = 'public.conversations'::regclass) THEN
+    ALTER TABLE public.conversations ADD CONSTRAINT conversations_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'conversations_contact_id_fkey' AND conrelid = 'public.conversations'::regclass) THEN
+    ALTER TABLE public.conversations ADD CONSTRAINT conversations_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'conversations_user_id_fkey' AND conrelid = 'public.conversations'::regclass) THEN
+    ALTER TABLE public.conversations ADD CONSTRAINT conversations_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'messages_conversation_id_fkey' AND conrelid = 'public.messages'::regclass) THEN
+    ALTER TABLE public.messages ADD CONSTRAINT messages_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'messages_reply_to_message_id_fkey' AND conrelid = 'public.messages'::regclass) THEN
+    ALTER TABLE public.messages ADD CONSTRAINT messages_reply_to_message_id_fkey FOREIGN KEY (reply_to_message_id) REFERENCES messages(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'message_reactions_conversation_id_fkey' AND conrelid = 'public.message_reactions'::regclass) THEN
+    ALTER TABLE public.message_reactions ADD CONSTRAINT message_reactions_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'message_reactions_message_id_fkey' AND conrelid = 'public.message_reactions'::regclass) THEN
+    ALTER TABLE public.message_reactions ADD CONSTRAINT message_reactions_message_id_fkey FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'quick_replies_account_id_fkey' AND conrelid = 'public.quick_replies'::regclass) THEN
+    ALTER TABLE public.quick_replies ADD CONSTRAINT quick_replies_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'quick_replies_user_id_fkey' AND conrelid = 'public.quick_replies'::regclass) THEN
+    ALTER TABLE public.quick_replies ADD CONSTRAINT quick_replies_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
 
 -- 6. Sales pipelines and deals
-ALTER TABLE public.pipelines ADD CONSTRAINT pipelines_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.pipelines ADD CONSTRAINT pipelines_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-ALTER TABLE public.pipeline_stages ADD CONSTRAINT pipeline_stages_pipeline_id_fkey FOREIGN KEY (pipeline_id) REFERENCES pipelines(id) ON DELETE CASCADE;
-ALTER TABLE public.deals ADD CONSTRAINT deals_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.deals ADD CONSTRAINT deals_assigned_to_fkey FOREIGN KEY (assigned_to) REFERENCES profiles(id) ON DELETE SET NULL;
-ALTER TABLE public.deals ADD CONSTRAINT deals_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL;
-ALTER TABLE public.deals ADD CONSTRAINT deals_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES conversations(id);
-ALTER TABLE public.deals ADD CONSTRAINT deals_pipeline_id_fkey FOREIGN KEY (pipeline_id) REFERENCES pipelines(id) ON DELETE CASCADE;
-ALTER TABLE public.deals ADD CONSTRAINT deals_stage_id_fkey FOREIGN KEY (stage_id) REFERENCES pipeline_stages(id);
-ALTER TABLE public.deals ADD CONSTRAINT deals_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'pipelines_account_id_fkey' AND conrelid = 'public.pipelines'::regclass) THEN
+    ALTER TABLE public.pipelines ADD CONSTRAINT pipelines_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'pipelines_user_id_fkey' AND conrelid = 'public.pipelines'::regclass) THEN
+    ALTER TABLE public.pipelines ADD CONSTRAINT pipelines_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'pipeline_stages_pipeline_id_fkey' AND conrelid = 'public.pipeline_stages'::regclass) THEN
+    ALTER TABLE public.pipeline_stages ADD CONSTRAINT pipeline_stages_pipeline_id_fkey FOREIGN KEY (pipeline_id) REFERENCES pipelines(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'deals_account_id_fkey' AND conrelid = 'public.deals'::regclass) THEN
+    ALTER TABLE public.deals ADD CONSTRAINT deals_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'deals_assigned_to_fkey' AND conrelid = 'public.deals'::regclass) THEN
+    ALTER TABLE public.deals ADD CONSTRAINT deals_assigned_to_fkey FOREIGN KEY (assigned_to) REFERENCES profiles(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'deals_contact_id_fkey' AND conrelid = 'public.deals'::regclass) THEN
+    ALTER TABLE public.deals ADD CONSTRAINT deals_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'deals_conversation_id_fkey' AND conrelid = 'public.deals'::regclass) THEN
+    ALTER TABLE public.deals ADD CONSTRAINT deals_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES conversations(id);
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'deals_pipeline_id_fkey' AND conrelid = 'public.deals'::regclass) THEN
+    ALTER TABLE public.deals ADD CONSTRAINT deals_pipeline_id_fkey FOREIGN KEY (pipeline_id) REFERENCES pipelines(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'deals_stage_id_fkey' AND conrelid = 'public.deals'::regclass) THEN
+    ALTER TABLE public.deals ADD CONSTRAINT deals_stage_id_fkey FOREIGN KEY (stage_id) REFERENCES pipeline_stages(id);
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'deals_user_id_fkey' AND conrelid = 'public.deals'::regclass) THEN
+    ALTER TABLE public.deals ADD CONSTRAINT deals_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
 
 -- 7. Broadcasts
-ALTER TABLE public.broadcasts ADD CONSTRAINT broadcasts_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.broadcasts ADD CONSTRAINT broadcasts_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-ALTER TABLE public.broadcast_recipients ADD CONSTRAINT broadcast_recipients_broadcast_id_fkey FOREIGN KEY (broadcast_id) REFERENCES broadcasts(id) ON DELETE CASCADE;
-ALTER TABLE public.broadcast_recipients ADD CONSTRAINT broadcast_recipients_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'broadcasts_account_id_fkey' AND conrelid = 'public.broadcasts'::regclass) THEN
+    ALTER TABLE public.broadcasts ADD CONSTRAINT broadcasts_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'broadcasts_user_id_fkey' AND conrelid = 'public.broadcasts'::regclass) THEN
+    ALTER TABLE public.broadcasts ADD CONSTRAINT broadcasts_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'broadcast_recipients_broadcast_id_fkey' AND conrelid = 'public.broadcast_recipients'::regclass) THEN
+    ALTER TABLE public.broadcast_recipients ADD CONSTRAINT broadcast_recipients_broadcast_id_fkey FOREIGN KEY (broadcast_id) REFERENCES broadcasts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'broadcast_recipients_contact_id_fkey' AND conrelid = 'public.broadcast_recipients'::regclass) THEN
+    ALTER TABLE public.broadcast_recipients ADD CONSTRAINT broadcast_recipients_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
 
 -- 8. Automations
-ALTER TABLE public.automations ADD CONSTRAINT automations_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.automations ADD CONSTRAINT automations_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-ALTER TABLE public.automation_steps ADD CONSTRAINT automation_steps_automation_id_fkey FOREIGN KEY (automation_id) REFERENCES automations(id) ON DELETE CASCADE;
-ALTER TABLE public.automation_steps ADD CONSTRAINT automation_steps_parent_step_id_fkey FOREIGN KEY (parent_step_id) REFERENCES automation_steps(id) ON DELETE CASCADE;
-ALTER TABLE public.automation_logs ADD CONSTRAINT automation_logs_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.automation_logs ADD CONSTRAINT automation_logs_automation_id_fkey FOREIGN KEY (automation_id) REFERENCES automations(id) ON DELETE CASCADE;
-ALTER TABLE public.automation_logs ADD CONSTRAINT automation_logs_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL;
-ALTER TABLE public.automation_logs ADD CONSTRAINT automation_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-ALTER TABLE public.automation_pending_executions ADD CONSTRAINT automation_pending_executions_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.automation_pending_executions ADD CONSTRAINT automation_pending_executions_automation_id_fkey FOREIGN KEY (automation_id) REFERENCES automations(id) ON DELETE CASCADE;
-ALTER TABLE public.automation_pending_executions ADD CONSTRAINT automation_pending_executions_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL;
-ALTER TABLE public.automation_pending_executions ADD CONSTRAINT automation_pending_executions_log_id_fkey FOREIGN KEY (log_id) REFERENCES automation_logs(id) ON DELETE CASCADE;
-ALTER TABLE public.automation_pending_executions ADD CONSTRAINT automation_pending_executions_parent_step_id_fkey FOREIGN KEY (parent_step_id) REFERENCES automation_steps(id) ON DELETE SET NULL;
-ALTER TABLE public.automation_pending_executions ADD CONSTRAINT automation_pending_executions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'automations_account_id_fkey' AND conrelid = 'public.automations'::regclass) THEN
+    ALTER TABLE public.automations ADD CONSTRAINT automations_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'automations_user_id_fkey' AND conrelid = 'public.automations'::regclass) THEN
+    ALTER TABLE public.automations ADD CONSTRAINT automations_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'automation_steps_automation_id_fkey' AND conrelid = 'public.automation_steps'::regclass) THEN
+    ALTER TABLE public.automation_steps ADD CONSTRAINT automation_steps_automation_id_fkey FOREIGN KEY (automation_id) REFERENCES automations(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'automation_steps_parent_step_id_fkey' AND conrelid = 'public.automation_steps'::regclass) THEN
+    ALTER TABLE public.automation_steps ADD CONSTRAINT automation_steps_parent_step_id_fkey FOREIGN KEY (parent_step_id) REFERENCES automation_steps(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'automation_logs_account_id_fkey' AND conrelid = 'public.automation_logs'::regclass) THEN
+    ALTER TABLE public.automation_logs ADD CONSTRAINT automation_logs_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'automation_logs_automation_id_fkey' AND conrelid = 'public.automation_logs'::regclass) THEN
+    ALTER TABLE public.automation_logs ADD CONSTRAINT automation_logs_automation_id_fkey FOREIGN KEY (automation_id) REFERENCES automations(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'automation_logs_contact_id_fkey' AND conrelid = 'public.automation_logs'::regclass) THEN
+    ALTER TABLE public.automation_logs ADD CONSTRAINT automation_logs_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'automation_logs_user_id_fkey' AND conrelid = 'public.automation_logs'::regclass) THEN
+    ALTER TABLE public.automation_logs ADD CONSTRAINT automation_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'automation_pending_executions_account_id_fkey' AND conrelid = 'public.automation_pending_executions'::regclass) THEN
+    ALTER TABLE public.automation_pending_executions ADD CONSTRAINT automation_pending_executions_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'automation_pending_executions_automation_id_fkey' AND conrelid = 'public.automation_pending_executions'::regclass) THEN
+    ALTER TABLE public.automation_pending_executions ADD CONSTRAINT automation_pending_executions_automation_id_fkey FOREIGN KEY (automation_id) REFERENCES automations(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'automation_pending_executions_contact_id_fkey' AND conrelid = 'public.automation_pending_executions'::regclass) THEN
+    ALTER TABLE public.automation_pending_executions ADD CONSTRAINT automation_pending_executions_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'automation_pending_executions_log_id_fkey' AND conrelid = 'public.automation_pending_executions'::regclass) THEN
+    ALTER TABLE public.automation_pending_executions ADD CONSTRAINT automation_pending_executions_log_id_fkey FOREIGN KEY (log_id) REFERENCES automation_logs(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'automation_pending_executions_parent_step_id_fkey' AND conrelid = 'public.automation_pending_executions'::regclass) THEN
+    ALTER TABLE public.automation_pending_executions ADD CONSTRAINT automation_pending_executions_parent_step_id_fkey FOREIGN KEY (parent_step_id) REFERENCES automation_steps(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'automation_pending_executions_user_id_fkey' AND conrelid = 'public.automation_pending_executions'::regclass) THEN
+    ALTER TABLE public.automation_pending_executions ADD CONSTRAINT automation_pending_executions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
 
 -- 9. Flows (chatbot builder)
-ALTER TABLE public.flows ADD CONSTRAINT flows_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.flows ADD CONSTRAINT flows_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-ALTER TABLE public.flow_nodes ADD CONSTRAINT flow_nodes_flow_id_fkey FOREIGN KEY (flow_id) REFERENCES flows(id) ON DELETE CASCADE;
-ALTER TABLE public.flow_runs ADD CONSTRAINT flow_runs_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.flow_runs ADD CONSTRAINT flow_runs_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL;
-ALTER TABLE public.flow_runs ADD CONSTRAINT flow_runs_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE SET NULL;
-ALTER TABLE public.flow_runs ADD CONSTRAINT flow_runs_flow_id_fkey FOREIGN KEY (flow_id) REFERENCES flows(id) ON DELETE CASCADE;
-ALTER TABLE public.flow_runs ADD CONSTRAINT flow_runs_last_prompt_message_id_fkey FOREIGN KEY (last_prompt_message_id) REFERENCES messages(id) ON DELETE SET NULL;
-ALTER TABLE public.flow_runs ADD CONSTRAINT flow_runs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-ALTER TABLE public.flow_run_events ADD CONSTRAINT flow_run_events_flow_run_id_fkey FOREIGN KEY (flow_run_id) REFERENCES flow_runs(id) ON DELETE CASCADE;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'flows_account_id_fkey' AND conrelid = 'public.flows'::regclass) THEN
+    ALTER TABLE public.flows ADD CONSTRAINT flows_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'flows_user_id_fkey' AND conrelid = 'public.flows'::regclass) THEN
+    ALTER TABLE public.flows ADD CONSTRAINT flows_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'flow_nodes_flow_id_fkey' AND conrelid = 'public.flow_nodes'::regclass) THEN
+    ALTER TABLE public.flow_nodes ADD CONSTRAINT flow_nodes_flow_id_fkey FOREIGN KEY (flow_id) REFERENCES flows(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'flow_runs_account_id_fkey' AND conrelid = 'public.flow_runs'::regclass) THEN
+    ALTER TABLE public.flow_runs ADD CONSTRAINT flow_runs_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'flow_runs_contact_id_fkey' AND conrelid = 'public.flow_runs'::regclass) THEN
+    ALTER TABLE public.flow_runs ADD CONSTRAINT flow_runs_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'flow_runs_conversation_id_fkey' AND conrelid = 'public.flow_runs'::regclass) THEN
+    ALTER TABLE public.flow_runs ADD CONSTRAINT flow_runs_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'flow_runs_flow_id_fkey' AND conrelid = 'public.flow_runs'::regclass) THEN
+    ALTER TABLE public.flow_runs ADD CONSTRAINT flow_runs_flow_id_fkey FOREIGN KEY (flow_id) REFERENCES flows(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'flow_runs_last_prompt_message_id_fkey' AND conrelid = 'public.flow_runs'::regclass) THEN
+    ALTER TABLE public.flow_runs ADD CONSTRAINT flow_runs_last_prompt_message_id_fkey FOREIGN KEY (last_prompt_message_id) REFERENCES messages(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'flow_runs_user_id_fkey' AND conrelid = 'public.flow_runs'::regclass) THEN
+    ALTER TABLE public.flow_runs ADD CONSTRAINT flow_runs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'flow_run_events_flow_run_id_fkey' AND conrelid = 'public.flow_run_events'::regclass) THEN
+    ALTER TABLE public.flow_run_events ADD CONSTRAINT flow_run_events_flow_run_id_fkey FOREIGN KEY (flow_run_id) REFERENCES flow_runs(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
 
 -- 10. AI agent, knowledge base and Train AI
-ALTER TABLE public.ai_configs ADD CONSTRAINT ai_configs_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.ai_configs ADD CONSTRAINT ai_configs_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL;
-ALTER TABLE public.ai_configs ADD CONSTRAINT ai_configs_handoff_agent_id_fkey FOREIGN KEY (handoff_agent_id) REFERENCES public.users(id) ON DELETE SET NULL;
-ALTER TABLE public.ai_knowledge_documents ADD CONSTRAINT ai_knowledge_documents_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.ai_knowledge_documents ADD CONSTRAINT ai_knowledge_documents_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL;
-ALTER TABLE public.ai_knowledge_chunks ADD CONSTRAINT ai_knowledge_chunks_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.ai_knowledge_chunks ADD CONSTRAINT ai_knowledge_chunks_document_id_fkey FOREIGN KEY (document_id) REFERENCES ai_knowledge_documents(id) ON DELETE CASCADE;
-ALTER TABLE public.ai_usage_log ADD CONSTRAINT ai_usage_log_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.ai_usage_log ADD CONSTRAINT ai_usage_log_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE SET NULL;
-ALTER TABLE public.ai_training_profiles ADD CONSTRAINT ai_training_profiles_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.ai_training_profiles ADD CONSTRAINT ai_training_profiles_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id) ON DELETE SET NULL;
-ALTER TABLE public.ai_training_examples ADD CONSTRAINT ai_training_examples_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.ai_training_examples ADD CONSTRAINT ai_training_examples_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ai_configs_account_id_fkey' AND conrelid = 'public.ai_configs'::regclass) THEN
+    ALTER TABLE public.ai_configs ADD CONSTRAINT ai_configs_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ai_configs_created_by_fkey' AND conrelid = 'public.ai_configs'::regclass) THEN
+    ALTER TABLE public.ai_configs ADD CONSTRAINT ai_configs_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ai_configs_handoff_agent_id_fkey' AND conrelid = 'public.ai_configs'::regclass) THEN
+    ALTER TABLE public.ai_configs ADD CONSTRAINT ai_configs_handoff_agent_id_fkey FOREIGN KEY (handoff_agent_id) REFERENCES public.users(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ai_knowledge_documents_account_id_fkey' AND conrelid = 'public.ai_knowledge_documents'::regclass) THEN
+    ALTER TABLE public.ai_knowledge_documents ADD CONSTRAINT ai_knowledge_documents_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ai_knowledge_documents_created_by_fkey' AND conrelid = 'public.ai_knowledge_documents'::regclass) THEN
+    ALTER TABLE public.ai_knowledge_documents ADD CONSTRAINT ai_knowledge_documents_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ai_knowledge_chunks_account_id_fkey' AND conrelid = 'public.ai_knowledge_chunks'::regclass) THEN
+    ALTER TABLE public.ai_knowledge_chunks ADD CONSTRAINT ai_knowledge_chunks_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ai_knowledge_chunks_document_id_fkey' AND conrelid = 'public.ai_knowledge_chunks'::regclass) THEN
+    ALTER TABLE public.ai_knowledge_chunks ADD CONSTRAINT ai_knowledge_chunks_document_id_fkey FOREIGN KEY (document_id) REFERENCES ai_knowledge_documents(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ai_usage_log_account_id_fkey' AND conrelid = 'public.ai_usage_log'::regclass) THEN
+    ALTER TABLE public.ai_usage_log ADD CONSTRAINT ai_usage_log_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ai_usage_log_conversation_id_fkey' AND conrelid = 'public.ai_usage_log'::regclass) THEN
+    ALTER TABLE public.ai_usage_log ADD CONSTRAINT ai_usage_log_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ai_training_profiles_account_id_fkey' AND conrelid = 'public.ai_training_profiles'::regclass) THEN
+    ALTER TABLE public.ai_training_profiles ADD CONSTRAINT ai_training_profiles_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ai_training_profiles_updated_by_fkey' AND conrelid = 'public.ai_training_profiles'::regclass) THEN
+    ALTER TABLE public.ai_training_profiles ADD CONSTRAINT ai_training_profiles_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES public.users(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ai_training_examples_account_id_fkey' AND conrelid = 'public.ai_training_examples'::regclass) THEN
+    ALTER TABLE public.ai_training_examples ADD CONSTRAINT ai_training_examples_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ai_training_examples_created_by_fkey' AND conrelid = 'public.ai_training_examples'::regclass) THEN
+    ALTER TABLE public.ai_training_examples ADD CONSTRAINT ai_training_examples_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
 
 -- 11. Public API and outbound webhooks
-ALTER TABLE public.api_keys ADD CONSTRAINT api_keys_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.api_keys ADD CONSTRAINT api_keys_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL;
-ALTER TABLE public.webhook_endpoints ADD CONSTRAINT webhook_endpoints_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.webhook_endpoints ADD CONSTRAINT webhook_endpoints_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'api_keys_account_id_fkey' AND conrelid = 'public.api_keys'::regclass) THEN
+    ALTER TABLE public.api_keys ADD CONSTRAINT api_keys_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'api_keys_created_by_fkey' AND conrelid = 'public.api_keys'::regclass) THEN
+    ALTER TABLE public.api_keys ADD CONSTRAINT api_keys_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'webhook_endpoints_account_id_fkey' AND conrelid = 'public.webhook_endpoints'::regclass) THEN
+    ALTER TABLE public.webhook_endpoints ADD CONSTRAINT webhook_endpoints_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'webhook_endpoints_created_by_fkey' AND conrelid = 'public.webhook_endpoints'::regclass) THEN
+    ALTER TABLE public.webhook_endpoints ADD CONSTRAINT webhook_endpoints_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
 
 -- 12. Notifications
-ALTER TABLE public.notifications ADD CONSTRAINT notifications_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
-ALTER TABLE public.notifications ADD CONSTRAINT notifications_actor_user_id_fkey FOREIGN KEY (actor_user_id) REFERENCES public.users(id) ON DELETE SET NULL;
-ALTER TABLE public.notifications ADD CONSTRAINT notifications_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL;
-ALTER TABLE public.notifications ADD CONSTRAINT notifications_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE;
-ALTER TABLE public.notifications ADD CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'notifications_account_id_fkey' AND conrelid = 'public.notifications'::regclass) THEN
+    ALTER TABLE public.notifications ADD CONSTRAINT notifications_account_id_fkey FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'notifications_actor_user_id_fkey' AND conrelid = 'public.notifications'::regclass) THEN
+    ALTER TABLE public.notifications ADD CONSTRAINT notifications_actor_user_id_fkey FOREIGN KEY (actor_user_id) REFERENCES public.users(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'notifications_contact_id_fkey' AND conrelid = 'public.notifications'::regclass) THEN
+    ALTER TABLE public.notifications ADD CONSTRAINT notifications_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES contacts(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'notifications_conversation_id_fkey' AND conrelid = 'public.notifications'::regclass) THEN
+    ALTER TABLE public.notifications ADD CONSTRAINT notifications_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'notifications_user_id_fkey' AND conrelid = 'public.notifications'::regclass) THEN
+    ALTER TABLE public.notifications ADD CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+  END IF;
+END $con$;
 
 -- 13. Database administration (Backup > Database config)
-ALTER TABLE public.db_maintenance_log ADD CONSTRAINT db_maintenance_log_performed_by_fkey FOREIGN KEY (performed_by) REFERENCES public.users(id) ON DELETE SET NULL;
+DO $con$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'db_maintenance_log_performed_by_fkey' AND conrelid = 'public.db_maintenance_log'::regclass) THEN
+    ALTER TABLE public.db_maintenance_log ADD CONSTRAINT db_maintenance_log_performed_by_fkey FOREIGN KEY (performed_by) REFERENCES public.users(id) ON DELETE SET NULL;
+  END IF;
+END $con$;
 
 
 -- ======================================================================
@@ -952,104 +1781,104 @@ ALTER TABLE public.db_maintenance_log ADD CONSTRAINT db_maintenance_log_performe
 -- ======================================================================
 
 -- 1. Accounts, users and team roles
-CREATE UNIQUE INDEX idx_accounts_one_per_owner ON public.accounts USING btree (owner_user_id);
-CREATE INDEX idx_profiles_account_role ON public.profiles USING btree (account_id, account_role);
-CREATE INDEX idx_account_invitations_account_pending ON public.account_invitations USING btree (account_id, expires_at) WHERE (accepted_at IS NULL);
-CREATE INDEX member_presence_account_idx ON public.member_presence USING btree (account_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_accounts_one_per_owner ON public.accounts USING btree (owner_user_id);
+CREATE INDEX IF NOT EXISTS idx_profiles_account_role ON public.profiles USING btree (account_id, account_role);
+CREATE INDEX IF NOT EXISTS idx_account_invitations_account_pending ON public.account_invitations USING btree (account_id, expires_at) WHERE (accepted_at IS NULL);
+CREATE INDEX IF NOT EXISTS member_presence_account_idx ON public.member_presence USING btree (account_id);
 
 -- 2. Platform roles and subscriptions
-CREATE INDEX idx_platform_users_role ON public.platform_users USING btree (platform_role);
+CREATE INDEX IF NOT EXISTS idx_platform_users_role ON public.platform_users USING btree (platform_role);
 
 -- 3. WhatsApp connection and message templates
-CREATE INDEX idx_whatsapp_config_account ON public.whatsapp_config USING btree (account_id);
-CREATE INDEX idx_whatsapp_config_registered_at ON public.whatsapp_config USING btree (registered_at) WHERE (registered_at IS NULL);
-CREATE INDEX idx_message_templates_account ON public.message_templates USING btree (account_id);
-CREATE INDEX idx_message_templates_meta_template_id ON public.message_templates USING btree (meta_template_id) WHERE (meta_template_id IS NOT NULL);
-CREATE UNIQUE INDEX message_templates_user_name_language_key ON public.message_templates USING btree (user_id, name, language);
+CREATE INDEX IF NOT EXISTS idx_whatsapp_config_account ON public.whatsapp_config USING btree (account_id);
+CREATE INDEX IF NOT EXISTS idx_whatsapp_config_registered_at ON public.whatsapp_config USING btree (registered_at) WHERE (registered_at IS NULL);
+CREATE INDEX IF NOT EXISTS idx_message_templates_account ON public.message_templates USING btree (account_id);
+CREATE INDEX IF NOT EXISTS idx_message_templates_meta_template_id ON public.message_templates USING btree (meta_template_id) WHERE (meta_template_id IS NOT NULL);
+CREATE UNIQUE INDEX IF NOT EXISTS message_templates_user_name_language_key ON public.message_templates USING btree (user_id, name, language);
 
 -- 4. Contacts, tags and custom fields
-CREATE INDEX idx_contacts_account ON public.contacts USING btree (account_id);
-CREATE UNIQUE INDEX idx_contacts_account_phone_normalized ON public.contacts USING btree (account_id, phone_normalized) WHERE (phone_normalized <> ''::text);
-CREATE UNIQUE INDEX idx_contacts_account_wa_user_id ON public.contacts USING btree (account_id, wa_user_id) WHERE (wa_user_id IS NOT NULL);
-CREATE INDEX idx_contacts_phone ON public.contacts USING btree (phone);
-CREATE INDEX idx_contacts_user_id ON public.contacts USING btree (user_id);
-CREATE INDEX idx_tags_account ON public.tags USING btree (account_id);
-CREATE INDEX idx_contact_tags_contact ON public.contact_tags USING btree (contact_id);
-CREATE INDEX idx_contact_tags_tag ON public.contact_tags USING btree (tag_id);
-CREATE INDEX idx_custom_fields_account ON public.custom_fields USING btree (account_id);
-CREATE INDEX idx_contact_notes_account ON public.contact_notes USING btree (account_id);
+CREATE INDEX IF NOT EXISTS idx_contacts_account ON public.contacts USING btree (account_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_contacts_account_phone_normalized ON public.contacts USING btree (account_id, phone_normalized) WHERE (phone_normalized <> ''::text);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_contacts_account_wa_user_id ON public.contacts USING btree (account_id, wa_user_id) WHERE (wa_user_id IS NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_contacts_phone ON public.contacts USING btree (phone);
+CREATE INDEX IF NOT EXISTS idx_contacts_user_id ON public.contacts USING btree (user_id);
+CREATE INDEX IF NOT EXISTS idx_tags_account ON public.tags USING btree (account_id);
+CREATE INDEX IF NOT EXISTS idx_contact_tags_contact ON public.contact_tags USING btree (contact_id);
+CREATE INDEX IF NOT EXISTS idx_contact_tags_tag ON public.contact_tags USING btree (tag_id);
+CREATE INDEX IF NOT EXISTS idx_custom_fields_account ON public.custom_fields USING btree (account_id);
+CREATE INDEX IF NOT EXISTS idx_contact_notes_account ON public.contact_notes USING btree (account_id);
 
 -- 5. Inbox: conversations, messages and quick replies
-CREATE INDEX idx_conversations_account ON public.conversations USING btree (account_id);
-CREATE UNIQUE INDEX idx_conversations_account_contact ON public.conversations USING btree (account_id, contact_id);
-CREATE INDEX idx_conversations_contact_id ON public.conversations USING btree (contact_id);
-CREATE INDEX idx_conversations_user_id ON public.conversations USING btree (user_id);
-CREATE INDEX idx_messages_conversation ON public.messages USING btree (conversation_id);
-CREATE UNIQUE INDEX idx_messages_conversation_message_id ON public.messages USING btree (conversation_id, message_id);
-CREATE INDEX idx_messages_message_id ON public.messages USING btree (message_id);
-CREATE INDEX idx_messages_reply_to ON public.messages USING btree (reply_to_message_id) WHERE (reply_to_message_id IS NOT NULL);
-CREATE INDEX idx_message_reactions_conversation ON public.message_reactions USING btree (conversation_id);
-CREATE INDEX idx_message_reactions_message ON public.message_reactions USING btree (message_id);
-CREATE INDEX idx_quick_replies_account ON public.quick_replies USING btree (account_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_account ON public.conversations USING btree (account_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_conversations_account_contact ON public.conversations USING btree (account_id, contact_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_contact_id ON public.conversations USING btree (contact_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_user_id ON public.conversations USING btree (user_id);
+CREATE INDEX IF NOT EXISTS idx_messages_conversation ON public.messages USING btree (conversation_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_messages_conversation_message_id ON public.messages USING btree (conversation_id, message_id);
+CREATE INDEX IF NOT EXISTS idx_messages_message_id ON public.messages USING btree (message_id);
+CREATE INDEX IF NOT EXISTS idx_messages_reply_to ON public.messages USING btree (reply_to_message_id) WHERE (reply_to_message_id IS NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_message_reactions_conversation ON public.message_reactions USING btree (conversation_id);
+CREATE INDEX IF NOT EXISTS idx_message_reactions_message ON public.message_reactions USING btree (message_id);
+CREATE INDEX IF NOT EXISTS idx_quick_replies_account ON public.quick_replies USING btree (account_id);
 
 -- 6. Sales pipelines and deals
-CREATE INDEX idx_pipelines_account ON public.pipelines USING btree (account_id);
-CREATE INDEX idx_pipeline_stages_pipeline ON public.pipeline_stages USING btree (pipeline_id);
-CREATE INDEX idx_deals_account ON public.deals USING btree (account_id);
-CREATE INDEX idx_deals_assigned_to ON public.deals USING btree (assigned_to);
-CREATE INDEX idx_deals_pipeline ON public.deals USING btree (pipeline_id);
-CREATE INDEX idx_deals_stage ON public.deals USING btree (stage_id);
+CREATE INDEX IF NOT EXISTS idx_pipelines_account ON public.pipelines USING btree (account_id);
+CREATE INDEX IF NOT EXISTS idx_pipeline_stages_pipeline ON public.pipeline_stages USING btree (pipeline_id);
+CREATE INDEX IF NOT EXISTS idx_deals_account ON public.deals USING btree (account_id);
+CREATE INDEX IF NOT EXISTS idx_deals_assigned_to ON public.deals USING btree (assigned_to);
+CREATE INDEX IF NOT EXISTS idx_deals_pipeline ON public.deals USING btree (pipeline_id);
+CREATE INDEX IF NOT EXISTS idx_deals_stage ON public.deals USING btree (stage_id);
 
 -- 7. Broadcasts
-CREATE INDEX idx_broadcasts_account ON public.broadcasts USING btree (account_id);
-CREATE INDEX idx_broadcast_recipients_broadcast ON public.broadcast_recipients USING btree (broadcast_id);
-CREATE INDEX idx_broadcast_recipients_broadcast_status ON public.broadcast_recipients USING btree (broadcast_id, status);
-CREATE UNIQUE INDEX idx_broadcast_recipients_wamid ON public.broadcast_recipients USING btree (whatsapp_message_id) WHERE (whatsapp_message_id IS NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_broadcasts_account ON public.broadcasts USING btree (account_id);
+CREATE INDEX IF NOT EXISTS idx_broadcast_recipients_broadcast ON public.broadcast_recipients USING btree (broadcast_id);
+CREATE INDEX IF NOT EXISTS idx_broadcast_recipients_broadcast_status ON public.broadcast_recipients USING btree (broadcast_id, status);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_broadcast_recipients_wamid ON public.broadcast_recipients USING btree (whatsapp_message_id) WHERE (whatsapp_message_id IS NOT NULL);
 
 -- 8. Automations
-CREATE INDEX idx_automations_account ON public.automations USING btree (account_id);
-CREATE INDEX idx_automations_account_active_trigger ON public.automations USING btree (account_id, trigger_type) WHERE (is_active = true);
-CREATE INDEX idx_automations_active_trigger ON public.automations USING btree (trigger_type) WHERE (is_active = true);
-CREATE INDEX idx_automations_user_id ON public.automations USING btree (user_id);
-CREATE INDEX idx_automation_steps_automation_id ON public.automation_steps USING btree (automation_id, "position");
-CREATE INDEX idx_automation_steps_parent ON public.automation_steps USING btree (parent_step_id) WHERE (parent_step_id IS NOT NULL);
-CREATE INDEX idx_automation_logs_account ON public.automation_logs USING btree (account_id);
-CREATE INDEX idx_automation_logs_automation ON public.automation_logs USING btree (automation_id, created_at DESC);
-CREATE INDEX idx_automation_logs_user ON public.automation_logs USING btree (user_id);
-CREATE INDEX idx_automation_pending_account ON public.automation_pending_executions USING btree (account_id);
-CREATE INDEX idx_automation_pending_due ON public.automation_pending_executions USING btree (run_at) WHERE (status = 'pending'::text);
+CREATE INDEX IF NOT EXISTS idx_automations_account ON public.automations USING btree (account_id);
+CREATE INDEX IF NOT EXISTS idx_automations_account_active_trigger ON public.automations USING btree (account_id, trigger_type) WHERE (is_active = true);
+CREATE INDEX IF NOT EXISTS idx_automations_active_trigger ON public.automations USING btree (trigger_type) WHERE (is_active = true);
+CREATE INDEX IF NOT EXISTS idx_automations_user_id ON public.automations USING btree (user_id);
+CREATE INDEX IF NOT EXISTS idx_automation_steps_automation_id ON public.automation_steps USING btree (automation_id, "position");
+CREATE INDEX IF NOT EXISTS idx_automation_steps_parent ON public.automation_steps USING btree (parent_step_id) WHERE (parent_step_id IS NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_automation_logs_account ON public.automation_logs USING btree (account_id);
+CREATE INDEX IF NOT EXISTS idx_automation_logs_automation ON public.automation_logs USING btree (automation_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_automation_logs_user ON public.automation_logs USING btree (user_id);
+CREATE INDEX IF NOT EXISTS idx_automation_pending_account ON public.automation_pending_executions USING btree (account_id);
+CREATE INDEX IF NOT EXISTS idx_automation_pending_due ON public.automation_pending_executions USING btree (run_at) WHERE (status = 'pending'::text);
 
 -- 9. Flows (chatbot builder)
-CREATE INDEX idx_flows_account ON public.flows USING btree (account_id);
-CREATE INDEX idx_flows_account_active ON public.flows USING btree (account_id) WHERE (status = 'active'::text);
-CREATE INDEX idx_flows_active_trigger ON public.flows USING btree (user_id, trigger_type) WHERE (status = 'active'::text);
-CREATE INDEX idx_flow_nodes_flow ON public.flow_nodes USING btree (flow_id);
-CREATE INDEX idx_flow_runs_account ON public.flow_runs USING btree (account_id);
-CREATE INDEX idx_flow_runs_active_advanced ON public.flow_runs USING btree (last_advanced_at) WHERE (status = 'active'::text);
-CREATE INDEX idx_flow_runs_flow_started ON public.flow_runs USING btree (flow_id, started_at DESC);
-CREATE UNIQUE INDEX idx_one_active_run_per_contact ON public.flow_runs USING btree (account_id, contact_id) WHERE (status = 'active'::text);
-CREATE INDEX idx_flow_run_events_run_time ON public.flow_run_events USING btree (flow_run_id, created_at DESC);
-CREATE INDEX idx_flow_run_events_run_type ON public.flow_run_events USING btree (flow_run_id, event_type);
+CREATE INDEX IF NOT EXISTS idx_flows_account ON public.flows USING btree (account_id);
+CREATE INDEX IF NOT EXISTS idx_flows_account_active ON public.flows USING btree (account_id) WHERE (status = 'active'::text);
+CREATE INDEX IF NOT EXISTS idx_flows_active_trigger ON public.flows USING btree (user_id, trigger_type) WHERE (status = 'active'::text);
+CREATE INDEX IF NOT EXISTS idx_flow_nodes_flow ON public.flow_nodes USING btree (flow_id);
+CREATE INDEX IF NOT EXISTS idx_flow_runs_account ON public.flow_runs USING btree (account_id);
+CREATE INDEX IF NOT EXISTS idx_flow_runs_active_advanced ON public.flow_runs USING btree (last_advanced_at) WHERE (status = 'active'::text);
+CREATE INDEX IF NOT EXISTS idx_flow_runs_flow_started ON public.flow_runs USING btree (flow_id, started_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_one_active_run_per_contact ON public.flow_runs USING btree (account_id, contact_id) WHERE (status = 'active'::text);
+CREATE INDEX IF NOT EXISTS idx_flow_run_events_run_time ON public.flow_run_events USING btree (flow_run_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_flow_run_events_run_type ON public.flow_run_events USING btree (flow_run_id, event_type);
 
 -- 10. AI agent, knowledge base and Train AI
-CREATE INDEX ai_knowledge_documents_account_id_idx ON public.ai_knowledge_documents USING btree (account_id);
-CREATE INDEX ai_knowledge_chunks_account_id_idx ON public.ai_knowledge_chunks USING btree (account_id);
-CREATE INDEX ai_knowledge_chunks_document_id_idx ON public.ai_knowledge_chunks USING btree (document_id);
-CREATE INDEX ai_knowledge_chunks_fts_idx ON public.ai_knowledge_chunks USING gin (fts);
-CREATE INDEX idx_ai_usage_log_account_created ON public.ai_usage_log USING btree (account_id, created_at DESC);
-CREATE INDEX idx_ai_training_examples_account ON public.ai_training_examples USING btree (account_id, kind, is_active);
+CREATE INDEX IF NOT EXISTS ai_knowledge_documents_account_id_idx ON public.ai_knowledge_documents USING btree (account_id);
+CREATE INDEX IF NOT EXISTS ai_knowledge_chunks_account_id_idx ON public.ai_knowledge_chunks USING btree (account_id);
+CREATE INDEX IF NOT EXISTS ai_knowledge_chunks_document_id_idx ON public.ai_knowledge_chunks USING btree (document_id);
+CREATE INDEX IF NOT EXISTS ai_knowledge_chunks_fts_idx ON public.ai_knowledge_chunks USING gin (fts);
+CREATE INDEX IF NOT EXISTS idx_ai_usage_log_account_created ON public.ai_usage_log USING btree (account_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_ai_training_examples_account ON public.ai_training_examples USING btree (account_id, kind, is_active);
 
 -- 11. Public API and outbound webhooks
-CREATE INDEX api_keys_account_id_idx ON public.api_keys USING btree (account_id);
-CREATE INDEX api_keys_key_hash_idx ON public.api_keys USING btree (key_hash);
-CREATE INDEX webhook_endpoints_account_id_idx ON public.webhook_endpoints USING btree (account_id);
+CREATE INDEX IF NOT EXISTS api_keys_account_id_idx ON public.api_keys USING btree (account_id);
+CREATE INDEX IF NOT EXISTS api_keys_key_hash_idx ON public.api_keys USING btree (key_hash);
+CREATE INDEX IF NOT EXISTS webhook_endpoints_account_id_idx ON public.webhook_endpoints USING btree (account_id);
 
 -- 12. Notifications
-CREATE INDEX idx_notifications_user_created ON public.notifications USING btree (user_id, created_at DESC);
-CREATE INDEX idx_notifications_user_unread ON public.notifications USING btree (user_id) WHERE (read_at IS NULL);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_created ON public.notifications USING btree (user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON public.notifications USING btree (user_id) WHERE (read_at IS NULL);
 
 -- 13. Database administration (Backup > Database config)
-CREATE INDEX idx_db_maintenance_log_created ON public.db_maintenance_log USING btree (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_db_maintenance_log_created ON public.db_maintenance_log USING btree (created_at DESC);
 
 
 -- ======================================================================
@@ -2331,29 +3160,51 @@ $pgv$;
 -- 6. TRIGGERS (application tables)
 -- ======================================================================
 
+DROP TRIGGER IF EXISTS set_updated_at ON public.accounts;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.accounts FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS ai_configs_updated_at ON public.ai_configs;
 CREATE TRIGGER ai_configs_updated_at BEFORE UPDATE ON public.ai_configs FOR EACH ROW EXECUTE FUNCTION update_ai_configs_updated_at();
+DROP TRIGGER IF EXISTS ai_knowledge_documents_updated_at ON public.ai_knowledge_documents;
 CREATE TRIGGER ai_knowledge_documents_updated_at BEFORE UPDATE ON public.ai_knowledge_documents FOR EACH ROW EXECUTE FUNCTION update_ai_knowledge_documents_updated_at();
+DROP TRIGGER IF EXISTS set_updated_at ON public.ai_training_examples;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.ai_training_examples FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS set_updated_at ON public.ai_training_profiles;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.ai_training_profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS set_updated_at ON public.automations;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.automations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS broadcast_recipients_aggregate ON public.broadcast_recipients;
 CREATE TRIGGER broadcast_recipients_aggregate AFTER INSERT OR DELETE OR UPDATE ON public.broadcast_recipients FOR EACH ROW EXECUTE FUNCTION broadcast_recipient_aggregate_trigger();
+DROP TRIGGER IF EXISTS set_updated_at ON public.broadcasts;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.broadcasts FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS set_updated_at ON public.contacts;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.contacts FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS on_conversation_assigned ON public.conversations;
 CREATE TRIGGER on_conversation_assigned AFTER INSERT OR UPDATE OF assigned_agent_id ON public.conversations FOR EACH ROW EXECUTE FUNCTION notify_conversation_assigned();
+DROP TRIGGER IF EXISTS set_updated_at ON public.conversations;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.conversations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS set_updated_at ON public.deals;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.deals FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS set_updated_at ON public.flows;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.flows FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS set_updated_at ON public.message_templates;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.message_templates FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS set_updated_at ON public.platform_users;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.platform_users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS enforce_profile_privilege_columns ON public.profiles;
 CREATE TRIGGER enforce_profile_privilege_columns BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION enforce_profile_privilege_columns();
+DROP TRIGGER IF EXISTS set_updated_at ON public.profiles;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS set_updated_at ON public.quick_replies;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.quick_replies FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS set_updated_at ON public.whatsapp_config;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.whatsapp_config FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- New sign-ups: account + profile (handle_new_user) and the platform row with its trial.
+DROP TRIGGER IF EXISTS on_user_created ON public.users;
 CREATE TRIGGER on_user_created AFTER INSERT ON public.users FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+DROP TRIGGER IF EXISTS on_user_created_platform ON public.users;
 CREATE TRIGGER on_user_created_platform AFTER INSERT ON public.users FOR EACH ROW EXECUTE FUNCTION handle_new_platform_user();
+DROP TRIGGER IF EXISTS set_updated_at ON public.users;
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ======================================================================
@@ -2404,65 +3255,91 @@ ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.db_maintenance_log ENABLE ROW LEVEL SECURITY;
 
 -- 1. Accounts, users and team roles
+DROP POLICY IF EXISTS "accounts_select" ON public.accounts;
 CREATE POLICY "accounts_select" ON public.accounts FOR SELECT
   USING (is_account_member(id));
+DROP POLICY IF EXISTS "accounts_update" ON public.accounts;
 CREATE POLICY "accounts_update" ON public.accounts FOR UPDATE
   USING (is_account_member(id, 'admin'::account_role_enum))
   WITH CHECK (is_account_member(id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "profiles_insert" ON public.profiles;
 CREATE POLICY "profiles_insert" ON public.profiles FOR INSERT
   WITH CHECK ((current_user_id() = user_id));
+DROP POLICY IF EXISTS "profiles_select" ON public.profiles;
 CREATE POLICY "profiles_select" ON public.profiles FOR SELECT
   USING (((current_user_id() = user_id) OR is_account_member(account_id)));
+DROP POLICY IF EXISTS "profiles_update" ON public.profiles;
 CREATE POLICY "profiles_update" ON public.profiles FOR UPDATE
   USING ((current_user_id() = user_id))
   WITH CHECK ((current_user_id() = user_id));
+DROP POLICY IF EXISTS "account_invitations_modify" ON public.account_invitations;
 CREATE POLICY "account_invitations_modify" ON public.account_invitations FOR ALL
   USING (is_account_member(account_id, 'admin'::account_role_enum))
   WITH CHECK (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "account_invitations_select" ON public.account_invitations;
 CREATE POLICY "account_invitations_select" ON public.account_invitations FOR SELECT
   USING (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "member_presence_select" ON public.member_presence;
 CREATE POLICY "member_presence_select" ON public.member_presence FOR SELECT
   USING (is_account_member(account_id));
 
 -- 2. Platform roles and subscriptions
+DROP POLICY IF EXISTS "platform_users_select_own" ON public.platform_users;
 CREATE POLICY "platform_users_select_own" ON public.platform_users FOR SELECT
   USING ((user_id = current_user_id()));
 
 -- 3. WhatsApp connection and message templates
+DROP POLICY IF EXISTS "whatsapp_config_delete" ON public.whatsapp_config;
 CREATE POLICY "whatsapp_config_delete" ON public.whatsapp_config FOR DELETE
   USING (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "whatsapp_config_insert" ON public.whatsapp_config;
 CREATE POLICY "whatsapp_config_insert" ON public.whatsapp_config FOR INSERT
   WITH CHECK (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "whatsapp_config_select" ON public.whatsapp_config;
 CREATE POLICY "whatsapp_config_select" ON public.whatsapp_config FOR SELECT
   USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "whatsapp_config_update" ON public.whatsapp_config;
 CREATE POLICY "whatsapp_config_update" ON public.whatsapp_config FOR UPDATE
   USING (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "message_templates_delete" ON public.message_templates;
 CREATE POLICY "message_templates_delete" ON public.message_templates FOR DELETE
   USING (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "message_templates_insert" ON public.message_templates;
 CREATE POLICY "message_templates_insert" ON public.message_templates FOR INSERT
   WITH CHECK (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "message_templates_select" ON public.message_templates;
 CREATE POLICY "message_templates_select" ON public.message_templates FOR SELECT
   USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "message_templates_update" ON public.message_templates;
 CREATE POLICY "message_templates_update" ON public.message_templates FOR UPDATE
   USING (is_account_member(account_id, 'admin'::account_role_enum));
 
 -- 4. Contacts, tags and custom fields
+DROP POLICY IF EXISTS "contacts_delete" ON public.contacts;
 CREATE POLICY "contacts_delete" ON public.contacts FOR DELETE
   USING (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "contacts_insert" ON public.contacts;
 CREATE POLICY "contacts_insert" ON public.contacts FOR INSERT
   WITH CHECK (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "contacts_select" ON public.contacts;
 CREATE POLICY "contacts_select" ON public.contacts FOR SELECT
   USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "contacts_update" ON public.contacts;
 CREATE POLICY "contacts_update" ON public.contacts FOR UPDATE
   USING (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "tags_delete" ON public.tags;
 CREATE POLICY "tags_delete" ON public.tags FOR DELETE
   USING (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "tags_insert" ON public.tags;
 CREATE POLICY "tags_insert" ON public.tags FOR INSERT
   WITH CHECK (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "tags_select" ON public.tags;
 CREATE POLICY "tags_select" ON public.tags FOR SELECT
   USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "tags_update" ON public.tags;
 CREATE POLICY "tags_update" ON public.tags FOR UPDATE
   USING (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "contact_tags_modify" ON public.contact_tags;
 CREATE POLICY "contact_tags_modify" ON public.contact_tags FOR ALL
   USING ((EXISTS ( SELECT 1
    FROM contacts c
@@ -2470,18 +3347,24 @@ CREATE POLICY "contact_tags_modify" ON public.contact_tags FOR ALL
   WITH CHECK ((EXISTS ( SELECT 1
    FROM contacts c
   WHERE ((c.id = contact_tags.contact_id) AND is_account_member(c.account_id, 'agent'::account_role_enum)))));
+DROP POLICY IF EXISTS "contact_tags_select" ON public.contact_tags;
 CREATE POLICY "contact_tags_select" ON public.contact_tags FOR SELECT
   USING ((EXISTS ( SELECT 1
    FROM contacts c
   WHERE ((c.id = contact_tags.contact_id) AND is_account_member(c.account_id)))));
+DROP POLICY IF EXISTS "custom_fields_delete" ON public.custom_fields;
 CREATE POLICY "custom_fields_delete" ON public.custom_fields FOR DELETE
   USING (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "custom_fields_insert" ON public.custom_fields;
 CREATE POLICY "custom_fields_insert" ON public.custom_fields FOR INSERT
   WITH CHECK (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "custom_fields_select" ON public.custom_fields;
 CREATE POLICY "custom_fields_select" ON public.custom_fields FOR SELECT
   USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "custom_fields_update" ON public.custom_fields;
 CREATE POLICY "custom_fields_update" ON public.custom_fields FOR UPDATE
   USING (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "contact_custom_values_modify" ON public.contact_custom_values;
 CREATE POLICY "contact_custom_values_modify" ON public.contact_custom_values FOR ALL
   USING ((EXISTS ( SELECT 1
    FROM contacts c
@@ -2489,28 +3372,38 @@ CREATE POLICY "contact_custom_values_modify" ON public.contact_custom_values FOR
   WITH CHECK ((EXISTS ( SELECT 1
    FROM contacts c
   WHERE ((c.id = contact_custom_values.contact_id) AND is_account_member(c.account_id, 'agent'::account_role_enum)))));
+DROP POLICY IF EXISTS "contact_custom_values_select" ON public.contact_custom_values;
 CREATE POLICY "contact_custom_values_select" ON public.contact_custom_values FOR SELECT
   USING ((EXISTS ( SELECT 1
    FROM contacts c
   WHERE ((c.id = contact_custom_values.contact_id) AND is_account_member(c.account_id)))));
+DROP POLICY IF EXISTS "contact_notes_delete" ON public.contact_notes;
 CREATE POLICY "contact_notes_delete" ON public.contact_notes FOR DELETE
   USING (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "contact_notes_insert" ON public.contact_notes;
 CREATE POLICY "contact_notes_insert" ON public.contact_notes FOR INSERT
   WITH CHECK (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "contact_notes_select" ON public.contact_notes;
 CREATE POLICY "contact_notes_select" ON public.contact_notes FOR SELECT
   USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "contact_notes_update" ON public.contact_notes;
 CREATE POLICY "contact_notes_update" ON public.contact_notes FOR UPDATE
   USING (is_account_member(account_id, 'agent'::account_role_enum));
 
 -- 5. Inbox: conversations, messages and quick replies
+DROP POLICY IF EXISTS "conversations_delete" ON public.conversations;
 CREATE POLICY "conversations_delete" ON public.conversations FOR DELETE
   USING (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "conversations_insert" ON public.conversations;
 CREATE POLICY "conversations_insert" ON public.conversations FOR INSERT
   WITH CHECK (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "conversations_select" ON public.conversations;
 CREATE POLICY "conversations_select" ON public.conversations FOR SELECT
   USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "conversations_update" ON public.conversations;
 CREATE POLICY "conversations_update" ON public.conversations FOR UPDATE
   USING (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "messages_modify" ON public.messages;
 CREATE POLICY "messages_modify" ON public.messages FOR ALL
   USING ((EXISTS ( SELECT 1
    FROM conversations c
@@ -2518,10 +3411,12 @@ CREATE POLICY "messages_modify" ON public.messages FOR ALL
   WITH CHECK ((EXISTS ( SELECT 1
    FROM conversations c
   WHERE ((c.id = messages.conversation_id) AND is_account_member(c.account_id, 'agent'::account_role_enum)))));
+DROP POLICY IF EXISTS "messages_select" ON public.messages;
 CREATE POLICY "messages_select" ON public.messages FOR SELECT
   USING ((EXISTS ( SELECT 1
    FROM conversations c
   WHERE ((c.id = messages.conversation_id) AND is_account_member(c.account_id)))));
+DROP POLICY IF EXISTS "message_reactions_modify" ON public.message_reactions;
 CREATE POLICY "message_reactions_modify" ON public.message_reactions FOR ALL
   USING ((EXISTS ( SELECT 1
    FROM (messages m
@@ -2531,29 +3426,39 @@ CREATE POLICY "message_reactions_modify" ON public.message_reactions FOR ALL
    FROM (messages m
      JOIN conversations c ON ((c.id = m.conversation_id)))
   WHERE ((m.id = message_reactions.message_id) AND is_account_member(c.account_id, 'agent'::account_role_enum)))));
+DROP POLICY IF EXISTS "message_reactions_select" ON public.message_reactions;
 CREATE POLICY "message_reactions_select" ON public.message_reactions FOR SELECT
   USING ((EXISTS ( SELECT 1
    FROM (messages m
      JOIN conversations c ON ((c.id = m.conversation_id)))
   WHERE ((m.id = message_reactions.message_id) AND is_account_member(c.account_id)))));
+DROP POLICY IF EXISTS "quick_replies_delete" ON public.quick_replies;
 CREATE POLICY "quick_replies_delete" ON public.quick_replies FOR DELETE
   USING (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "quick_replies_insert" ON public.quick_replies;
 CREATE POLICY "quick_replies_insert" ON public.quick_replies FOR INSERT
   WITH CHECK (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "quick_replies_select" ON public.quick_replies;
 CREATE POLICY "quick_replies_select" ON public.quick_replies FOR SELECT
   USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "quick_replies_update" ON public.quick_replies;
 CREATE POLICY "quick_replies_update" ON public.quick_replies FOR UPDATE
   USING (is_account_member(account_id, 'agent'::account_role_enum));
 
 -- 6. Sales pipelines and deals
+DROP POLICY IF EXISTS "pipelines_delete" ON public.pipelines;
 CREATE POLICY "pipelines_delete" ON public.pipelines FOR DELETE
   USING (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "pipelines_insert" ON public.pipelines;
 CREATE POLICY "pipelines_insert" ON public.pipelines FOR INSERT
   WITH CHECK (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "pipelines_select" ON public.pipelines;
 CREATE POLICY "pipelines_select" ON public.pipelines FOR SELECT
   USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "pipelines_update" ON public.pipelines;
 CREATE POLICY "pipelines_update" ON public.pipelines FOR UPDATE
   USING (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "pipeline_stages_modify" ON public.pipeline_stages;
 CREATE POLICY "pipeline_stages_modify" ON public.pipeline_stages FOR ALL
   USING ((EXISTS ( SELECT 1
    FROM pipelines p
@@ -2561,28 +3466,38 @@ CREATE POLICY "pipeline_stages_modify" ON public.pipeline_stages FOR ALL
   WITH CHECK ((EXISTS ( SELECT 1
    FROM pipelines p
   WHERE ((p.id = pipeline_stages.pipeline_id) AND is_account_member(p.account_id, 'admin'::account_role_enum)))));
+DROP POLICY IF EXISTS "pipeline_stages_select" ON public.pipeline_stages;
 CREATE POLICY "pipeline_stages_select" ON public.pipeline_stages FOR SELECT
   USING ((EXISTS ( SELECT 1
    FROM pipelines p
   WHERE ((p.id = pipeline_stages.pipeline_id) AND is_account_member(p.account_id)))));
+DROP POLICY IF EXISTS "deals_delete" ON public.deals;
 CREATE POLICY "deals_delete" ON public.deals FOR DELETE
   USING (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "deals_insert" ON public.deals;
 CREATE POLICY "deals_insert" ON public.deals FOR INSERT
   WITH CHECK (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "deals_select" ON public.deals;
 CREATE POLICY "deals_select" ON public.deals FOR SELECT
   USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "deals_update" ON public.deals;
 CREATE POLICY "deals_update" ON public.deals FOR UPDATE
   USING (is_account_member(account_id, 'agent'::account_role_enum));
 
 -- 7. Broadcasts
+DROP POLICY IF EXISTS "broadcasts_delete" ON public.broadcasts;
 CREATE POLICY "broadcasts_delete" ON public.broadcasts FOR DELETE
   USING (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "broadcasts_insert" ON public.broadcasts;
 CREATE POLICY "broadcasts_insert" ON public.broadcasts FOR INSERT
   WITH CHECK (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "broadcasts_select" ON public.broadcasts;
 CREATE POLICY "broadcasts_select" ON public.broadcasts FOR SELECT
   USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "broadcasts_update" ON public.broadcasts;
 CREATE POLICY "broadcasts_update" ON public.broadcasts FOR UPDATE
   USING (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "broadcast_recipients_modify" ON public.broadcast_recipients;
 CREATE POLICY "broadcast_recipients_modify" ON public.broadcast_recipients FOR ALL
   USING ((EXISTS ( SELECT 1
    FROM broadcasts b
@@ -2590,20 +3505,26 @@ CREATE POLICY "broadcast_recipients_modify" ON public.broadcast_recipients FOR A
   WITH CHECK ((EXISTS ( SELECT 1
    FROM broadcasts b
   WHERE ((b.id = broadcast_recipients.broadcast_id) AND is_account_member(b.account_id, 'agent'::account_role_enum)))));
+DROP POLICY IF EXISTS "broadcast_recipients_select" ON public.broadcast_recipients;
 CREATE POLICY "broadcast_recipients_select" ON public.broadcast_recipients FOR SELECT
   USING ((EXISTS ( SELECT 1
    FROM broadcasts b
   WHERE ((b.id = broadcast_recipients.broadcast_id) AND is_account_member(b.account_id)))));
 
 -- 8. Automations
+DROP POLICY IF EXISTS "automations_delete" ON public.automations;
 CREATE POLICY "automations_delete" ON public.automations FOR DELETE
   USING (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "automations_insert" ON public.automations;
 CREATE POLICY "automations_insert" ON public.automations FOR INSERT
   WITH CHECK (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "automations_select" ON public.automations;
 CREATE POLICY "automations_select" ON public.automations FOR SELECT
   USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "automations_update" ON public.automations;
 CREATE POLICY "automations_update" ON public.automations FOR UPDATE
   USING (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "automation_steps_modify" ON public.automation_steps;
 CREATE POLICY "automation_steps_modify" ON public.automation_steps FOR ALL
   USING ((EXISTS ( SELECT 1
    FROM automations a
@@ -2611,22 +3532,29 @@ CREATE POLICY "automation_steps_modify" ON public.automation_steps FOR ALL
   WITH CHECK ((EXISTS ( SELECT 1
    FROM automations a
   WHERE ((a.id = automation_steps.automation_id) AND is_account_member(a.account_id, 'agent'::account_role_enum)))));
+DROP POLICY IF EXISTS "automation_steps_select" ON public.automation_steps;
 CREATE POLICY "automation_steps_select" ON public.automation_steps FOR SELECT
   USING ((EXISTS ( SELECT 1
    FROM automations a
   WHERE ((a.id = automation_steps.automation_id) AND is_account_member(a.account_id)))));
+DROP POLICY IF EXISTS "automation_logs_select" ON public.automation_logs;
 CREATE POLICY "automation_logs_select" ON public.automation_logs FOR SELECT
   USING (is_account_member(account_id));
 
 -- 9. Flows (chatbot builder)
+DROP POLICY IF EXISTS "flows_delete" ON public.flows;
 CREATE POLICY "flows_delete" ON public.flows FOR DELETE
   USING (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "flows_insert" ON public.flows;
 CREATE POLICY "flows_insert" ON public.flows FOR INSERT
   WITH CHECK (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "flows_select" ON public.flows;
 CREATE POLICY "flows_select" ON public.flows FOR SELECT
   USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "flows_update" ON public.flows;
 CREATE POLICY "flows_update" ON public.flows FOR UPDATE
   USING (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "flow_nodes_modify" ON public.flow_nodes;
 CREATE POLICY "flow_nodes_modify" ON public.flow_nodes FOR ALL
   USING ((EXISTS ( SELECT 1
    FROM flows f
@@ -2634,80 +3562,113 @@ CREATE POLICY "flow_nodes_modify" ON public.flow_nodes FOR ALL
   WITH CHECK ((EXISTS ( SELECT 1
    FROM flows f
   WHERE ((f.id = flow_nodes.flow_id) AND is_account_member(f.account_id, 'agent'::account_role_enum)))));
+DROP POLICY IF EXISTS "flow_nodes_select" ON public.flow_nodes;
 CREATE POLICY "flow_nodes_select" ON public.flow_nodes FOR SELECT
   USING ((EXISTS ( SELECT 1
    FROM flows f
   WHERE ((f.id = flow_nodes.flow_id) AND is_account_member(f.account_id)))));
+DROP POLICY IF EXISTS "flow_runs_select" ON public.flow_runs;
 CREATE POLICY "flow_runs_select" ON public.flow_runs FOR SELECT
   USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "flow_run_events_select" ON public.flow_run_events;
 CREATE POLICY "flow_run_events_select" ON public.flow_run_events FOR SELECT
   USING ((EXISTS ( SELECT 1
    FROM flow_runs r
   WHERE ((r.id = flow_run_events.flow_run_id) AND is_account_member(r.account_id)))));
 
 -- 10. AI agent, knowledge base and Train AI
+DROP POLICY IF EXISTS "ai_configs_delete" ON public.ai_configs;
 CREATE POLICY "ai_configs_delete" ON public.ai_configs FOR DELETE
   USING (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "ai_configs_insert" ON public.ai_configs;
 CREATE POLICY "ai_configs_insert" ON public.ai_configs FOR INSERT
   WITH CHECK (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "ai_configs_select" ON public.ai_configs;
 CREATE POLICY "ai_configs_select" ON public.ai_configs FOR SELECT
   USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "ai_configs_update" ON public.ai_configs;
 CREATE POLICY "ai_configs_update" ON public.ai_configs FOR UPDATE
   USING (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "ai_knowledge_documents_delete" ON public.ai_knowledge_documents;
 CREATE POLICY "ai_knowledge_documents_delete" ON public.ai_knowledge_documents FOR DELETE
   USING (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "ai_knowledge_documents_insert" ON public.ai_knowledge_documents;
 CREATE POLICY "ai_knowledge_documents_insert" ON public.ai_knowledge_documents FOR INSERT
   WITH CHECK (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "ai_knowledge_documents_select" ON public.ai_knowledge_documents;
 CREATE POLICY "ai_knowledge_documents_select" ON public.ai_knowledge_documents FOR SELECT
   USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "ai_knowledge_documents_update" ON public.ai_knowledge_documents;
 CREATE POLICY "ai_knowledge_documents_update" ON public.ai_knowledge_documents FOR UPDATE
   USING (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "ai_knowledge_chunks_delete" ON public.ai_knowledge_chunks;
 CREATE POLICY "ai_knowledge_chunks_delete" ON public.ai_knowledge_chunks FOR DELETE
   USING (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "ai_knowledge_chunks_insert" ON public.ai_knowledge_chunks;
 CREATE POLICY "ai_knowledge_chunks_insert" ON public.ai_knowledge_chunks FOR INSERT
   WITH CHECK (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "ai_knowledge_chunks_select" ON public.ai_knowledge_chunks;
 CREATE POLICY "ai_knowledge_chunks_select" ON public.ai_knowledge_chunks FOR SELECT
   USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "ai_knowledge_chunks_update" ON public.ai_knowledge_chunks;
 CREATE POLICY "ai_knowledge_chunks_update" ON public.ai_knowledge_chunks FOR UPDATE
   USING (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "ai_usage_log_select" ON public.ai_usage_log;
 CREATE POLICY "ai_usage_log_select" ON public.ai_usage_log FOR SELECT
   USING (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "ai_training_profiles_insert" ON public.ai_training_profiles;
 CREATE POLICY "ai_training_profiles_insert" ON public.ai_training_profiles FOR INSERT
   WITH CHECK (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "ai_training_profiles_select" ON public.ai_training_profiles;
 CREATE POLICY "ai_training_profiles_select" ON public.ai_training_profiles FOR SELECT
   USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "ai_training_profiles_update" ON public.ai_training_profiles;
 CREATE POLICY "ai_training_profiles_update" ON public.ai_training_profiles FOR UPDATE
   USING (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "ai_training_examples_delete" ON public.ai_training_examples;
 CREATE POLICY "ai_training_examples_delete" ON public.ai_training_examples FOR DELETE
   USING (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "ai_training_examples_insert" ON public.ai_training_examples;
 CREATE POLICY "ai_training_examples_insert" ON public.ai_training_examples FOR INSERT
   WITH CHECK (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "ai_training_examples_select" ON public.ai_training_examples;
 CREATE POLICY "ai_training_examples_select" ON public.ai_training_examples FOR SELECT
   USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "ai_training_examples_update" ON public.ai_training_examples;
 CREATE POLICY "ai_training_examples_update" ON public.ai_training_examples FOR UPDATE
   USING (is_account_member(account_id, 'agent'::account_role_enum));
 
 -- 11. Public API and outbound webhooks
+DROP POLICY IF EXISTS "api_keys_delete" ON public.api_keys;
 CREATE POLICY "api_keys_delete" ON public.api_keys FOR DELETE
   USING (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "api_keys_insert" ON public.api_keys;
 CREATE POLICY "api_keys_insert" ON public.api_keys FOR INSERT
   WITH CHECK (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "api_keys_select" ON public.api_keys;
 CREATE POLICY "api_keys_select" ON public.api_keys FOR SELECT
   USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "api_keys_update" ON public.api_keys;
 CREATE POLICY "api_keys_update" ON public.api_keys FOR UPDATE
   USING (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "webhook_endpoints_delete" ON public.webhook_endpoints;
 CREATE POLICY "webhook_endpoints_delete" ON public.webhook_endpoints FOR DELETE
   USING (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "webhook_endpoints_insert" ON public.webhook_endpoints;
 CREATE POLICY "webhook_endpoints_insert" ON public.webhook_endpoints FOR INSERT
   WITH CHECK (is_account_member(account_id, 'admin'::account_role_enum));
+DROP POLICY IF EXISTS "webhook_endpoints_select" ON public.webhook_endpoints;
 CREATE POLICY "webhook_endpoints_select" ON public.webhook_endpoints FOR SELECT
   USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "webhook_endpoints_update" ON public.webhook_endpoints;
 CREATE POLICY "webhook_endpoints_update" ON public.webhook_endpoints FOR UPDATE
   USING (is_account_member(account_id, 'admin'::account_role_enum));
 
 -- 12. Notifications
+DROP POLICY IF EXISTS "notifications_select" ON public.notifications;
 CREATE POLICY "notifications_select" ON public.notifications FOR SELECT
   USING ((current_user_id() = user_id));
+DROP POLICY IF EXISTS "notifications_update" ON public.notifications;
 CREATE POLICY "notifications_update" ON public.notifications FOR UPDATE
   USING ((current_user_id() = user_id))
   WITH CHECK ((current_user_id() = user_id));

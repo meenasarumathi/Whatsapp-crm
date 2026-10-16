@@ -37,7 +37,7 @@ try {
   line(true, "privileges", `superuser=${r.s} createrole=${r.cr}` + (r.s ? "" : "  (data import needs superuser; schema needs createrole or superuser)"));
   const [w] = await q("select exists(select 1 from pg_roles where rolname='wacrm_app') a");
   console.log(`INFO  app role wacrm_app: ${w.a ? "present" : "not created yet (db:init creates it)"}`);
-  const [t] = await q("select count(*)::int n from information_schema.tables where table_schema='public' and table_type='BASE TABLE'");
+  const [t] = await q("select count(*)::int n from information_schema.tables where table_schema='public' and table_type='BASE TABLE' and table_name <> 'schema_migrations'");
   const [u] = await q("select to_regclass('public.users') is not null has");
   line(u.has, "schema applied", u.has ? `${t.n} tables in public` : "run: npm run db:init");
   if (u.has) {
