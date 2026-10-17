@@ -47,7 +47,7 @@ export const MIRROR_BUCKET = "chat-media";
 export const MIRROR_FOLDER = "inbound";
 
 export interface MirrorInboundMediaArgs {
-  /** Service-role `supabase.storage` — RLS is bypassed, MIME/size limits are not. */
+  /** Service-role `db.storage` — RLS is bypassed, MIME/size limits are not. */
   storage: MirrorStorage;
   /** Tenant. Drives the account-scoped path the bucket's policies expect. */
   accountId: string;

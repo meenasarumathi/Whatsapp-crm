@@ -1,30 +1,60 @@
 name: wacrm
 
 services:
+  # ------------------------------------------------------------------
+  # PostgreSQL — the application database.
+  #   host port 5433 -> container 5432
+  #   data persists in the named volume `wacrm_pgdata`
+  #   db/schema.sql is applied automatically the first time the volume
+  #   is empty (docker-entrypoint-initdb.d). For an already-initialised
+  #   database run `npm run db:init` instead.
+  # ------------------------------------------------------------------
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: wacrm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-wacrm}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-strong_password}
+    ports:
+      - '${POSTGRES_PORT:-5433}:5432'
+    volumes:
+      - wacrm_pgdata:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  # ------------------------------------------------------------------
+  # The Next.js application
+  # ------------------------------------------------------------------
   app:
     build:
       context: .
-      # NEXT_PUBLIC_* vars are inlined at build time — forward them
-      # from .env.local as build args. Changing any of them requires
-      # a rebuild (docker compose up --build).
+      # NEXT_PUBLIC_* vars are inlined at build time (docker compose up --build
+      # after changing them).
       args:
-        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
         NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-}
         NEXT_PUBLIC_APP_LOCALE: ${NEXT_PUBLIC_APP_LOCALE:-en}
-    # Runtime (server-only) secrets come from .env.local; they are
-    # never baked into the image.
+    depends_on:
+      postgres:
+        condition: service_healthy
     env_file:
       - .env.local
-    # The server always listens on 3000 inside the container. Pinned
-    # here because `environment` wins over `env_file`, so a stray PORT
-    # in .env.local can't desync the app from the mapping and the
-    # healthcheck below.
+    # `environment` wins over env_file: inside the compose network the
+    # database is reached on the service name and the container port.
     environment:
       PORT: 3000
-    # Host side only — HOST_PORT=8080 publishes the app on :8080.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-strong_password}@postgres:5432/${POSTGRES_DB:-wacrm}
+      UPLOAD_DIR: /data/uploads
     ports:
       - '${HOST_PORT:-3000}:3000'
+    volumes:
+      - wacrm_uploads:/data/uploads
     restart: unless-stopped
     healthcheck:
       test:
@@ -32,9 +62,13 @@ services:
           'CMD',
           'node',
           '-e',
-          "fetch('http://localhost:3000').then((r)=>process.exit(r.ok||r.status<500?0:1)).catch(()=>process.exit(1))",
+          "fetch('http://localhost:3000/api/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
         ]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 15s
+      start_period: 20s
+
+volumes:
+  wacrm_pgdata:
+  wacrm_uploads:

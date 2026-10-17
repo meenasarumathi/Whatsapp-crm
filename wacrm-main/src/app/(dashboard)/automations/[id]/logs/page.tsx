@@ -12,7 +12,7 @@ import {
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 
-import { createClient } from "@/lib/supabase/client"
+import { createBrowserDb } from "@/lib/db/browser";
 import type {
   Automation,
   AutomationLog,
@@ -40,14 +40,14 @@ export default function AutomationLogsPage({
   useEffect(() => {
     async function load() {
       try {
-        const supabase = createClient()
+        const db = createBrowserDb()
         const [autRes, logRes] = await Promise.all([
-          supabase
+          db
             .from("automations")
             .select("*")
             .eq("id", id)
             .maybeSingle(),
-          supabase
+          db
             .from("automation_logs")
             .select("*, contact:contacts(id, name, phone)")
             .eq("automation_id", id)

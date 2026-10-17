@@ -19,7 +19,7 @@ export async function GET(
     const ctx = await requireApiKey(request, 'broadcasts:send');
     const { id } = await params;
 
-    const { data, error } = await ctx.supabase
+    const { data, error } = await ctx.db
       .from('broadcasts')
       .select(
         'id, name, template_name, template_language, status, total_recipients, sent_count, delivered_count, read_count, replied_count, failed_count, created_at, updated_at'

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserDb } from "@/lib/db/browser";
 import type { Conversation } from "@/types";
 
 /**
@@ -20,13 +20,13 @@ export function useTotalUnread(): number {
   const countsRef = useRef<Map<string, number>>(new Map());
 
   useEffect(() => {
-    const supabase = createClient();
+    const db = createBrowserDb();
     let cancelled = false;
 
     // Initial load. RLS scopes this to the signed-in user automatically —
     // no explicit user_id filter needed here.
     (async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("conversations")
         .select("id, unread_count");
       if (cancelled || error || !data) return;
@@ -42,7 +42,7 @@ export function useTotalUnread(): number {
       setTotal(sum);
     })();
 
-    const channel = supabase
+    const channel = db
       .channel("total-unread-realtime")
       .on(
         "postgres_changes",
@@ -66,7 +66,7 @@ export function useTotalUnread(): number {
 
     return () => {
       cancelled = true;
-      supabase.removeChannel(channel);
+      db.removeChannel(channel);
     };
   }, []);
 

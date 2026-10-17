@@ -1,4 +1,4 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { DbClient } from '@/lib/db';
 import {
   daysAgoStart,
   DOW_SHORT_MON_FIRST,
@@ -25,7 +25,7 @@ import type {
 // heavy aggregations to SQL RPCs. Noted in the PR.
 // ------------------------------------------------------------
 
-type DB = SupabaseClient
+type DB = DbClient
 
 // --- 1. Metric cards ---------------------------------------------------
 

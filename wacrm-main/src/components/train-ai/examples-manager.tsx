@@ -32,7 +32,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserDb } from "@/lib/db/browser";
 import { downloadWorkbook, readSheetFile } from "@/lib/excel-client";
 import { cn } from "@/lib/utils";
 import type { TrainingRow } from "./use-training";
@@ -82,7 +82,7 @@ export function ExamplesManager({
   ) => {
     if (!accountId || items.length === 0) return false;
     setBusy(true);
-    const { error } = await createClient()
+    const { error } = await createBrowserDb()
       .from("ai_training_examples")
       .insert(
         items.map((i) => ({
@@ -116,7 +116,7 @@ export function ExamplesManager({
   };
 
   const update = async (id: string, patch: Partial<TrainingRow>) => {
-    const { error } = await createClient().from("ai_training_examples").update(patch).eq("id", id);
+    const { error } = await createBrowserDb().from("ai_training_examples").update(patch).eq("id", id);
     if (error) {
       toast.error(t("saveFailed"));
       return;
@@ -125,7 +125,7 @@ export function ExamplesManager({
   };
 
   const remove = async (id: string) => {
-    const { error } = await createClient().from("ai_training_examples").delete().eq("id", id);
+    const { error } = await createBrowserDb().from("ai_training_examples").delete().eq("id", id);
     if (error) {
       toast.error(t("saveFailed"));
       return;

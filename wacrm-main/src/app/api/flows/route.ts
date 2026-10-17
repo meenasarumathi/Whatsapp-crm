@@ -1,7 +1,8 @@
+import type { DbClient } from '@/lib/db'
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createUserDb } from '@/lib/db'
 import { requireRole, toErrorResponse } from '@/lib/auth/account'
-import { supabaseAdmin } from '@/lib/flows/admin-client'
+import { serviceDb } from '@/lib/flows/admin-client'
 import { getFlowTemplate } from '@/lib/flows/templates'
 
 /**
@@ -15,17 +16,17 @@ import { getFlowTemplate } from '@/lib/flows/templates'
  */
 
 async function requireUser(): Promise<
-  | { ok: true; userId: string; supabase: Awaited<ReturnType<typeof createClient>> }
+  | { ok: true; userId: string; db: DbClient }
   | { ok: false; status: number; body: { error: string } }
 > {
-  const supabase = await createClient()
+  const db = await createUserDb()
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await db.auth.getUser()
   if (!user) {
     return { ok: false, status: 401, body: { error: 'Unauthorized' } }
   }
-  return { ok: true, userId: user.id, supabase }
+  return { ok: true, userId: user.id, db }
 }
 
 export async function GET() {
@@ -33,9 +34,9 @@ export async function GET() {
   if (!guard.ok) {
     return NextResponse.json(guard.body, { status: guard.status })
   }
-  const { supabase } = guard
+  const { db } = guard
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('flows')
     .select('*')
     .order('created_at', { ascending: false })
@@ -59,12 +60,12 @@ export async function POST(request: Request) {
   if (!guard.ok) {
     return NextResponse.json(guard.body, { status: guard.status })
   }
-  const { userId, supabase } = guard
+  const { userId, db } = guard
 
   // Resolve the caller's account_id — `flows.account_id` is NOT NULL
   // post-017, so an INSERT without it trips the not-null constraint
   // even though the admin client below bypasses RLS.
-  const { data: profile } = await supabase
+  const { data: profile } = await db
     .from('profiles')
     .select('account_id')
     .eq('user_id', userId)
@@ -96,7 +97,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const admin = supabaseAdmin()
+  const admin = serviceDb()
 
   // -------- Template clone path --------
   if (body.template_slug) {

@@ -31,7 +31,7 @@ vi.mock('@/lib/contacts/tag-write', () => ({
 import { DELETE, POST } from './route';
 
 const context = {
-  supabase: { name: 'scoped-client' },
+  db: { name: 'scoped-client' },
   accountId: 'account-1',
   userId: 'user-1',
   role: 'agent',
@@ -64,7 +64,7 @@ describe('/api/contacts/[id]/tags', () => {
     expect(response.status).toBe(200);
     expect(mocks.requireRole).toHaveBeenCalledWith('agent');
     expect(mocks.add).toHaveBeenCalledWith({
-      db: context.supabase,
+      db: context.db,
       accountId: 'account-1',
       contactId: 'contact-1',
       tagId: 'tag-1',
@@ -86,7 +86,7 @@ describe('/api/contacts/[id]/tags', () => {
     );
 
     expect(response.status).toBe(200);
-    expect(mocks.remove).toHaveBeenCalledWith(context.supabase, {
+    expect(mocks.remove).toHaveBeenCalledWith(context.db, {
       accountId: 'account-1',
       contactId: 'contact-1',
       tagId: 'tag-1',

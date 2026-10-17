@@ -14,7 +14,7 @@ import {
   isRecipientNotAllowedError,
 } from '@/lib/whatsapp/phone-utils'
 import { resolveContactSendTarget } from '@/lib/whatsapp/wa-identity'
-import { supabaseAdmin } from './admin-client'
+import { serviceDb } from './admin-client'
 
 // ------------------------------------------------------------
 // Flows-side Meta sender (interactive variants).
@@ -38,7 +38,7 @@ import { supabaseAdmin } from './admin-client'
  * auto-reply's typing indicator) reuse it rather than growing a copy.
  */
 export async function loadAccountMetaCredentials(
-  db: ReturnType<typeof supabaseAdmin>,
+  db: ReturnType<typeof serviceDb>,
   accountId: string,
 ): Promise<{ phoneNumberId: string; accessToken: string }> {
   const { data: config, error: configErr } = await db
@@ -88,7 +88,7 @@ interface SendTextEngineArgs {
 export async function engineSendText(
   args: SendTextEngineArgs,
 ): Promise<{ whatsapp_message_id: string }> {
-  const db = supabaseAdmin()
+  const db = serviceDb()
 
   const { data: contact, error: contactErr } = await db
     .from('contacts')
@@ -197,7 +197,7 @@ interface SendMediaEngineArgs {
 export async function engineSendMedia(
   args: SendMediaEngineArgs,
 ): Promise<{ whatsapp_message_id: string }> {
-  const db = supabaseAdmin()
+  const db = serviceDb()
 
   const { data: contact, error: contactErr } = await db
     .from('contacts')
@@ -345,7 +345,7 @@ type SendInput =
 async function sendInteractiveViaMeta(
   input: SendInput,
 ): Promise<{ whatsapp_message_id: string }> {
-  const db = supabaseAdmin()
+  const db = serviceDb()
 
   // Scope the contact + whatsapp_config lookups by account_id —
   // same defense-in-depth rationale as automations/meta-send.ts.

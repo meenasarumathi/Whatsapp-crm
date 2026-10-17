@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { DbClient } from '@/lib/db';
 import { reopenClosedConversation } from './reopen'
 
 /**
@@ -40,7 +40,7 @@ function stubClient(error: { message: string } | null = null) {
     },
   }
 
-  return { client: client as unknown as SupabaseClient, calls }
+  return { client: client as unknown as DbClient, calls }
 }
 
 describe('reopenClosedConversation', () => {

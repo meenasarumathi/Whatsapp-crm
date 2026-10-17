@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { DbClient } from '@/lib/db';
 import {
   ForbiddenError,
   UnauthorizedError,
@@ -62,7 +62,7 @@ function buildUpsertRow(
 }
 
 async function upsertTemplateRow(
-  supabase: SupabaseClient,
+  db: DbClient,
   row: ReturnType<typeof buildUpsertRow>,
 ) {
   // TODO(account-sharing): conflict target is still scoped to
@@ -70,7 +70,7 @@ async function upsertTemplateRow(
   // index on (user_id, name, language) and adds (account_id,
   // name, language), switch `onConflict` here so two teammates
   // can't shadow each other's same-named template.
-  return supabase
+  return db
     .from('message_templates')
     .upsert(row, { onConflict: 'user_id,name,language' })
     .select()
@@ -99,7 +99,7 @@ export async function POST(request: Request) {
     // membership, so a viewer or agent could push a template to Meta for
     // approval — an external side effect RLS can't roll back — before the
     // local upsert was refused.
-    const { supabase, accountId, userId } = await requireRole('admin')
+    const { db, accountId, userId } = await requireRole('admin')
 
     let payload: TemplatePayload
     try {
@@ -138,7 +138,7 @@ export async function POST(request: Request) {
       metaTemplateId = `dry-run-${crypto.randomUUID()}`
       metaStatus = 'PENDING'
     } else {
-      const { data: config, error: configError } = await supabase
+      const { data: config, error: configError } = await db
         .from('whatsapp_config')
         .select('*')
         .eq('account_id', accountId)
@@ -192,7 +192,7 @@ export async function POST(request: Request) {
         // Persist the failure so the user can retry; row stays DRAFT
         // until they fix and re-submit.
         await upsertTemplateRow(
-          supabase,
+          db,
           buildUpsertRow(accountId, userId, payload, {
             status: 'DRAFT',
             metaTemplateId: null,
@@ -212,7 +212,7 @@ export async function POST(request: Request) {
     }
 
     const { data: row, error: upsertErr } = await upsertTemplateRow(
-      supabase,
+      db,
       buildUpsertRow(accountId, userId, payload, {
         status: normalizeStatus(metaStatus),
         metaTemplateId,

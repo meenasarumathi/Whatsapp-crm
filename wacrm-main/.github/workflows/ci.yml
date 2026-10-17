@@ -14,19 +14,32 @@ concurrency:
 
 jobs:
   check:
-    name: Lint, typecheck, test, build
+    name: Lint, typecheck, test, build, end-to-end
     runs-on: ubuntu-latest
-    # Dummy env vars so `next build` doesn't fail when it reads the
-    # public Supabase config at build time. These never leave CI and
-    # never hit a real service — they just satisfy the `!` non-null
-    # assertions in the client factories. ENCRYPTION_KEY and
-    # META_APP_SECRET are read at module-load by lib/whatsapp/*; the
-    # test suite asserts behaviour around these values, so any non-
-    # empty placeholder works as long as it stays consistent with
-    # vitest.config.ts.
+    # Same image as docker-compose.yml, so CI exercises the database the
+    # app really runs on (pgvector included).
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: wacrm
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: strong_password
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d wacrm"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    # Placeholders only — they never leave CI. ENCRYPTION_KEY and
+    # META_APP_SECRET are read at module-load by lib/whatsapp/*; keep them
+    # consistent with vitest.config.ts.
     env:
-      NEXT_PUBLIC_SUPABASE_URL: https://ci.example.supabase.co
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-dummy-anon-key
+      DATABASE_URL: postgres://postgres:strong_password@localhost:5433/wacrm
+      TEST_DATABASE_URL: postgres://postgres:strong_password@localhost:5433/wacrm
+      AUTH_SECRET: ci-dummy-auth-secret-at-least-32-characters-long
+      UPLOAD_DIR: ${{ runner.temp }}/uploads
       ENCRYPTION_KEY: '0000000000000000000000000000000000000000000000000000000000000000'
       META_APP_SECRET: 'ci-dummy-meta-secret'
     steps:
@@ -40,6 +53,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Apply database schema
+        run: npm run db:init
+
+      - name: Verify schema
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/verify-schema.sql
+
       - name: Lint
         run: npm run lint
 
@@ -51,3 +70,14 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: End-to-end (API, auth, realtime, webhook)
+        env:
+          BASE: http://localhost:3100
+          MAIL_LOG: ${{ runner.temp }}/server.log
+        run: |
+          PORT=3100 npm start > "$MAIL_LOG" 2>&1 &
+          for i in $(seq 1 60); do curl -fs "$BASE/api/health" >/dev/null && break; sleep 1; done
+          node scripts/e2e/core.mjs
+          node scripts/e2e/modules.mjs
+          node scripts/e2e/webhook.mjs

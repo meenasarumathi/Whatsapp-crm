@@ -1,15 +1,15 @@
 // ============================================================
 // Server-side platform context for the /api/platform/* routes.
 //
-// Server-only (imports the SSR Supabase client). Reads and writes
+// Server-only (reads the session cookie). Reads and writes
 // `platform_users` through the service role: RLS only lets a user read
 // their own row, and every write is authorised here in TypeScript via
 // the predicates in `./access`.
 // ============================================================
 
-import { createClient as createAdminClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createServiceDb, type DbClient } from "@/lib/db";
 
-import { createClient } from "@/lib/supabase/server";
+import { createUserDb } from '@/lib/db'
 import { ForbiddenError, UnauthorizedError } from "@/lib/auth/account";
 import {
   DEFAULT_SIGNUP_TRIAL_DAYS,
@@ -20,15 +20,11 @@ import {
   type PlatformUserRow,
 } from "./access";
 
-let _admin: SupabaseClient | null = null;
+let _admin: DbClient | null = null;
 
-export function platformAdminClient(): SupabaseClient {
+export function platformAdminClient(): DbClient {
   if (!_admin) {
-    _admin = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { persistSession: false, autoRefreshToken: false } },
-    );
+    _admin = createServiceDb();
   }
   return _admin;
 }
@@ -38,7 +34,7 @@ export class PlatformNotMigratedError extends Error {
   readonly status = 503 as const;
   constructor() {
     super(
-      "Subscriptions are not set up yet. Run supabase/migrations/043_platform_users_subscriptions.sql in the Supabase SQL editor.",
+      "Subscriptions are not set up yet. Apply db/schema.sql (npm run db:init).",
     );
     this.name = "PlatformNotMigratedError";
   }
@@ -95,11 +91,11 @@ export interface PlatformContext {
 
 /** Resolve the signed-in caller's platform row. */
 export async function getPlatformContext(): Promise<PlatformContext> {
-  const supabase = await createClient();
+  const db = await createUserDb();
   const {
     data: { user },
     error,
-  } = await supabase.auth.getUser();
+  } = await db.auth.getUser();
   if (error || !user) throw new UnauthorizedError();
   const row = await loadPlatformUser(user.id);
   return { userId: user.id, email: user.email ?? null, role: row.platform_role, row };

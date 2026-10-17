@@ -31,7 +31,7 @@ import {
   RESUME_SCOPES,
   type ResumeScope,
 } from '@/lib/whatsapp/broadcast-resume';
-import { supabaseAdmin } from '@/lib/flows/admin-client';
+import { serviceDb } from '@/lib/flows/admin-client';
 import {
   checkRateLimit,
   rateLimitResponse,
@@ -51,7 +51,7 @@ export async function POST(
     // Same gate as the batch send endpoint: running a broadcast is a
     // write, and viewers are read-only. Resuming is no different — it
     // puts real messages on real phones.
-    const { supabase, accountId, userId } = await requireRole('agent');
+    const { db, accountId, userId } = await requireRole('agent');
 
     const limit = checkRateLimit(
       `broadcast-resume:${userId}`,
@@ -70,7 +70,7 @@ export async function POST(
     // from the same 'pending' rows and message everyone twice — and a
     // WhatsApp message cannot be recalled. The claim is one conditional
     // UPDATE, so exactly one caller wins.
-    const claimed = await claimBroadcastDelivery(supabase, accountId, id);
+    const claimed = await claimBroadcastDelivery(db, accountId, id);
     if (!claimed) {
       return NextResponse.json(
         {
@@ -83,19 +83,19 @@ export async function POST(
     claimedId = id;
 
     const { plan, remaining, unsendable } = await planBroadcastResume(
-      supabase,
+      db,
       accountId,
       id,
       scope
     );
 
-    await markBroadcastSending(supabase, id);
+    await markBroadcastSending(db, id);
     claimedId = null; // ownership passes to the after() block
 
     // Service-role client for the fan-out: it outlives the request, and
     // every id in the plan was already resolved through an
     // account-scoped read above.
-    const admin = supabaseAdmin();
+    const admin = serviceDb();
     after(async () => {
       try {
         await deliverBroadcast(admin, plan);
@@ -129,7 +129,7 @@ export async function POST(
     // Planning failed after the claim — release it, or the campaign is
     // locked out of resuming until the staleness window expires.
     if (claimedId) {
-      await releaseBroadcastDelivery(supabaseAdmin(), claimedId).catch(() => {});
+      await releaseBroadcastDelivery(serviceDb(), claimedId).catch(() => {});
     }
     if (error instanceof BroadcastError) {
       return NextResponse.json(

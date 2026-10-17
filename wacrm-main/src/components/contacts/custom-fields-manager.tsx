@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserDb } from "@/lib/db/browser";
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from 'sonner';
 import type { CustomField } from '@/types';
@@ -56,7 +56,7 @@ export function CustomFieldsManager({
  */
 export function CustomFieldsPanel() {
   const t = useTranslations('Contacts.customFields');
-  const supabase = createClient();
+  const db = createBrowserDb();
   const { user, accountId } = useAuth();
 
   const [fields, setFields] = useState<CustomField[]>([]);
@@ -68,16 +68,16 @@ export function CustomFieldsPanel() {
   const fetchFields = useCallback(async () => {
     if (!accountId) return;
     setLoading(true);
-    const { data } = await supabase
+    const { data } = await db
       .from('custom_fields')
       .select('*')
       .order('field_name');
     setFields((data as CustomField[] | null) ?? []);
     setLoading(false);
-  }, [supabase, accountId]);
+  }, [db, accountId]);
 
   // Load the field list on mount once the account is known. The setters
-  // inside fetchFields run after the Supabase await — not synchronously in
+  // inside fetchFields run after the database await — not synchronously in
   // the effect body — so the cascade the lint rule warns about doesn't apply.
   useEffect(() => {
     if (accountId) {
@@ -107,7 +107,7 @@ export function CustomFieldsPanel() {
     }
 
     setCreating(true);
-    const { error } = await supabase.from('custom_fields').insert({
+    const { error } = await db.from('custom_fields').insert({
       field_name: name,
       field_type: 'text',
       user_id: user.id,
@@ -137,7 +137,7 @@ export function CustomFieldsPanel() {
       return false;
     }
     setBusyId(field.id);
-    const { error } = await supabase
+    const { error } = await db
       .from('custom_fields')
       .update({ field_name: name })
       .eq('id', field.id);
@@ -159,7 +159,7 @@ export function CustomFieldsPanel() {
       return;
     }
     setBusyId(field.id);
-    const { error } = await supabase
+    const { error } = await db
       .from('custom_fields')
       .delete()
       .eq('id', field.id);

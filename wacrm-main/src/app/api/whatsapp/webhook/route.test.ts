@@ -53,8 +53,8 @@ vi.mock('next/server', () => ({
   },
 }))
 
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: () => ({
+vi.mock('@/lib/db', () => ({
+  createServiceDb: () => ({
     from(table: string) {
       switch (table) {
         case 'whatsapp_config':
@@ -219,8 +219,12 @@ vi.mock('@supabase/supabase-js', () => ({
       h.state.rpcCalls.push({ name, args })
       return Promise.resolve({ data: null, error: null })
     },
-    // Service-role Storage, used by the inbound-media mirror (#466).
-    storage: {
+  }),
+}))
+
+// Disk storage, used by the inbound-media mirror (#466).
+vi.mock('@/lib/storage/disk', () => ({
+  createDiskStorage: () => ({
       from(bucket: string) {
         return {
           upload: (
@@ -236,8 +240,7 @@ vi.mock('@supabase/supabase-js', () => ({
           }),
         }
       },
-    },
-  }),
+      }),
 }))
 
 vi.mock('@/lib/whatsapp/encryption', () => ({

@@ -38,7 +38,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserDb } from "@/lib/db/browser";
 import { cn } from "@/lib/utils";
 import { contactHandle } from "@/lib/whatsapp/wa-identity";
 import { downloadWorkbook, readSheetFile, saveBlob } from "@/lib/excel-client";
@@ -59,10 +59,10 @@ const PAGE = 1000;
 const MAX_MESSAGES = 10_000;
 
 async function fetchAllMessages(conversationId: string): Promise<Message[]> {
-  const supabase = createClient();
+  const db = createBrowserDb();
   const all: Message[] = [];
   for (let from = 0; from < MAX_MESSAGES; from += PAGE) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from("messages")
       .select("*")
       .eq("conversation_id", conversationId)
@@ -165,7 +165,7 @@ export function ConversationDataSheet({
   const saveAsNote = async () => {
     if (!preview || !accountId) return;
     setBusy("note");
-    const { error } = await createClient()
+    const { error } = await createBrowserDb()
       .from("contact_notes")
       .insert({
         contact_id: contact.id,
@@ -185,7 +185,7 @@ export function ConversationDataSheet({
   const teachAi = async () => {
     if (!accountId || pairs.length === 0) return;
     setBusy("train");
-    const { error } = await createClient()
+    const { error } = await createBrowserDb()
       .from("ai_training_examples")
       .insert(
         pairs.map((p) => ({

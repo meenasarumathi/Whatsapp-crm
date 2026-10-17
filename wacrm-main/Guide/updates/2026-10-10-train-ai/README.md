@@ -18,7 +18,7 @@ A new **Train AI** tab (below Inbox) teaches the AI assistant about your busines
 
 ## How to use it
 
-1. Run `supabase/migrations/044_ai_training.sql` once in the Supabase SQL editor.
+1. Apply the database schema once (`npm run db:init`; the tables are part of `db/schema.sql`).
 2. Open **Train AI** and fill in the **Business profile**.
 3. Add your top questions under **Q&A answers**, and a few **Rules**.
 4. Check the result in **Test it**.

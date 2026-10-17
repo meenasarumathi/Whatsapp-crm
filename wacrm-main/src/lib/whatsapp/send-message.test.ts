@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { DbClient } from '@/lib/db';
 
 import {
   sendMessageToConversation,
@@ -9,12 +9,12 @@ import {
 
 // A db that explodes if touched — these tests cover the param
 // validation that MUST short-circuit before any query runs.
-function noDb(): SupabaseClient {
+function noDb(): DbClient {
   return {
     from() {
       throw new Error('db should not be queried for invalid params');
     },
-  } as unknown as SupabaseClient;
+  } as unknown as DbClient;
 }
 
 async function expectSendError(
@@ -136,7 +136,7 @@ describe('sendMessageToConversation — param validation (pre-DB)', () => {
     const spy = vi.fn(() => {
       throw new Error('reached DB');
     });
-    const db = { from: spy } as unknown as SupabaseClient;
+    const db = { from: spy } as unknown as DbClient;
     await expect(
       sendMessageToConversation(db, 'acct-1', {
         ...base,
@@ -184,7 +184,7 @@ vi.mock('@/lib/whatsapp/encryption', () => ({
 
 vi.mock('@/lib/flows/admin-client', () => ({
   // Only used for the best-effort "pause active flow run" write.
-  supabaseAdmin: () => ({
+  serviceDb: () => ({
     from: () => ({
       update: () => ({
         eq: () => ({ eq: () => ({ eq: async () => ({ error: null }) }) }),
@@ -199,7 +199,7 @@ interface CapturedWrites {
 }
 
 /**
- * Supabase fake covering the tables the send path touches. Each table
+ * database fake covering the tables the send path touches. Each table
  * gets a builder that is both chainable and awaitable, so the same
  * object serves `.single()` lookups and the bare `select().eq().eq()`
  * the template resolver uses.
@@ -208,7 +208,7 @@ function sendPathDb(
   templateRows: unknown[],
   captured: CapturedWrites,
   contact: Record<string, unknown> = { id: 'ct-1', phone: '+15551234567' }
-): SupabaseClient {
+): DbClient {
   const conversation = {
     id: 'cv-1',
     contact,
@@ -252,7 +252,7 @@ function sendPathDb(
       };
       return builder;
     },
-  } as unknown as SupabaseClient;
+  } as unknown as DbClient;
 }
 
 const TEMPLATE_ROW = {

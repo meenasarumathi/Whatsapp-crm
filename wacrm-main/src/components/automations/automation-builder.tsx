@@ -61,7 +61,7 @@ import {
   blankListPayload,
 } from "@/components/interactive/interactive-builder"
 import { interactivePayloadPreviewText } from "@/lib/whatsapp/interactive"
-import { createClient } from "@/lib/supabase/client"
+import { createBrowserDb } from "@/lib/db/browser";
 import {
   childPath,
   insertAt,
@@ -256,7 +256,7 @@ function ResourcesProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false
-    const supabase = createClient()
+    const db = createBrowserDb()
 
     // Tags, templates and custom fields come straight from the DB — RLS
     // scopes them to the caller's account. Only APPROVED templates can
@@ -265,15 +265,15 @@ function ResourcesProvider({ children }: { children: ReactNode }) {
     void (async () => {
       const [tagsRes, templatesRes, customFieldsRes, pipelinesRes, stagesRes] =
         await Promise.all([
-          supabase.from("tags").select("*").order("name"),
-          supabase
+          db.from("tags").select("*").order("name"),
+          db
             .from("message_templates")
             .select("*")
             .eq("status", "APPROVED")
             .order("name"),
-          supabase.from("custom_fields").select("*").order("field_name"),
-          supabase.from("pipelines").select("id, name").order("name"),
-          supabase
+          db.from("custom_fields").select("*").order("field_name"),
+          db.from("pipelines").select("id, name").order("name"),
+          db
             .from("pipeline_stages")
             .select("id, name, pipeline_id, position")
             .order("position"),

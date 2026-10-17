@@ -1,7 +1,8 @@
 'use client';
 
+import type { Row } from "@/lib/db/types";
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserDb } from "@/lib/db/browser";
 import { parseBroadcastCsv } from '@/lib/broadcast-csv';
 import { CustomField, Tag } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -111,8 +112,8 @@ export function Step2SelectAudience({
     async function fetchTags() {
       setLoadingTags(true);
       try {
-        const supabase = createClient();
-        const { data } = await supabase.from('tags').select('*').order('name');
+        const db = createBrowserDb();
+        const { data } = await db.from('tags').select('*').order('name');
         setTags(data ?? []);
       } finally {
         setLoadingTags(false);
@@ -127,8 +128,8 @@ export function Step2SelectAudience({
     async function fetchFields() {
       setLoadingFields(true);
       try {
-        const supabase = createClient();
-        const { data } = await supabase
+        const db = createBrowserDb();
+        const { data } = await db
           .from('custom_fields')
           .select('*')
           .order('field_name');
@@ -143,7 +144,7 @@ export function Step2SelectAudience({
   const fetchEstimatedCount = useCallback(async () => {
     setLoadingCount(true);
     try {
-      const supabase = createClient();
+      const db = createBrowserDb();
 
       // Base query — produces the superset before exclude is applied.
       let baseIds: Set<string> | null = null; // null means "all contacts"
@@ -155,18 +156,18 @@ export function Step2SelectAudience({
         audience.tagIds &&
         audience.tagIds.length > 0
       ) {
-        const { data } = await supabase
+        const { data } = await db
           .from('contact_tags')
           .select('contact_id')
           .in('tag_id', audience.tagIds);
-        baseIds = new Set((data ?? []).map((r) => r.contact_id));
+        baseIds = new Set((data ?? []).map((r: Row) => r.contact_id));
       } else if (
         audience.type === 'custom_field' &&
         audience.customField?.fieldId &&
         audience.customField.value
       ) {
         const { fieldId, operator, value } = audience.customField;
-        let q = supabase
+        let q = db
           .from('contact_custom_values')
           .select('contact_id')
           .eq('custom_field_id', fieldId);
@@ -174,7 +175,7 @@ export function Step2SelectAudience({
         else if (operator === 'is_not') q = q.neq('value', value);
         else q = q.ilike('value', `%${value}%`);
         const { data } = await q;
-        baseIds = new Set((data ?? []).map((r) => r.contact_id));
+        baseIds = new Set((data ?? []).map((r: Row) => r.contact_id));
       } else if (
         audience.type === 'csv' &&
         audience.csvContacts &&
@@ -191,11 +192,11 @@ export function Step2SelectAudience({
       // Apply exclude tags
       let excludeSet: Set<string> | null = null;
       if (audience.excludeTagIds && audience.excludeTagIds.length > 0) {
-        const { data: excludeRows } = await supabase
+        const { data: excludeRows } = await db
           .from('contact_tags')
           .select('contact_id')
           .in('tag_id', audience.excludeTagIds);
-        excludeSet = new Set((excludeRows ?? []).map((r) => r.contact_id));
+        excludeSet = new Set((excludeRows ?? []).map((r: Row) => r.contact_id));
       }
 
       if (baseIds) {
@@ -205,7 +206,7 @@ export function Step2SelectAudience({
         setEstimatedCount(effective.length);
       } else {
         // "All" — fetch the total, then subtract exclude set if any.
-        const { count } = await supabase
+        const { count } = await db
           .from('contacts')
           .select('*', { count: 'exact', head: true });
         const total = count ?? 0;

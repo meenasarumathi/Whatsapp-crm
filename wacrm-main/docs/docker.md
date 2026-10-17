@@ -1,10 +1,13 @@
 # Running with Docker
 
 The repo ships a multi-stage `Dockerfile` (Next.js standalone output,
-runs as a non-root user) and a `docker-compose.yml` with a single
-`app` service. Supabase is external — point the app at your hosted
-(or self-hosted) Supabase project via env vars; no database container
-is included.
+runs as a non-root user) and a `docker-compose.yml` with two
+services, `postgres` and `app`. PostgreSQL (`pgvector/pgvector:pg16`) listens on
+host port **5433** (database `wacrm`, user `postgres`, password
+`strong_password` — change it for anything but local use), stores data in the
+`wacrm_pgdata` volume, has a `pg_isready` health check, and applies
+`db/schema.sql` the first time the volume is created. The app waits for the
+database to be healthy.
 
 ## Quick start
 
@@ -39,7 +42,7 @@ is included.
   `docker compose --env-file .env.local up --build -d`. This includes
   `NEXT_PUBLIC_APP_LOCALE` (`en | ko | pt | es`), so the UI language is
   fixed per image.
-- Everything else (`SUPABASE_SERVICE_ROLE_KEY`, `ENCRYPTION_KEY`,
+- Everything else (`AUTH_SECRET`, `ENCRYPTION_KEY`,
   `META_APP_SECRET`, …) is read at **runtime** from `.env.local` via
   `env_file` and is never baked into the image — safe to change with
   just a container restart.
@@ -47,24 +50,33 @@ is included.
 ## Plain Docker (no Compose)
 
 ```bash
-docker build \
-  --build-arg NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co \
-  --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key \
-  -t wacrm .
+docker build -t wacrm .
 
-docker run -d --env-file .env.local -e PORT=3000 -p 3000:3000 wacrm
+docker run -d --env-file .env.local -e PORT=3000 -p 3000:3000 \
+  -v wacrm_uploads:/data/uploads -e UPLOAD_DIR=/data/uploads wacrm
 ```
 
 ## Notes
 
-- Database migrations under `supabase/` are **not** run by the
-  container — apply them with the Supabase CLI as described in the
-  README.
-- Received attachments are copied into the `chat-media` Supabase
-  Storage bucket, because Meta deletes media roughly 30 days after it
+- The schema is applied by the Postgres container on first start only.
+  For a database that already exists (for example your own container on
+  port 5433) use `npm run db:plan` to see what would change, then
+  `npm run db:init`. It compares the live database with the expected schema
+  and repairs differences in ONE transaction (any error rolls everything
+  back): missing tables/columns/constraints/indexes are added, old policies
+  and foreign keys (for example ones pointing at Supabase's `auth.users`)
+  are replaced, columns with another type are converted, stale functions are
+  re-created, and users from a legacy `auth.users` are copied across. Rows
+  are never deleted. `--force` re-applies an unchanged schema;
+  `--replace-functions` also drops objects depending on a stale function.
+  `docker compose up -d postgres` alone starts just the database for local
+  development with `npm run dev`.
+- Uploads (avatars, chat media, flow media) are stored in the
+  `wacrm_uploads` volume — include it in backups together with
+  `wacrm_pgdata`.
+- Received attachments are copied into the `chat-media` bucket, because Meta deletes media roughly 30 days after it
   arrives and the copy is the only thing that outlives that. It grows
-  with inbound volume, so it's worth watching your project's storage
-  quota. Turn it off per account under Settings → WhatsApp →
+  with inbound volume, so it's worth watching disk usage. Turn it off per account under Settings → WhatsApp →
   Attachment Storage; attachments received while it's off become
   unviewable once Meta drops them. Files over 16 MB (the bucket's
   limit) are never copied.

@@ -24,7 +24,7 @@ export async function GET(
     const ctx = await requireApiKey(request, 'webhooks:manage');
     const { id } = await params;
 
-    const { data, error } = await ctx.supabase
+    const { data, error } = await ctx.db
       .from('webhook_endpoints')
       .select(WEBHOOK_PUBLIC_COLUMNS)
       .eq('id', id)
@@ -97,7 +97,7 @@ export async function PATCH(
 
     // Scope the update by account_id so a foreign id touches nothing;
     // the returned row (null when unmatched) drives the 404.
-    const { data, error } = await ctx.supabase
+    const { data, error } = await ctx.db
       .from('webhook_endpoints')
       .update(updates)
       .eq('id', id)
@@ -125,7 +125,7 @@ export async function DELETE(
     const ctx = await requireApiKey(request, 'webhooks:manage');
     const { id } = await params;
 
-    const { data, error } = await ctx.supabase
+    const { data, error } = await ctx.db
       .from('webhook_endpoints')
       .delete()
       .eq('id', id)

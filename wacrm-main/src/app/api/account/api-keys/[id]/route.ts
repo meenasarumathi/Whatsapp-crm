@@ -40,7 +40,7 @@ export async function DELETE(
     // never revoke another account's key by guessing a UUID. (RLS
     // already enforces this; the explicit filter is belt-and-braces
     // and makes the "0 rows updated → 404" path precise.)
-    const { data, error } = await ctx.supabase
+    const { data, error } = await ctx.db
       .from('api_keys')
       .update({ revoked_at: new Date().toISOString() })
       .eq('id', id)

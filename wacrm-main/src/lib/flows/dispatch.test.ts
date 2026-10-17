@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 // ============================================================
 // Entry-trigger dispatch (issue #490).
 //
-// Drives the real `dispatchInboundToFlows` against a fake Supabase so
+// Drives the real `dispatchInboundToFlows` against a fake database client so
 // the assertion is "a run was actually started", not "a helper returned
 // true". The bug was that a button tap never reached the keyword
 // matcher at all, so a helper-level test would have missed it.
@@ -71,7 +71,7 @@ vi.mock("./admin-client", () => {
   }
 
   return {
-    supabaseAdmin: () => ({
+    serviceDb: () => ({
       from: (t: string) => builder(t),
       rpc: (name: string) => {
         h.state.rpcCalls.push(name);

@@ -15,7 +15,7 @@
 // ============================================================
 
 import { NextResponse } from "next/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { DbClient } from '@/lib/db';
 
 import { ForbiddenError, requireRole, toErrorResponse } from "@/lib/auth/account";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
@@ -40,7 +40,7 @@ const BACKUP_RATE_LIMIT = { limit: 5, windowMs: 10 * 60_000 };
 export const maxDuration = 300;
 
 async function readTable(
-  db: SupabaseClient,
+  db: DbClient,
   table: string,
   orderBy: string,
 ): Promise<{ rows: Record<string, unknown>[]; truncated: boolean; error?: string }> {
@@ -63,7 +63,7 @@ export async function GET(request: Request) {
     const scope: BackupScope =
       new URL(request.url).searchParams.get("scope") === "full" ? "full" : "account";
 
-    let db: SupabaseClient;
+    let db: DbClient;
     let userId: string;
     let account: { id: string; name: string } | null = null;
 
@@ -76,7 +76,7 @@ export async function GET(request: Request) {
       userId = ctx.userId;
     } else {
       const ctx = await requireRole("admin");
-      db = ctx.supabase;
+      db = ctx.db;
       userId = ctx.userId;
       account = ctx.account;
     }

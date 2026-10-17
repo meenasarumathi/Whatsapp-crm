@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createUserDb } from '@/lib/db'
 import { requireRole, toErrorResponse } from '@/lib/auth/account'
-import { supabaseAdmin } from '@/lib/flows/admin-client'
+import { serviceDb } from '@/lib/flows/admin-client'
 import { validateFlowForActivation } from '@/lib/flows/validate'
 
 /**
@@ -34,10 +34,10 @@ export async function POST(
     return toErrorResponse(err)
   }
 
-  const supabase = await createClient()
+  const db = await createUserDb()
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await db.auth.getUser()
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -54,7 +54,7 @@ export async function POST(
   }
 
   // Ownership via RLS — caller's client.
-  const { data: existing } = await supabase
+  const { data: existing } = await db
     .from('flows')
     .select('id')
     .eq('id', id)
@@ -63,7 +63,7 @@ export async function POST(
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  const admin = supabaseAdmin()
+  const admin = serviceDb()
 
   if (status === 'active') {
     // Re-load with the full payload the validator needs.

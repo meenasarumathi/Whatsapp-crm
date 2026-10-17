@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { useAuth } from "@/hooks/use-auth";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserDb } from "@/lib/db/browser";
 import type { TrainingProfile } from "@/lib/ai/training";
 
 export interface TrainingRow {
@@ -33,7 +33,7 @@ export interface TrainingData {
   setProfile: (p: TrainingProfile) => void;
 }
 
-/** Everything the Train AI page shows, read straight from Supabase (RLS-scoped). */
+/** Everything the Train AI page shows, read straight from the database (RLS-scoped). */
 export function useTraining(): TrainingData {
   const { accountId } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -50,16 +50,16 @@ export function useTraining(): TrainingData {
 
   const reload = useCallback(async () => {
     if (!accountId) return;
-    const supabase = createClient();
+    const db = createBrowserDb();
     const [profileRes, rowsRes, docsRes, configRes] = await Promise.all([
-      supabase.from("ai_training_profiles").select("profile").eq("account_id", accountId).maybeSingle(),
-      supabase
+      db.from("ai_training_profiles").select("profile").eq("account_id", accountId).maybeSingle(),
+      db
         .from("ai_training_examples")
         .select("id, kind, question, answer, category, source, is_active, use_count, created_at")
         .eq("account_id", accountId)
         .order("created_at", { ascending: false })
         .limit(2000),
-      supabase
+      db
         .from("ai_knowledge_documents")
         .select("id", { count: "exact", head: true })
         .eq("account_id", accountId),

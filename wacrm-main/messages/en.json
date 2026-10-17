@@ -1677,7 +1677,7 @@
       "mediaTitle": "Attachment Storage",
       "mediaDesc": "Meta deletes received media about 30 days after it arrives. Attachments can be copied to your own storage so they stay viewable.",
       "mirrorInbound": "Keep inbound attachments",
-      "mirrorInboundDesc": "Save a copy of every photo, video, voice note and document customers send. Uses your Supabase storage; files over 16 MB are skipped.",
+      "mirrorInboundDesc": "Save a copy of every photo, video, voice note and document customers send. Uses your server's file storage; files over 16 MB are skipped.",
       "mirrorInboundOffWarning": "New attachments will stop being copied and will become unavailable about 30 days after they arrive.",
       "mirrorInboundSaveFailed": "Could not update the attachment setting.",
       "loadFailed": "Failed to load WhatsApp configuration",
@@ -2031,6 +2031,18 @@
     "sending": "Sending...",
     "sendLink": "Send reset link"
   },
+  "ResetPasswordPage": {
+    "title": "Choose a new password",
+    "desc": "Enter a new password for your account",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "submit": "Save password",
+    "saving": "Saving...",
+    "mismatch": "Passwords do not match",
+    "tooShort": "Password must be at least 6 characters",
+    "invalidLink": "This reset link is invalid or has expired",
+    "backToSignIn": "Back to sign in"
+  },
   "JoinPage": {
     "fail": {
       "notFoundTitle": "Invite not found",
@@ -2246,7 +2258,7 @@
       "loadFailed": "Couldn't load users.",
       "adminsOnly": "Only the Super admin, Admin 1 and Admin 2 can manage subscription users.",
       "notMigratedTitle": "One-time setup needed",
-      "notMigratedBody": "Run supabase/migrations/043_platform_users_subscriptions.sql in the Supabase SQL editor, then reload this page.",
+      "notMigratedBody": "The database is missing the subscriptions tables. Run `npm run db:init` (db/schema.sql), then reload this page.",
       "settingsAlwaysOn": "Settings is always available to everyone, so people can manage their profile, password and WhatsApp connection."
     }
   },
@@ -2254,7 +2266,7 @@
     "title": "Train AI",
     "description": "Teach your AI assistant to answer like your best team member. Fill in your business profile, add example answers and rules, learn from real chats, then test it — no technical skills needed.",
     "notMigratedTitle": "One-time setup needed",
-    "notMigratedBody": "Run supabase/migrations/044_ai_training.sql in the Supabase SQL editor, then reload this page.",
+    "notMigratedBody": "The database is missing the Train AI tables. Run `npm run db:init` (db/schema.sql), then reload this page.",
     "readiness": "AI readiness",
     "levelNew": "Just getting started",
     "levelLearning": "Learning",

@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserDb } from "@/lib/db/browser";
 import { PROFILE_FIELDS, type ReplyLength, type TrainingProfile } from "@/lib/ai/training";
 
 /** Step 1 — the business profile, asked as plain questions. */
@@ -36,7 +36,7 @@ export function ProfileForm({
   const save = async () => {
     if (!accountId) return;
     setSaving(true);
-    const { error } = await createClient()
+    const { error } = await createBrowserDb()
       .from("ai_training_profiles")
       .upsert(
         { account_id: accountId, profile: draft, updated_by: user?.id },

@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { ChevronRight, Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserDb } from "@/lib/db/browser";
 import { useAuth } from '@/hooks/use-auth';
 import { useTheme } from '@/hooks/use-theme';
 import { THEMES } from '@/lib/themes';
@@ -55,7 +55,7 @@ export function SettingsOverview({
   useEffect(() => {
     if (!user || !accountId) return;
     let cancelled = false;
-    const supabase = createClient();
+    const db = createBrowserDb();
     const userId = user.id;
     const acctId = accountId;
 
@@ -70,20 +70,20 @@ export function SettingsOverview({
                 r.json(),
               )
             : Promise.resolve(null),
-          supabase
+          db
             .from('message_templates')
             .select('id', { count: 'exact', head: true })
             .eq('user_id', userId),
-          supabase
+          db
             .from('message_templates')
             .select('id', { count: 'exact', head: true })
             .eq('user_id', userId)
             .eq('status', 'PENDING'),
-          supabase
+          db
             .from('tags')
             .select('id', { count: 'exact', head: true })
             .eq('user_id', userId),
-          supabase.from('custom_fields').select('id', { count: 'exact', head: true }),
+          db.from('custom_fields').select('id', { count: 'exact', head: true }),
         ]);
 
       if (cancelled) return;
@@ -121,7 +121,7 @@ export function SettingsOverview({
     (async () => {
       setWhatsappLoading(true);
       const [row, health] = await Promise.allSettled([
-        supabase
+        db
           .from('whatsapp_config')
           .select('phone_number_id')
           .eq('account_id', acctId)

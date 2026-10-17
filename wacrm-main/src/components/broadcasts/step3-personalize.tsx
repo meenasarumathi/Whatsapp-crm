@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserDb } from "@/lib/db/browser";
 import { Contact, CustomField, MessageTemplate } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -90,10 +90,10 @@ export function Step3Personalize({
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const supabase = createClient();
+      const db = createBrowserDb();
       const [fieldsRes, contactRes] = await Promise.all([
-        supabase.from('custom_fields').select('*').order('field_name'),
-        supabase
+        db.from('custom_fields').select('*').order('field_name'),
+        db
           .from('contacts')
           .select('*')
           .order('created_at', { ascending: false })
@@ -109,7 +109,7 @@ export function Step3Personalize({
       setFirstContact(contact);
 
       if (contact) {
-        const { data: customVals } = await supabase
+        const { data: customVals } = await db
           .from('contact_custom_values')
           .select('custom_field_id, value')
           .eq('contact_id', contact.id);

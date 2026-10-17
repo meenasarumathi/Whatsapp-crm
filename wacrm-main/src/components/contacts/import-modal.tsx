@@ -1,7 +1,8 @@
 'use client';
 
+import type { Row } from "@/lib/db/types";
 import { useMemo, useRef, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserDb } from "@/lib/db/browser";
 import { useAuth } from '@/hooks/use-auth';
 import {
   dedupeByPhone,
@@ -127,7 +128,7 @@ export function ImportModal({
   onImported,
 }: ImportModalProps) {
   const t = useTranslations('Contacts.importModal');
-  const supabase = createClient();
+  const db = createBrowserDb();
   const { accountId, canEditSettings } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -191,7 +192,7 @@ export function ImportModal({
     setHasCompanyColumn(csvHasCompany);
 
     if (csvHasTags && accountId) {
-      const { data: tags } = await supabase
+      const { data: tags } = await db
         .from('tags')
         .select('name, color')
         .eq('account_id', accountId);
@@ -214,7 +215,7 @@ export function ImportModal({
     try {
       const {
         data: { session },
-      } = await supabase.auth.getSession();
+      } = await db.auth.getSession();
       const user = session?.user;
       if (!user) throw new Error('Not authenticated');
       if (!accountId)
@@ -239,16 +240,16 @@ export function ImportModal({
 
       // 2) Skip numbers already in this account. One read of the
       //    generated `phone_normalized` column (migration 022) → Set.
-      const { data: existingRows } = await supabase
+      const { data: existingRows } = await db
         .from('contacts')
         .select('phone_normalized')
         .eq('account_id', accountId);
       const existing = new Set(
         (existingRows ?? [])
           .map(
-            (r) => (r as { phone_normalized: string | null }).phone_normalized
+            (r: Row) => (r as { phone_normalized: string | null }).phone_normalized
           )
-          .filter((p): p is string => !!p)
+          .filter((p: string | null): p is string => !!p)
       );
 
       const toInsert = unique.filter((row) => {
@@ -265,7 +266,7 @@ export function ImportModal({
       let tagIdByKey = new Map<string, string>();
       let skippedNames: string[] = [];
       if (allTagNames.length > 0) {
-        ({ tagIdByKey, skippedNames } = await resolveImportTagIds(supabase, {
+        ({ tagIdByKey, skippedNames } = await resolveImportTagIds(db, {
           accountId,
           userId: user.id,
           tagNames: allTagNames,
@@ -291,7 +292,7 @@ export function ImportModal({
           company: row.company || null,
         }));
 
-        const { data, error } = await supabase
+        const { data, error } = await db
           .from('contacts')
           .insert(rows)
           .select('id');
@@ -302,7 +303,7 @@ export function ImportModal({
           for (let j = 0; j < rows.length; j++) {
             const row = rows[j];
             const source = chunk[j];
-            const { data: singleData, error: singleErr } = await supabase
+            const { data: singleData, error: singleErr } = await db
               .from('contacts')
               .insert(row)
               .select('id')
@@ -360,7 +361,7 @@ export function ImportModal({
       let tagsAssigned = 0;
       try {
         tagsAssigned = await assignImportedContactTags(
-          supabase,
+          db,
           tagAssignments,
           tagIdByKey
         );

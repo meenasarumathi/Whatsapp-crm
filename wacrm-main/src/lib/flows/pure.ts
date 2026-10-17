@@ -1,5 +1,5 @@
 /**
- * Pure flow-runner helpers — no Supabase, no Meta, safe to import from
+ * Pure flow-runner helpers — no the database, no Meta, safe to import from
  * client components. The engine (`engine.ts`) re-exports these; the
  * in-editor "Test flow" simulator (`simulate.ts`) walks a flow with the
  * very same matching, condition and interpolation rules, so a test run

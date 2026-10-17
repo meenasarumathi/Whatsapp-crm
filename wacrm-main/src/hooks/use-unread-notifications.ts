@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserDb } from "@/lib/db/browser";
 import type { Notification } from "@/types";
 
 /**
@@ -16,13 +16,13 @@ export function useUnreadNotifications(): number {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    const supabase = createClient();
+    const db = createBrowserDb();
     let cancelled = false;
 
     (async () => {
       // head:true skips fetching rows — we only need the `count`
-      // supabase-js returns alongside the (empty) response body.
-      const { count: unreadCount, error } = await supabase
+      // the data client returns alongside the (empty) response body.
+      const { count: unreadCount, error } = await db
         .from("notifications")
         .select("*", { count: "exact", head: true })
         .is("read_at", null);
@@ -30,7 +30,7 @@ export function useUnreadNotifications(): number {
       setCount(unreadCount ?? 0);
     })();
 
-    const channel = supabase
+    const channel = db
       .channel("notifications-unread-count")
       .on(
         "postgres_changes",
@@ -55,7 +55,7 @@ export function useUnreadNotifications(): number {
 
     return () => {
       cancelled = true;
-      supabase.removeChannel(channel);
+      db.removeChannel(channel);
     };
   }, []);
 

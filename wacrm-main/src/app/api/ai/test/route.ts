@@ -16,7 +16,7 @@ import { AiError, type AiProvider } from '@/lib/ai/types'
  */
 export async function POST(request: Request) {
   try {
-    const { supabase, accountId, userId } = await requireRole('admin')
+    const { db, accountId, userId } = await requireRole('admin')
 
     const limit = checkRateLimit(`ai-test:${userId}`, RATE_LIMITS.adminAction)
     if (!limit.success) return rateLimitResponse(limit)
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     const rawKey = typeof body.api_key === 'string' ? body.api_key.trim() : ''
     let apiKeyPlain = rawKey
     if (!apiKeyPlain) {
-      const { data: existing } = await supabase
+      const { data: existing } = await db
         .from('ai_configs')
         .select('api_key')
         .eq('account_id', accountId)

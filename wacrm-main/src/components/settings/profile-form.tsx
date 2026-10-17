@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Loader2, Upload, Trash2, Mail, CircleAlert } from 'lucide-react';
 
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserDb } from "@/lib/db/browser";
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,15 +27,15 @@ const ALLOWED_MIME = new Set([
   'image/gif',
 ]);
 
-// Rough email shape check — the real validator is Supabase Auth, which
-// rejects anything malformed when we call updateUser({ email }). We
+// Rough email shape check — the real validator is the server, which
+// rejects anything malformed when we call the change-email endpoint. We
 // just want to stop obvious typos before making a network call.
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function ProfileForm() {
   const t = useTranslations('Settings.profile');
   const { user, profile, refreshProfile } = useAuth();
-  const supabase = createClient();
+  const db = createBrowserDb();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [fullName, setFullName] = useState('');
@@ -122,7 +122,7 @@ export function ProfileForm() {
         const ext =
           pendingAvatar.name.split('.').pop()?.toLowerCase() || 'png';
         const path = `${user.id}/avatar-${Date.now()}.${ext}`;
-        const { error: uploadError } = await supabase.storage
+        const { error: uploadError } = await db.storage
           .from('avatars')
           .upload(path, pendingAvatar, {
             cacheControl: '3600',
@@ -134,14 +134,14 @@ export function ProfileForm() {
         }
         const {
           data: { publicUrl },
-        } = supabase.storage.from('avatars').getPublicUrl(path);
+        } = db.storage.from('avatars').getPublicUrl(path);
         nextAvatarUrl = publicUrl;
       } else if (removeAvatar) {
         nextAvatarUrl = null;
       }
 
       // Persist name + avatar to profiles.
-      const { error: updateError } = await supabase
+      const { error: updateError } = await db
         .from('profiles')
         .update({
           full_name: trimmedName,
@@ -152,16 +152,11 @@ export function ProfileForm() {
         throw new Error(t('saveFailed', { message: updateError.message }));
       }
 
-      // Email change goes through Supabase Auth, which emails a
-      // confirmation to both the old and new addresses. We don't
-      // touch profiles.email — Supabase will push the change there
-      // after the user clicks the link (handled by the handle_new_user
-      // trigger pattern in production deployments).
-      let emailSent = false;
+      // The sign-in email changes immediately (the server also updates
+      // profiles.email), so there is no confirmation step to wait for.
+      const emailSent = false;
       if (trimmedEmail.toLowerCase() !== profile.email.toLowerCase()) {
-        const { error: emailError } = await supabase.auth.updateUser({
-          email: trimmedEmail,
-        });
+        const { error: emailError } = await db.auth.updateEmail(trimmedEmail);
         if (emailError) {
           // Partial success: name/avatar saved but email didn't.
           toast.success(t('profileSaved'));
@@ -170,7 +165,6 @@ export function ProfileForm() {
           await refreshProfile();
           return;
         }
-        emailSent = true;
       }
 
       setEmailChangePending(emailSent);

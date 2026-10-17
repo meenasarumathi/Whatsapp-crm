@@ -1,3 +1,4 @@
+import type { Row } from "@/lib/db/types";
 // ============================================================
 // GET  /api/v1/webhooks — list webhook endpoints (scope: webhooks:manage)
 // POST /api/v1/webhooks — register an endpoint    (scope: webhooks:manage)
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
   try {
     const ctx = await requireApiKey(request, 'webhooks:manage');
 
-    const { data, error } = await ctx.supabase
+    const { data, error } = await ctx.db
       .from('webhook_endpoints')
       .select(WEBHOOK_PUBLIC_COLUMNS)
       .eq('account_id', ctx.accountId)
@@ -36,7 +37,7 @@ export async function GET(request: Request) {
     // The roster is small and settings-class — return it whole (the
     // list envelope's cursor is always null here).
     return okList(
-      (data ?? []).map((r) =>
+      (data ?? []).map((r: Row) =>
         serializeWebhookEndpoint(r as Record<string, unknown>)
       ),
       null
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
 
     const secret = generateWebhookSecret();
 
-    const { data: created, error } = await ctx.supabase
+    const { data: created, error } = await ctx.db
       .from('webhook_endpoints')
       .insert({
         account_id: ctx.accountId,

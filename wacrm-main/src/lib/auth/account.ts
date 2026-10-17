@@ -3,8 +3,8 @@
 // components. Reads the caller's profile + account in one round
 // trip and verifies role on demand.
 //
-// IMPORTANT: this module is server-only. It imports the Supabase
-// SSR client (`@/lib/supabase/server`), which reads `next/headers`
+// IMPORTANT: this module is server-only. It imports the session
+// helper (`@/lib/auth/session`), which reads `next/headers`
 // cookies. Importing it from a client component will fail at
 // build time with the standard Next.js "You're importing a
 // component that needs `next/headers`" error — that's the
@@ -12,12 +12,12 @@
 //
 // Calling convention
 // ------------------
-// API routes don't need to redo `supabase.auth.getUser()` — they
+// API routes don't need to redo `db.auth.getUser()` — they
 // receive a fully-loaded context from `requireRole`:
 //
 //   try {
 //     const ctx = await requireRole("admin");
-//     // ctx.supabase — the SSR client (RLS scoped to this user)
+//     // ctx.db — the SSR client (RLS scoped to this user)
 //     // ctx.userId  — auth.uid()
 //     // ctx.accountId / ctx.role / ctx.account
 //   } catch (err) {
@@ -26,9 +26,9 @@
 // ============================================================
 
 import { NextResponse } from "next/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { DbClient } from '@/lib/db';
 
-import { createClient } from "@/lib/supabase/server";
+import { createUserDb } from '@/lib/db'
 import { hasMinRole, isAccountRole, type AccountRole } from "./roles";
 
 // ------------------------------------------------------------
@@ -79,8 +79,8 @@ export function toErrorResponse(err: unknown): NextResponse {
 // ------------------------------------------------------------
 
 export interface AccountContext {
-  /** Supabase SSR client, RLS scoped to the calling user. */
-  supabase: SupabaseClient;
+  /** Database client, RLS scoped to the calling user. */
+  db: DbClient;
   /** `auth.uid()` for the caller. Always defined when this resolves. */
   userId: string;
   /** Caller's account_id from their profile row. */
@@ -94,7 +94,7 @@ export interface AccountContext {
 /**
  * Resolve the caller's user + account + role in one round trip.
  *
- * Throws `UnauthorizedError` if there's no Supabase session.
+ * Throws `UnauthorizedError` if there's no session.
  * Throws `ForbiddenError` if the profile is missing account
  * fields (shouldn't happen post-017 migration; defensive guard
  * against profile rows that pre-date the backfill or were
@@ -104,17 +104,17 @@ export interface AccountContext {
  * minimum-role check — it's a thin wrapper over this.
  */
 export async function getCurrentAccount(): Promise<AccountContext> {
-  const supabase = await createClient();
+  const db = await createUserDb();
 
   const {
     data: { user },
     error: userErr,
-  } = await supabase.auth.getUser();
+  } = await db.auth.getUser();
   if (userErr || !user) {
     throw new UnauthorizedError();
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from("profiles")
     .select("account_id, account_role")
     .eq("user_id", user.id)
@@ -141,13 +141,13 @@ export async function getCurrentAccount(): Promise<AccountContext> {
   // embedded FK join (`account:accounts!inner(...)`). The embed forces
   // PostgREST to resolve the profiles.account_id → accounts.id
   // relationship from its schema cache; when that cache is stale — a
-  // common Supabase state right after a migration adds the FK, or when
+  // common database state right after a migration adds the FK, or when
   // migrations are applied out of band — the embed fails hard with
   // PGRST200 ("could not find a relationship … in the schema cache")
   // and takes down the entire account context (issue #294). A lookup by
   // id needs no relationship inference and is gated by the same accounts
   // RLS, so it stays robust against cache staleness and older schemas.
-  const { data: account, error: accountErr } = await supabase
+  const { data: account, error: accountErr } = await db
     .from("accounts")
     .select("id, name")
     .eq("id", data.account_id)
@@ -164,7 +164,7 @@ export async function getCurrentAccount(): Promise<AccountContext> {
   }
 
   return {
-    supabase,
+    db,
     userId: user.id,
     accountId: data.account_id,
     role: data.account_role,

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserDb } from "@/lib/db/browser";
 import { Broadcast } from '@/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,7 +21,7 @@ import { useTranslations } from 'next-intl';
 
 /**
  * Poll cadence while any broadcast is sending. Kept modest so we don't
- * beat on Supabase — the aggregate trigger in migration 003 keeps
+ * beat on the database — the aggregate trigger in migration 003 keeps
  * counts consistent; we just need to surface the freshest snapshot.
  */
 const POLL_INTERVAL_MS = 5_000;
@@ -71,8 +71,8 @@ export default function BroadcastsPage() {
 
   async function fetchBroadcasts() {
     try {
-      const supabase = createClient();
-      const { data, error: fetchError } = await supabase
+      const db = createBrowserDb();
+      const { data, error: fetchError } = await db
         .from('broadcasts')
         .select('*')
         .order('created_at', { ascending: false });
@@ -106,7 +106,7 @@ export default function BroadcastsPage() {
       pollTimer.current = null;
     }
 
-    // Pause polling while the tab is hidden — keeps Supabase cold when
+    // Pause polling while the tab is hidden — keeps the database cold when
     // the user is away, and ensures a fresh fetch the moment they
     // refocus so they don't see stale data on return.
     function handleVisibilityChange() {

@@ -37,7 +37,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserDb } from "@/lib/db/browser";
 import { cn } from "@/lib/utils";
 import {
   replyTap,
@@ -95,7 +95,7 @@ export function FlowTestPanel({
     if (!open) return;
     let cancelled = false;
     (async () => {
-      const { data } = await createClient()
+      const { data } = await createBrowserDb()
         .from("tags")
         .select("id, name, color")
         .order("name");

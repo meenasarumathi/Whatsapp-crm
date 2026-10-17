@@ -29,7 +29,7 @@ import {
   rateLimitResponse,
   RATE_LIMITS,
 } from "@/lib/rate-limit";
-import { createClient } from "@/lib/supabase/server";
+import { createUserDb } from '@/lib/db'
 
 /**
  * Best-effort client IP. The `x-forwarded-for` header is what
@@ -68,8 +68,8 @@ export async function GET(
     );
   }
 
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc("peek_invitation", {
+  const db = await createUserDb();
+  const { data, error } = await db.rpc("peek_invitation", {
     p_token_hash: hashInviteToken(token),
   });
 

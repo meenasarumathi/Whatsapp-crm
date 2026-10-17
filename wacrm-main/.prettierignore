@@ -6,5 +6,6 @@ coverage
 next-env.d.ts
 package-lock.json
 # Generated / vendored
-supabase/migrations
+db/schema.sql
+migration/target-columns.json
 public/opus

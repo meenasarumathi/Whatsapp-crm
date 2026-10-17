@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { DbClient } from '@/lib/db';
 
 const h = vi.hoisted(() => ({ embedTexts: vi.fn() }))
 vi.mock('./embeddings', () => ({
@@ -53,7 +53,7 @@ function makeDb() {
       },
     }),
   }
-  return { db: db as unknown as SupabaseClient, state }
+  return { db: db as unknown as DbClient, state }
 }
 
 beforeEach(() => {

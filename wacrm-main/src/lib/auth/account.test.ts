@@ -8,7 +8,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 // two plain point queries.
 
 // ------------------------------------------------------------
-// Chainable Supabase query-builder mock. Each `.from(table)` hands back
+// Chainable query-builder mock. Each `.from(table)` hands back
 // a thenable builder pre-loaded with the result queued for that table,
 // so we can assert which tables were queried and with what filters.
 // ------------------------------------------------------------
@@ -62,8 +62,8 @@ function makeClient(opts: {
 }
 
 const createClient = vi.fn();
-vi.mock("@/lib/supabase/server", () => ({
-  createClient: () => createClient(),
+vi.mock("@/lib/db", () => ({
+  createUserDb: () => createClient(),
 }));
 
 const { getCurrentAccount, UnauthorizedError, ForbiddenError } = await import(

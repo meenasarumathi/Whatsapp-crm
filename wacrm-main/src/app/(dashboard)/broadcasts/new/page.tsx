@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserDb } from "@/lib/db/browser";
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from 'sonner';
 import { MessageTemplate } from '@/types';
@@ -87,10 +87,10 @@ export default function NewBroadcastPage() {
       toast.error(t('toastGiveName'));
       return;
     }
-    const supabase = createClient();
+    const db = createBrowserDb();
     const {
       data: { session },
-    } = await supabase.auth.getSession();
+    } = await db.auth.getSession();
     const user = session?.user;
     if (!user) {
       toast.error(t('toastNotSignedIn'));
@@ -101,7 +101,7 @@ export default function NewBroadcastPage() {
       return;
     }
 
-    const { error } = await supabase.from('broadcasts').insert({
+    const { error } = await db.from('broadcasts').insert({
       user_id: user.id,
       account_id: accountId,
       name: name.trim(),

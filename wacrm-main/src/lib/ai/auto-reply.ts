@@ -1,4 +1,4 @@
-import { supabaseAdmin } from './admin-client'
+import { serviceDb } from './admin-client'
 import { loadAiConfig } from './config'
 import { buildConversationContext } from './context'
 import { retrieveKnowledge } from './knowledge'
@@ -60,7 +60,7 @@ export async function dispatchInboundToAiReply(
   } = args
 
   try {
-    const db = supabaseAdmin()
+    const db = serviceDb()
 
     const config = await loadAiConfig(db, accountId)
     if (!config || !config.autoReplyEnabled) return
@@ -230,7 +230,7 @@ export async function dispatchInboundToAiReply(
  * — the indicator is cosmetic, the reply is not.
  */
 async function showTypingIndicator(
-  db: ReturnType<typeof supabaseAdmin>,
+  db: ReturnType<typeof serviceDb>,
   accountId: string,
   inboundMessageId: string,
 ): Promise<void> {

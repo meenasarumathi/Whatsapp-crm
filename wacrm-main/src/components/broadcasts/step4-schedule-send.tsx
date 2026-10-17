@@ -1,7 +1,8 @@
 'use client';
 
+import type { Row } from "@/lib/db/types";
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserDb } from "@/lib/db/browser";
 import { MessageTemplate } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,20 +56,20 @@ export function Step4ScheduleSend({
     async function calculateReach() {
       setLoadingReach(true);
       try {
-        const supabase = createClient();
+        const db = createBrowserDb();
 
         if (audience.type === 'all') {
-          const { count } = await supabase
+          const { count } = await db
             .from('contacts')
             .select('*', { count: 'exact', head: true });
           setEstimatedReach(count ?? 0);
         } else if (audience.type === 'tags' && audience.tagIds && audience.tagIds.length > 0) {
-          const { data: contactTags } = await supabase
+          const { data: contactTags } = await db
             .from('contact_tags')
             .select('contact_id')
             .in('tag_id', audience.tagIds);
 
-          const uniqueIds = new Set((contactTags ?? []).map((ct) => ct.contact_id));
+          const uniqueIds = new Set((contactTags ?? []).map((ct: Row) => ct.contact_id));
           setEstimatedReach(uniqueIds.size);
         } else if (audience.type === 'csv' && audience.csvContacts) {
           setEstimatedReach(audience.csvContacts.length);

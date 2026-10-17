@@ -1,4 +1,4 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { DbClient } from '@/lib/db';
 import {
   buildTrainingBlock,
   selectRelevantExamples,
@@ -14,7 +14,7 @@ import {
  * it picked, without waiting for the write.
  */
 export async function loadTrainingBlock(
-  db: SupabaseClient,
+  db: DbClient,
   accountId: string,
   queryText: string,
 ): Promise<string | null> {

@@ -1,7 +1,8 @@
 'use client';
 
+import type { Row } from "@/lib/db/types";
 import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserDb } from "@/lib/db/browser";
 import { addContactTag, deleteContactTag } from '@/lib/contacts/tag-api';
 import { useAuth } from '@/hooks/use-auth';
 import { formatCurrency } from '@/lib/currency';
@@ -58,7 +59,7 @@ export function ContactDetailView({
   onUpdated,
 }: ContactDetailViewProps) {
   const t = useTranslations('Contacts.detailView');
-  const supabase = createClient();
+  const db = createBrowserDb();
   const { accountId, defaultCurrency } = useAuth();
 
   const [contact, setContact] = useState<Contact | null>(null);
@@ -103,7 +104,7 @@ export function ContactDetailView({
     if (!contactId) return;
     setLoading(true);
 
-    const { data } = await supabase
+    const { data } = await db
       .from('contacts')
       .select('*')
       .eq('id', contactId)
@@ -117,27 +118,27 @@ export function ContactDetailView({
       setEditCompany(data.company ?? '');
     }
     setLoading(false);
-  }, [contactId, supabase]);
+  }, [contactId, db]);
 
   const fetchTags = useCallback(async () => {
     if (!contactId) return;
 
     const [tagsRes, contactTagsRes] = await Promise.all([
-      supabase.from('tags').select('*').order('name'),
-      supabase.from('contact_tags').select('tag_id').eq('contact_id', contactId),
+      db.from('tags').select('*').order('name'),
+      db.from('contact_tags').select('tag_id').eq('contact_id', contactId),
     ]);
 
     if (tagsRes.data) setAllTags(tagsRes.data);
     if (contactTagsRes.data) {
-      setContactTagIds(contactTagsRes.data.map((ct) => ct.tag_id));
+      setContactTagIds(contactTagsRes.data.map((ct: Row) => ct.tag_id));
     }
-  }, [contactId, supabase]);
+  }, [contactId, db]);
 
   const fetchNotes = useCallback(async () => {
     if (!contactId) return;
     setLoadingNotes(true);
 
-    const { data } = await supabase
+    const { data } = await db
       .from('contact_notes')
       .select('*')
       .eq('contact_id', contactId)
@@ -145,15 +146,15 @@ export function ContactDetailView({
 
     if (data) setNotes(data);
     setLoadingNotes(false);
-  }, [contactId, supabase]);
+  }, [contactId, db]);
 
   const fetchCustomFields = useCallback(async () => {
     if (!contactId) return;
     setLoadingCustom(true);
 
     const [fieldsRes, valuesRes] = await Promise.all([
-      supabase.from('custom_fields').select('*').order('field_name'),
-      supabase
+      db.from('custom_fields').select('*').order('field_name'),
+      db
         .from('contact_custom_values')
         .select('*')
         .eq('contact_id', contactId),
@@ -162,25 +163,25 @@ export function ContactDetailView({
     if (fieldsRes.data) setCustomFields(fieldsRes.data);
     if (valuesRes.data) {
       const map: Record<string, string> = {};
-      valuesRes.data.forEach((v) => {
+      valuesRes.data.forEach((v: Row) => {
         map[v.custom_field_id] = v.value ?? '';
       });
       setCustomValues(map);
     }
     setLoadingCustom(false);
-  }, [contactId, supabase]);
+  }, [contactId, db]);
 
   const fetchDeals = useCallback(async () => {
     if (!contactId) return;
     setLoadingDeals(true);
-    const { data } = await supabase
+    const { data } = await db
       .from('deals')
       .select('*, stage:pipeline_stages(*)')
       .eq('contact_id', contactId)
       .order('created_at', { ascending: false });
     setDeals((data ?? []) as Deal[]);
     setLoadingDeals(false);
-  }, [contactId, supabase]);
+  }, [contactId, db]);
 
   useEffect(() => {
     if (open && contactId) {
@@ -216,7 +217,7 @@ export function ContactDetailView({
     }
 
     setSavingDetails(true);
-    const { error } = await supabase
+    const { error } = await db
       .from('contacts')
       .update({
         name: editName.trim() || null,
@@ -264,7 +265,7 @@ export function ContactDetailView({
 
     const {
       data: { session },
-    } = await supabase.auth.getSession();
+    } = await db.auth.getSession();
     const user = session?.user;
     if (!user || !accountId) {
       toast.error(t('toastNotAuthenticated'));
@@ -272,7 +273,7 @@ export function ContactDetailView({
       return;
     }
 
-    const { error } = await supabase.from('contact_notes').insert({
+    const { error } = await db.from('contact_notes').insert({
       contact_id: contactId,
       account_id: accountId,
       user_id: user.id,
@@ -290,7 +291,7 @@ export function ContactDetailView({
   }
 
   async function deleteNote(noteId: string) {
-    const { error } = await supabase
+    const { error } = await db
       .from('contact_notes')
       .delete()
       .eq('id', noteId);
@@ -309,7 +310,7 @@ export function ContactDetailView({
 
     try {
       // Delete existing values and re-insert
-      await supabase
+      await db
         .from('contact_custom_values')
         .delete()
         .eq('contact_id', contactId);
@@ -323,7 +324,7 @@ export function ContactDetailView({
         }));
 
       if (rows.length > 0) {
-        const { error } = await supabase
+        const { error } = await db
           .from('contact_custom_values')
           .insert(rows);
         if (error) throw error;

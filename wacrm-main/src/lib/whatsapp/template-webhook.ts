@@ -40,7 +40,7 @@
  * the stub on (account_id, name, language).
  */
 
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { DbClient } from '@/lib/db';
 import { normalizeStatus } from './template-status-normalize'
 
 const TEMPLATE_WEBHOOK_FIELDS = new Set([
@@ -100,23 +100,23 @@ const PG_UNIQUE_VIOLATION = '23505'
  */
 export async function handleTemplateWebhookChange(
   change: TemplateWebhookChange,
-  // SupabaseClient typed loosely — the webhook route lazy-initialises
+  // DbClient typed loosely — the webhook route lazy-initialises
   // the admin client and exposes it as `any`. Type as the generic
-  // SupabaseClient here so this module is testable in isolation.
-  supabase: SupabaseClient,
+  // DbClient here so this module is testable in isolation.
+  db: DbClient,
 ): Promise<void> {
   switch (change.field) {
     case 'message_template_status_update':
       await handleStatusUpdate(
         change.value as TemplateStatusUpdateValue,
-        supabase,
+        db,
         change.wabaId,
       )
       return
     case 'message_template_quality_update':
       await handleQualityUpdate(
         change.value as TemplateQualityUpdateValue,
-        supabase,
+        db,
         change.wabaId,
       )
       return
@@ -130,7 +130,7 @@ export async function handleTemplateWebhookChange(
 
 async function handleStatusUpdate(
   value: TemplateStatusUpdateValue,
-  supabase: SupabaseClient,
+  db: DbClient,
   wabaId: string | undefined,
 ): Promise<void> {
   const metaTemplateId =
@@ -158,7 +158,7 @@ async function handleStatusUpdate(
     submission_error: null,
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('message_templates')
     .update(update)
     .eq('meta_template_id', metaTemplateId)
@@ -181,12 +181,12 @@ async function handleStatusUpdate(
       wabaId,
       fields: update,
       retryUpdate: () =>
-        supabase
+        db
           .from('message_templates')
           .update(update)
           .eq('meta_template_id', metaTemplateId)
           .select('id'),
-      supabase,
+      db,
     })
     return
   }
@@ -199,7 +199,7 @@ async function handleStatusUpdate(
 
 async function handleQualityUpdate(
   value: TemplateQualityUpdateValue,
-  supabase: SupabaseClient,
+  db: DbClient,
   wabaId: string | undefined,
 ): Promise<void> {
   const metaTemplateId =
@@ -222,7 +222,7 @@ async function handleQualityUpdate(
 
   const update = { quality_score: score }
   const runUpdate = () =>
-    supabase
+    db
       .from('message_templates')
       .update(update)
       .eq('meta_template_id', metaTemplateId)
@@ -250,7 +250,7 @@ async function handleQualityUpdate(
       wabaId,
       fields: update,
       retryUpdate: runUpdate,
-      supabase,
+      db,
     })
   }
 }
@@ -269,7 +269,7 @@ interface StubParams {
     data: { id: string }[] | null
     error: { message: string } | null
   }>
-  supabase: SupabaseClient
+  db: DbClient
 }
 
 /**
@@ -286,7 +286,7 @@ interface StubParams {
  * components arrive on the next manual sync.
  */
 async function createStubForUnknownTemplate(p: StubParams): Promise<void> {
-  const { kind, metaTemplateId, name, wabaId, supabase } = p
+  const { kind, metaTemplateId, name, wabaId, db } = p
   const where = `meta_template_id ${metaTemplateId} (${name ?? 'unnamed'}), WABA ${wabaId ?? 'unknown'}`
 
   if (!wabaId) {
@@ -302,7 +302,7 @@ async function createStubForUnknownTemplate(p: StubParams): Promise<void> {
     return
   }
 
-  const { data: configs, error: configError } = await supabase
+  const { data: configs, error: configError } = await db
     .from('whatsapp_config')
     .select('account_id, user_id')
     .eq('waba_id', wabaId)
@@ -337,7 +337,7 @@ async function createStubForUnknownTemplate(p: StubParams): Promise<void> {
     ...p.fields,
   }
 
-  const { error: insertError } = await supabase
+  const { error: insertError } = await db
     .from('message_templates')
     .insert(stub)
 

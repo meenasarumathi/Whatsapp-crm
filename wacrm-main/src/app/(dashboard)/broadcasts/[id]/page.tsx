@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserDb } from "@/lib/db/browser";
 import { Broadcast, BroadcastRecipient, RecipientStatus } from '@/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -166,9 +166,9 @@ export default function BroadcastDetailPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const supabase = createClient();
+      const db = createBrowserDb();
 
-      const { data: bc, error: bcError } = await supabase
+      const { data: bc, error: bcError } = await db
         .from('broadcasts')
         .select('*')
         .eq('id', broadcastId)
@@ -177,7 +177,7 @@ export default function BroadcastDetailPage() {
       if (bcError) throw bcError;
       setBroadcast(bc);
 
-      const { data: recs, error: recsError } = await supabase
+      const { data: recs, error: recsError } = await db
         .from('broadcast_recipients')
         .select('*, contact:contacts(*)')
         .eq('broadcast_id', broadcastId)
@@ -280,12 +280,12 @@ export default function BroadcastDetailPage() {
 
   async function handleDelete() {
     setDeleting(true);
-    const supabase = createClient();
+    const db = createBrowserDb();
     // broadcast_recipients cascades on broadcasts.id (migration 001), so a
     // single delete is sufficient — the aggregate trigger in migration 003
     // is defined on broadcast_recipients but fires only on its own row
     // changes, not on a cascaded drop of the parent row.
-    const { error: delErr } = await supabase
+    const { error: delErr } = await db
       .from('broadcasts')
       .delete()
       .eq('id', broadcastId);

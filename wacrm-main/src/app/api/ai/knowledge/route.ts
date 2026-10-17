@@ -16,8 +16,8 @@ import { AiError } from '@/lib/ai/types'
  */
 export async function GET() {
   try {
-    const { supabase, accountId } = await getCurrentAccount()
-    const { data, error } = await supabase
+    const { db, accountId } = await getCurrentAccount()
+    const { data, error } = await db
       .from('ai_knowledge_documents')
       .select('id, title, updated_at')
       .eq('account_id', accountId)
@@ -43,7 +43,7 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
-    const { supabase, accountId, userId } = await requireRole('admin')
+    const { db, accountId, userId } = await requireRole('admin')
     const limit = checkRateLimit(`ai-kb:${userId}`, RATE_LIMITS.adminAction)
     if (!limit.success) return rateLimitResponse(limit)
 
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const { data: doc, error } = await supabase
+    const { data: doc, error } = await db
       .from('ai_knowledge_documents')
       .insert({ account_id: accountId, created_by: userId, title, content })
       .select('id')
@@ -71,12 +71,12 @@ export async function POST(request: Request) {
     }
 
     const { key: embeddingsApiKey, corrupt } = await loadEmbeddingsKey(
-      supabase,
+      db,
       accountId,
     )
     try {
       await ingestDocument(
-        supabase,
+        db,
         accountId,
         { embeddingsApiKey },
         doc.id,

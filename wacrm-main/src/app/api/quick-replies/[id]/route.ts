@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireRole, toErrorResponse } from '@/lib/auth/account'
-import { supabaseAdmin } from '@/lib/automations/admin-client'
+import { serviceDb } from '@/lib/automations/admin-client'
 import { validateInteractivePayload } from '@/lib/whatsapp/interactive'
 
 // Update / delete a single quick reply. Quick replies are account-
@@ -72,7 +72,7 @@ export async function PATCH(
     return NextResponse.json({ ok: true })
   }
 
-  const { error } = await supabaseAdmin()
+  const { error } = await serviceDb()
     .from('quick_replies')
     .update(update)
     .eq('id', id)
@@ -93,7 +93,7 @@ export async function DELETE(
     return toErrorResponse(err)
   }
 
-  const { error } = await supabaseAdmin()
+  const { error } = await serviceDb()
     .from('quick_replies')
     .delete()
     .eq('id', id)

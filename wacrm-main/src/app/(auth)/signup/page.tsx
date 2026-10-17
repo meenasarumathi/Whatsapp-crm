@@ -4,7 +4,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserDb } from "@/lib/db/browser";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { MessageSquare, CheckCircle, UsersRound } from "lucide-react";
+import { MessageSquare, UsersRound } from "lucide-react";
 
 // `useSearchParams` opts the component out of static prerendering
 // unless wrapped in Suspense — same pattern as /login.
@@ -43,8 +43,7 @@ function SignupPageInner() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const supabase = createClient();
+  const db = createBrowserDb();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,24 +61,7 @@ function SignupPageInner() {
 
     setLoading(true);
 
-    // If we have an invite token, point Supabase's verification
-    // email back at the join page so the user can accept after
-    // verifying. Without a token, Supabase uses its default
-    // redirect (the app root).
-    const emailRedirectTo = inviteToken
-      ? `${window.location.origin}/join/${encodeURIComponent(inviteToken)}`
-      : undefined;
-
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-        },
-        ...(emailRedirectTo ? { emailRedirectTo } : {}),
-      },
-    });
+    const { error } = await db.auth.signUp({ email, password, fullName });
 
     if (error) {
       setError(error.message);
@@ -87,50 +69,13 @@ function SignupPageInner() {
       return;
     }
 
-    setSuccess(true);
-    setLoading(false);
+    // The account is created and signed in immediately. Full-page
+    // navigation so the middleware sees the new session cookie; an
+    // invite token goes straight to the join page.
+    window.location.href = inviteToken
+      ? `/join/${encodeURIComponent(inviteToken)}`
+      : "/dashboard";
   };
-
-  if (success) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-4">
-        <Card className="w-full max-w-md border-border bg-card">
-          <CardHeader className="items-center text-center">
-            <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-              <CheckCircle className="h-6 w-6 text-primary" />
-            </div>
-            <CardTitle className="text-xl text-foreground">
-              {t("checkEmailTitle")}
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">
-              {t.rich("checkEmailDesc", {
-                email,
-                strong: (chunks) => (
-                  <span className="text-foreground">{chunks}</span>
-                ),
-              })}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link
-              href={
-                inviteToken
-                  ? `/login?invite=${encodeURIComponent(inviteToken)}`
-                  : "/login"
-              }
-            >
-              <Button
-                variant="outline"
-                className="w-full border-border text-muted-foreground hover:bg-muted hover:text-foreground"
-              >
-                {t("backToSignIn")}
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">

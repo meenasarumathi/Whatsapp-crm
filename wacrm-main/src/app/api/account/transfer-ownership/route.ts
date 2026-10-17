@@ -19,7 +19,7 @@
 // ============================================================
 
 import { NextResponse } from "next/server";
-import type { PostgrestError } from "@supabase/supabase-js";
+import type { DbError } from '@/lib/db';
 
 import { requireRole, toErrorResponse } from "@/lib/auth/account";
 import {
@@ -28,7 +28,7 @@ import {
   RATE_LIMITS,
 } from "@/lib/rate-limit";
 
-function rpcErrorToResponse(err: PostgrestError): NextResponse {
+function rpcErrorToResponse(err: DbError): NextResponse {
   if (err.code === "42501") {
     return NextResponse.json({ error: err.message }, { status: 403 });
   }
@@ -55,7 +55,7 @@ function looksLikeUuid(v: unknown): v is string {
 export async function POST(request: Request) {
   try {
     // `requireRole('owner')` is belt-and-braces — the RPC checks
-    // this too, but failing fast here saves a Supabase round trip
+    // this too, but failing fast here saves a database round trip
     // on the obvious "admin trying to transfer" case.
     const ctx = await requireRole("owner");
 
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { error } = await ctx.supabase.rpc("transfer_account_ownership", {
+    const { error } = await ctx.db.rpc("transfer_account_ownership", {
       p_new_owner_user_id: newOwnerUserId,
     });
 

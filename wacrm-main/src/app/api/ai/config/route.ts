@@ -23,9 +23,9 @@ function bad(message: string) {
  */
 export async function GET() {
   try {
-    const { supabase, accountId } = await getCurrentAccount()
+    const { db, accountId } = await getCurrentAccount()
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('ai_configs')
       // `api_key` is selected only to derive `has_key` — it is stripped
       // out below and never returned to the client.
@@ -69,7 +69,7 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
-    const { supabase, accountId, userId } = await requireRole('admin')
+    const { db, accountId, userId } = await requireRole('admin')
 
     const limit = checkRateLimit(`ai-config:${userId}`, RATE_LIMITS.adminAction)
     if (!limit.success) return rateLimitResponse(limit)
@@ -104,7 +104,7 @@ export async function POST(request: Request) {
     const handoffProvided = 'handoff_agent_id' in body
     let handoffAgentId: string | null = null
     if (rawHandoff) {
-      const { data: member } = await supabase
+      const { data: member } = await db
         .from('profiles')
         .select('user_id')
         .eq('account_id', accountId)
@@ -126,7 +126,7 @@ export async function POST(request: Request) {
     const clearEmbeddingsKey = body.embeddings_api_key === null
 
     // Reuse the stored key when the form didn't send a fresh one.
-    const { data: existing } = await supabase
+    const { data: existing } = await db
       .from('ai_configs')
       .select('id, provider, model, api_key')
       .eq('account_id', accountId)
@@ -216,7 +216,7 @@ export async function POST(request: Request) {
     }
 
     if (existing) {
-      const { error: upErr } = await supabase
+      const { error: upErr } = await db
         .from('ai_configs')
         .update(encryptedKey ? { ...shared, api_key: encryptedKey } : shared)
         .eq('account_id', accountId)
@@ -228,7 +228,7 @@ export async function POST(request: Request) {
         )
       }
     } else {
-      const { error: insErr } = await supabase.from('ai_configs').insert({
+      const { error: insErr } = await db.from('ai_configs').insert({
         account_id: accountId,
         created_by: userId,
         api_key: encryptedKey, // guaranteed non-null: rawKey required when no existing row
@@ -257,8 +257,8 @@ export async function POST(request: Request) {
  */
 export async function DELETE() {
   try {
-    const { supabase, accountId } = await requireRole('admin')
-    const { error } = await supabase
+    const { db, accountId } = await requireRole('admin')
+    const { error } = await db
       .from('ai_configs')
       .delete()
       .eq('account_id', accountId)

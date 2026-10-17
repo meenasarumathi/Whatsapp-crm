@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { DbClient } from '@/lib/db';
 import {
   normalizePhone,
   parseInternationalPhone,
@@ -37,7 +37,7 @@ export interface ExistingContact {
  * the small candidate set — the exact approach the webhook has used.
  */
 export async function findExistingContact(
-  db: SupabaseClient,
+  db: DbClient,
   accountId: string,
   phone: string,
 ): Promise<ExistingContact | null> {

@@ -1,7 +1,7 @@
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserDb } from "@/lib/db/browser";
 
 /**
- * Shared media-upload helper for Supabase Storage buckets that use the
+ * Shared media-upload helper for file-storage buckets that use the
  * account-scoped path convention introduced in migration 020
  * (`flow-media`) and reused by migration 023 (`chat-media`):
  *
@@ -35,7 +35,7 @@ export const MEDIA_MAX_BYTES_BY_KIND = {
 
 /**
  * Build the account-scoped object path for an upload. Pure + exported so
- * it can be unit-tested without a Supabase client.
+ * it can be unit-tested without a database client.
  *
  * - `basename` is stripped of its extension, lower-cased non-safe chars
  *   are collapsed to `_`, and it's capped at 40 chars (falls back to
@@ -95,12 +95,12 @@ export async function uploadAccountMedia(
   bucket: string,
   file: File,
 ): Promise<UploadAccountMediaResult> {
-  const supabase = createClient();
+  const db = createBrowserDb();
 
   const {
     data: { user },
     error: userErr,
-  } = await supabase.auth.getUser();
+  } = await db.auth.getUser();
   if (userErr || !user) {
     throw new Error("Not signed in.");
   }
@@ -108,7 +108,7 @@ export async function uploadAccountMedia(
   // Resolve account_id so the path is account-scoped (matches the
   // bucket's RLS write policy from migration 020/023). User-scoped
   // paths would be rejected.
-  const { data: profile, error: profileErr } = await supabase
+  const { data: profile, error: profileErr } = await db
     .from("profiles")
     .select("account_id")
     .eq("user_id", user.id)
@@ -118,7 +118,7 @@ export async function uploadAccountMedia(
   }
 
   const path = buildMediaPath(profile.account_id as string, file.name);
-  const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, {
+  const { error: upErr } = await db.storage.from(bucket).upload(path, file, {
     cacheControl: "3600",
     upsert: false,
     contentType: file.type,
@@ -127,7 +127,7 @@ export async function uploadAccountMedia(
 
   const {
     data: { publicUrl },
-  } = supabase.storage.from(bucket).getPublicUrl(path);
+  } = db.storage.from(bucket).getPublicUrl(path);
 
   return { publicUrl, path };
 }
@@ -146,7 +146,7 @@ export async function deleteAccountMedia(
   bucket: string,
   path: string,
 ): Promise<void> {
-  const supabase = createClient();
-  const { error } = await supabase.storage.from(bucket).remove([path]);
+  const db = createBrowserDb();
+  const { error } = await db.storage.from(bucket).remove([path]);
   if (error) throw new Error(error.message);
 }

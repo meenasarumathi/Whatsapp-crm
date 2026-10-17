@@ -1,6 +1,6 @@
 import { timingSafeEqual } from 'node:crypto'
 import { NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/automations/admin-client'
+import { serviceDb } from '@/lib/automations/admin-client'
 import { resumePendingExecution } from '@/lib/automations/engine'
 import type { AutomationContext } from '@/lib/automations/engine'
 
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const admin = supabaseAdmin()
+  const admin = serviceDb()
   const { data: due, error } = await admin
     .from('automation_pending_executions')
     .select('*')

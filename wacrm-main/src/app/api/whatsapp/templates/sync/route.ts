@@ -133,9 +133,9 @@ export async function POST() {
     // settings-class data: `canEditSettings` and the message_templates
     // insert/update RLS policies (migration 017) both require 'admin'.
     // Resolving account_id off the profile only proved membership.
-    const { supabase, accountId, userId } = await requireRole('admin')
+    const { db, accountId, userId } = await requireRole('admin')
 
-    const { data: config, error: configError } = await supabase
+    const { data: config, error: configError } = await db
       .from('whatsapp_config')
       .select('*')
       .eq('account_id', accountId)
@@ -239,7 +239,7 @@ export async function POST() {
         updated_at: new Date().toISOString(),
       }
 
-      const { data: existing, error: lookupErr } = await supabase
+      const { data: existing, error: lookupErr } = await db
         .from('message_templates')
         .select('id')
         .eq('account_id', accountId)
@@ -257,7 +257,7 @@ export async function POST() {
       }
 
       if (existing?.id) {
-        const { error: updErr } = await supabase
+        const { error: updErr } = await db
           .from('message_templates')
           .update(row)
           .eq('id', existing.id)
@@ -271,7 +271,7 @@ export async function POST() {
           updated++
         }
       } else {
-        const { error: insErr } = await supabase
+        const { error: insErr } = await db
           .from('message_templates')
           .insert(row)
         if (insErr) {

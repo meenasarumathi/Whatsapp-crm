@@ -1,5 +1,6 @@
 import { NextResponse, after } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createServiceDb, type DbClient } from '@/lib/db'
+import { createDiskStorage } from '@/lib/storage/disk'
 import { decrypt, encrypt, isLegacyFormat } from '@/lib/whatsapp/encryption'
 import { getMediaUrl, downloadMedia } from '@/lib/whatsapp/meta-api'
 import { mirrorInboundMedia } from '@/lib/whatsapp/mirror-inbound-media'
@@ -30,16 +31,10 @@ import {
 export const maxDuration = 60
 
 // Lazy-initialized to avoid build-time crash when env vars are missing
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let _adminClient: any = null
-function supabaseAdmin() {
-  if (!_adminClient) {
-    _adminClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
-  }
-  return _adminClient
+let _serviceDb: DbClient | null = null
+function serviceDb(): DbClient {
+  if (!_serviceDb) _serviceDb = createServiceDb()
+  return _serviceDb
 }
 
 interface WhatsAppMessage {
@@ -150,7 +145,7 @@ export async function GET(request: Request) {
     }
 
     // Fetch all whatsapp configs to check verify tokens
-    const { data: configs, error: configError } = await supabaseAdmin()
+    const { data: configs, error: configError } = await serviceDb()
       .from('whatsapp_config')
       .select('id, verify_token')
 
@@ -183,7 +178,7 @@ export async function GET(request: Request) {
       // Fire-and-forget GCM upgrade. Safe to run on every subscribe
       // since it's a no-op once the column is already GCM.
       if (isLegacyFormat(matchedConfig.verify_token)) {
-        void supabaseAdmin()
+        void serviceDb()
           .from('whatsapp_config')
           .update({ verify_token: encrypt(verifyToken) })
           .eq('id', matchedConfig.id)
@@ -283,7 +278,7 @@ async function processWebhook(body: { entry?: WhatsAppWebhookEntry[] }) {
             value: change.value as unknown,
             wabaId: entry.id,
           },
-          supabaseAdmin(),
+          serviceDb(),
         )
         continue
       }
@@ -307,7 +302,7 @@ async function processWebhook(body: { entry?: WhatsAppWebhookEntry[] }) {
       // operators see the real cause in logs. ≥2 rows shouldn't happen
       // post-migration 013 (UNIQUE constraint), but a row created
       // before the constraint, or a race, would still surface here.
-      const { data: configRows, error: configError } = await supabaseAdmin()
+      const { data: configRows, error: configError } = await serviceDb()
         .from('whatsapp_config')
         .select('*')
         .eq('phone_number_id', phoneNumberId)
@@ -445,7 +440,7 @@ async function handleStatusUpdate(status: {
     messageUpdate.error_title = failure.title
     messageUpdate.error_details = failure.details
   }
-  const { error: msgErr } = await supabaseAdmin()
+  const { error: msgErr } = await serviceDb()
     .from('messages')
     .update(messageUpdate)
     .eq('message_id', status.id)
@@ -464,7 +459,7 @@ async function handleStatusUpdate(status: {
   //    sent/delivered/read/failed counts automatically.
   const tsIso = new Date(parseInt(status.timestamp) * 1000).toISOString()
 
-  const { data: recipient, error: recFetchErr } = await supabaseAdmin()
+  const { data: recipient, error: recFetchErr } = await serviceDb()
     .from('broadcast_recipients')
     .select('id, status')
     .eq('whatsapp_message_id', status.id)
@@ -491,7 +486,7 @@ async function handleStatusUpdate(status: {
         (failure.details ? `: ${failure.details}` : '')
     }
 
-    const { error: recUpdateErr } = await supabaseAdmin()
+    const { error: recUpdateErr } = await serviceDb()
       .from('broadcast_recipients')
       .update(update)
       .eq('id', recipient.id)
@@ -505,7 +500,7 @@ async function handleStatusUpdate(status: {
   //    Runs last so a slow subscriber can't delay the mirrors above.
   //    Bounded to one row (message_id isn't unique) purely to resolve
   //    the owning account for delivery.
-  const { data: msgRow } = await supabaseAdmin()
+  const { data: msgRow } = await serviceDb()
     .from('messages')
     .select('conversation_id, conversations(account_id)')
     .eq('message_id', status.id)
@@ -517,7 +512,7 @@ async function handleStatusUpdate(status: {
     const accountId = conv?.account_id
     if (accountId) {
       await dispatchWebhookEvent(
-        supabaseAdmin(),
+        serviceDb(),
         accountId,
         'message.status_updated',
         {
@@ -544,7 +539,7 @@ async function flagBroadcastReplyIfAny(accountId: string, contactId: string) {
     // been replied to yet. Account-scoped so a shared inbox reply
     // marks the broadcast as replied regardless of which teammate
     // sent it.
-    const { data: recs, error } = await supabaseAdmin()
+    const { data: recs, error } = await serviceDb()
       .from('broadcast_recipients')
       .select('id, status, broadcast_id, broadcasts!inner(account_id)')
       .eq('contact_id', contactId)
@@ -556,7 +551,7 @@ async function flagBroadcastReplyIfAny(accountId: string, contactId: string) {
     if (error || !recs || recs.length === 0) return
 
     const row = recs[0]
-    const { error: updErr } = await supabaseAdmin()
+    const { error: updErr } = await serviceDb()
       .from('broadcast_recipients')
       .update({ status: 'replied', replied_at: new Date().toISOString() })
       .eq('id', row.id)
@@ -578,7 +573,7 @@ async function lookupInternalIdByMetaId(
   metaId: string,
   conversationId: string
 ): Promise<string | null> {
-  const { data, error } = await supabaseAdmin()
+  const { data, error } = await serviceDb()
     .from('messages')
     .select('id')
     .eq('message_id', metaId)
@@ -621,7 +616,7 @@ async function handleReaction(
 
   // Empty emoji = removal (per Meta's Cloud API spec).
   if (!reaction.emoji) {
-    const { error: delError } = await supabaseAdmin()
+    const { error: delError } = await serviceDb()
       .from('message_reactions')
       .delete()
       .eq('message_id', targetInternalId)
@@ -633,7 +628,7 @@ async function handleReaction(
     return
   }
 
-  const { error: upsertError } = await supabaseAdmin()
+  const { error: upsertError } = await serviceDb()
     .from('message_reactions')
     .upsert(
       {
@@ -703,7 +698,7 @@ async function processMessage(
   // a reaction still fires the event, and a subscriber always sees the
   // thread open before its first message.received.
   if (convResult.created) {
-    await dispatchWebhookEvent(supabaseAdmin(), accountId, 'conversation.created', {
+    await dispatchWebhookEvent(serviceDb(), accountId, 'conversation.created', {
       conversation_id: conversation.id,
       contact_id: contactRecord.id,
     })
@@ -742,7 +737,7 @@ async function processMessage(
   }
 
   // Insert message — field names MUST match the messages table schema
-  // (see supabase/migrations/001_initial_schema.sql):
+  // (see db/schema.sql):
   //   conversation_id, sender_type, content_type, content_text,
   //   media_url, media_type, template_name, message_id, status,
   //   created_at
@@ -768,7 +763,7 @@ async function processMessage(
   // BEFORE we insert, so the count is accurate. Covers the case where
   // the contact row already exists (manual add / CSV import) but they've
   // never messaged us before — which new_contact_created wouldn't catch.
-  const { count: priorCustomerMsgCount } = await supabaseAdmin()
+  const { count: priorCustomerMsgCount } = await serviceDb()
     .from('messages')
     .select('id', { count: 'exact', head: true })
     .eq('conversation_id', conversation.id)
@@ -783,7 +778,7 @@ async function processMessage(
   // ONLY on a genuine first insert — an empty result means this delivery
   // was a replay. This is the single idempotency boundary that must sit
   // BEFORE the unread bump and all downstream fan-out below (issue #367).
-  const { data: insertedRows, error: msgError } = await supabaseAdmin()
+  const { data: insertedRows, error: msgError } = await serviceDb()
     .from('messages')
     .upsert(
       {
@@ -834,7 +829,7 @@ async function processMessage(
   // both reads see the same value and write the same increment, losing one
   // (issue #369). The RPC increments in a single UPDATE and refreshes the
   // last-message summary in the same statement.
-  const { error: convError } = await supabaseAdmin().rpc(
+  const { error: convError } = await serviceDb().rpc(
     'bump_conversation_on_inbound',
     {
       p_conversation_id: conversation.id,
@@ -850,7 +845,7 @@ async function processMessage(
   // separate conditional statement rather than a `status` field on the
   // update above so the write can be gated on the row's CURRENT status in
   // SQL — see the helper for why that matters.
-  await reopenClosedConversation(supabaseAdmin(), conversation)
+  await reopenClosedConversation(serviceDb(), conversation)
 
   // If this contact was a recent broadcast recipient, flag the reply
   // so the broadcast's `replied_count` advances (via the aggregate
@@ -978,7 +973,7 @@ async function processMessage(
   // when the account has no matching endpoint and never throws.
   // (conversation.created is emitted earlier, right after the thread is
   // opened.)
-  await dispatchWebhookEvent(supabaseAdmin(), accountId, 'message.received', {
+  await dispatchWebhookEvent(serviceDb(), accountId, 'message.received', {
     conversation_id: conversation.id,
     contact_id: contactRecord.id,
     whatsapp_message_id: message.id,
@@ -1032,7 +1027,7 @@ async function parseMessageContent(
 
       if (mirror) {
         const mirrored = await mirrorInboundMedia({
-          storage: supabaseAdmin().storage,
+          storage: createDiskStorage(),
           accountId: mirror.accountId,
           mediaId,
           downloadUrl: info.url,
@@ -1212,7 +1207,7 @@ async function findContactByWaUserId(
   accountId: string,
   waUserId: string
 ): Promise<ContactRow | null> {
-  const { data, error } = await supabaseAdmin()
+  const { data, error } = await serviceDb()
     .from('contacts')
     .select('*')
     .eq('account_id', accountId)
@@ -1295,7 +1290,7 @@ async function findOrCreateContact(
   // means (issue #212).
   if (!existingContact && identity.phone) {
     existingContact = await findExistingContact(
-      supabaseAdmin(),
+      serviceDb(),
       accountId,
       identity.phone,
     )
@@ -1304,7 +1299,7 @@ async function findOrCreateContact(
   if (existingContact) {
     const patch = contactIdentityPatch(existingContact, identity)
     if (patch) {
-      const { data: updated, error: updateError } = await supabaseAdmin()
+      const { data: updated, error: updateError } = await serviceDb()
         .from('contacts')
         .update({ ...patch, updated_at: new Date().toISOString() })
         .eq('id', existingContact.id)
@@ -1335,7 +1330,7 @@ async function findOrCreateContact(
   // stored with '' — which migration 022's partial unique index
   // tolerates, and migration 040's BSUID index is what keeps them
   // unique instead.
-  const { data: newContact, error: createError } = await supabaseAdmin()
+  const { data: newContact, error: createError } = await serviceDb()
     .from('contacts')
     .insert({
       account_id: accountId,
@@ -1361,7 +1356,7 @@ async function findOrCreateContact(
       if (raced) return { contact: raced, wasCreated: false }
       if (identity.phone) {
         const racedByPhone = await findExistingContact(
-          supabaseAdmin(),
+          serviceDb(),
           accountId,
           identity.phone
         )
@@ -1393,7 +1388,7 @@ async function findOrCreateConversation(
   // Ordering oldest-first and taking one row makes the lookup resolve to
   // the same canonical survivor the dedup migration (036) keeps, so any
   // pre-existing duplicates converge instead of compounding.
-  const { data: existingRows, error: findError } = await supabaseAdmin()
+  const { data: existingRows, error: findError } = await serviceDb()
     .from('conversations')
     .select('*')
     .eq('account_id', accountId)
@@ -1412,7 +1407,7 @@ async function findOrCreateConversation(
 
   // Create new conversation. Same tenancy + audit split as
   // findOrCreateContact above.
-  const { data: newConv, error: createError } = await supabaseAdmin()
+  const { data: newConv, error: createError } = await serviceDb()
     .from('conversations')
     .insert({
       account_id: accountId,
@@ -1428,7 +1423,7 @@ async function findOrCreateConversation(
     // (migration 036) rejected the duplicate. Re-resolve the winning
     // row instead of dropping the message — mirrors findOrCreateContact.
     if (isUniqueViolation(createError)) {
-      const { data: raced } = await supabaseAdmin()
+      const { data: raced } = await serviceDb()
         .from('conversations')
         .select('*')
         .eq('account_id', accountId)

@@ -14,7 +14,7 @@ import {
   resolveTemplateRow,
   templateContentText,
 } from '@/lib/whatsapp/template-body'
-import { supabaseAdmin } from './admin-client'
+import { serviceDb } from './admin-client'
 
 // ------------------------------------------------------------
 // Automation-side Meta sender.
@@ -109,7 +109,7 @@ type SendInput =
   | (SendTemplateArgs & { kind: 'template' })
 
 async function sendViaMeta(input: SendInput): Promise<{ whatsapp_message_id: string }> {
-  const db = supabaseAdmin()
+  const db = serviceDb()
 
   // Scope the contact + config lookups by account_id, not user_id.
   // The engine uses the service-role client (bypassing RLS); without

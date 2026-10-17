@@ -30,7 +30,7 @@ interface UsageRow {
  */
 export async function GET(request: Request) {
   try {
-    const { supabase, accountId } = await requireRole('admin')
+    const { db, accountId } = await requireRole('admin')
 
     const url = new URL(request.url)
     const rawDays = Number(url.searchParams.get('days'))
@@ -51,7 +51,7 @@ export async function GET(request: Request) {
     // chart (see lib/dashboard/date-utils).
     const since = daysAgoStart(days - 1)
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('ai_usage_log')
       .select(
         'created_at, mode, provider, model, prompt_tokens, completion_tokens, total_tokens',

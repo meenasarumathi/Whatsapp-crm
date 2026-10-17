@@ -21,12 +21,13 @@ opinions become yours.
 git clone https://github.com/<your-username>/wacrm.git
 cd wacrm
 
-cp .env.local.example .env.local   # fill in Supabase + Meta creds
+cp .env.local.example .env.local   # fill in AUTH_SECRET + Meta creds
+docker compose up -d postgres      # PostgreSQL on :5433
 npm install
 npm run dev
 ```
 
-Full setup (Supabase migrations, WhatsApp Business API, deploy) lives in
+Full setup (database,  WhatsApp Business API, deploy) lives in
 [`docs/`](./docs/README.md).
 
 ## Keeping your fork up to date

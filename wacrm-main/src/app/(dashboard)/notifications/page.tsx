@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserDb } from "@/lib/db/browser";
 import { useAuth } from "@/hooks/use-auth";
 import type { Notification } from "@/types";
 import { Bell, CheckCheck, Loader2, UserPlus } from "lucide-react";
@@ -30,8 +30,8 @@ export default function NotificationsPage() {
 
   const load = useCallback(async () => {
     if (!accountId) return;
-    const supabase = createClient();
-    const { data, error: fetchErr } = await supabase
+    const db = createBrowserDb();
+    const { data, error: fetchErr } = await db
       .from("notifications")
       .select("*")
       .eq("account_id", accountId)
@@ -52,8 +52,8 @@ export default function NotificationsPage() {
   // Realtime — new assignments appear without a refresh, and a
   // "mark all read" fired from another tab/device stays in sync here.
   useEffect(() => {
-    const supabase = createClient();
-    const channel = supabase
+    const db = createBrowserDb();
+    const channel = db
       .channel("notifications-page")
       .on(
         "postgres_changes",
@@ -83,7 +83,7 @@ export default function NotificationsPage() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      db.removeChannel(channel);
     };
   }, []);
 
@@ -99,8 +99,8 @@ export default function NotificationsPage() {
               : n,
           ) ?? prev,
       );
-      const supabase = createClient();
-      const { error: updateErr } = await supabase
+      const db = createBrowserDb();
+      const { error: updateErr } = await db
         .from("notifications")
         .update({ read_at: new Date().toISOString() })
         .eq("id", id)
@@ -132,8 +132,8 @@ export default function NotificationsPage() {
     setNotifications(
       (prev) => prev?.map((n) => (n.read_at ? n : { ...n, read_at: now })) ?? prev,
     );
-    const supabase = createClient();
-    const { error: updateErr } = await supabase
+    const db = createBrowserDb();
+    const { error: updateErr } = await db
       .from("notifications")
       .update({ read_at: now })
       .is("read_at", null);

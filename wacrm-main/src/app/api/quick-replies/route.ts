@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getCurrentAccount, requireRole, toErrorResponse } from '@/lib/auth/account'
-import { supabaseAdmin } from '@/lib/automations/admin-client'
+import { serviceDb } from '@/lib/automations/admin-client'
 import { validateInteractivePayload } from '@/lib/whatsapp/interactive'
 
 // Quick replies — reusable snippets (plain text or a saved interactive
@@ -10,9 +10,9 @@ import { validateInteractivePayload } from '@/lib/whatsapp/interactive'
 
 export async function GET() {
   try {
-    const { supabase } = await getCurrentAccount()
+    const { db } = await getCurrentAccount()
     // RLS (quick_replies_select) scopes to the caller's account.
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('quick_replies')
       .select('*')
       .order('created_at', { ascending: false })
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     content_text = text
   }
 
-  const { data, error } = await supabaseAdmin()
+  const { data, error } = await serviceDb()
     .from('quick_replies')
     .insert({
       account_id: ctx.accountId,
