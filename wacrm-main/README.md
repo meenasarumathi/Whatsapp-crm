@@ -83,7 +83,7 @@ in an afternoon and make yours.
 git clone https://github.com/<your-username>/wacrm.git
 cd wacrm
 npm install
-cp .env.local.example .env.local   # fill in AUTH_SECRET + Meta creds
+cp .env.local.example .env.local   # fill in AUTH_SECRET, ENCRYPTION_KEY + Meta creds
 docker compose up -d postgres      # PostgreSQL on localhost:5433, schema applied on first start
 npm run dev
 ```

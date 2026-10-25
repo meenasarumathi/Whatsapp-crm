@@ -21,7 +21,7 @@ opinions become yours.
 git clone https://github.com/<your-username>/wacrm.git
 cd wacrm
 
-cp .env.local.example .env.local   # fill in AUTH_SECRET + Meta creds
+cp .env.local.example .env.local   # fill in AUTH_SECRET, ENCRYPTION_KEY + Meta creds
 docker compose up -d postgres      # PostgreSQL on :5433
 npm install
 npm run dev

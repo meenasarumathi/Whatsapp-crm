@@ -26,6 +26,7 @@ Everything about the WhatsApp CRM, in two kinds of folder:
 
 | Date | Release | Highlights |
 | --- | --- | --- |
+| 2026-10-25 | [2026-10-25-encryption-key](2026-10-25-encryption-key/README.md) | Placeholder instead of a real `ENCRYPTION_KEY` in the example env; rotate the key |
 | 2026-10-10 | [2026-10-10-release](2026-10-10-release/README.md) | Roles & subscriptions, Train AI, flow test mode, demo page, inbox Excel tab, database backup |
 | 2026-10-08 | In-app guide | User guide inside the CRM, flow errors panel |
 
