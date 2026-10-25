@@ -13,6 +13,8 @@ import {
   loadAccountMetaCredentials,
 } from '@/lib/flows/meta-send'
 import { sendTypingIndicator } from '@/lib/whatsapp/meta-api'
+import { preflightAutomatedSend } from '@/lib/wallet/charge'
+import { aiMessageKey } from '@/lib/wallet/keys'
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 
 interface DispatchArgs {
@@ -64,6 +66,15 @@ export async function dispatchInboundToAiReply(
 
     const config = await loadAiConfig(db, accountId)
     if (!config || !config.autoReplyEnabled) return
+
+    // Token wallet: skip before spending an LLM call when the AI feature
+    // is switched off or the wallet can't pay for the reply. The binding
+    // check is the reserve inside engineSendText.
+    const blocked = await preflightAutomatedSend(accountId, 'ai_agent')
+    if (blocked) {
+      console.info(`[ai auto-reply] skipped for account ${accountId}: ${blocked}`)
+      return
+    }
 
     // Deterministic, user-configured responders win over the LLM — the
     // caller already excludes messages a Flow consumed. Message-level
@@ -213,6 +224,7 @@ export async function dispatchInboundToAiReply(
 
     await engineSendText({
       accountId,
+      charge: { source: 'ai_agent', messageKey: aiMessageKey(inboundMessageId) },
       userId: configOwnerUserId,
       conversationId,
       contactId,

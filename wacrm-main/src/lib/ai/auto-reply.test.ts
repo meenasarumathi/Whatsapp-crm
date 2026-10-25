@@ -27,6 +27,12 @@ vi.mock('@/lib/flows/meta-send', () => ({
   engineSendText: h.engineSendText,
   loadAccountMetaCredentials: h.loadAccountMetaCredentials,
 }))
+// Token wallet: the pre-check passes (balance and feature switch are
+// covered by src/lib/wallet tests); the charge itself happens inside the
+// mocked engineSendText.
+vi.mock('@/lib/wallet/charge', () => ({
+  preflightAutomatedSend: vi.fn(async () => null),
+}))
 vi.mock('@/lib/whatsapp/meta-api', () => ({
   sendTypingIndicator: h.sendTypingIndicator,
 }))

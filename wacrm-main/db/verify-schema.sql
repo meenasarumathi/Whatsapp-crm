@@ -12,7 +12,8 @@ BEGIN
     'conversations','messages','message_reactions','quick_replies','pipelines','pipeline_stages','deals',
     'broadcasts','broadcast_recipients','automations','automation_steps','automation_logs','automation_pending_executions',
     'flows','flow_nodes','flow_runs','flow_run_events','ai_configs','ai_knowledge_documents','ai_knowledge_chunks',
-    'ai_usage_log','ai_training_profiles','ai_training_examples','api_keys','webhook_endpoints','notifications','db_maintenance_log'
+    'ai_usage_log','ai_training_profiles','ai_training_examples','api_keys','webhook_endpoints','notifications','db_maintenance_log',
+    'token_settings','token_rate_changes','token_wallets','token_ledger','recharge_requests','message_charges','account_feature_flags'
   ] LOOP
     IF to_regclass('public.' || t) IS NULL THEN missing := array_append(missing, t); END IF;
   END LOOP;

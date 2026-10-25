@@ -9,6 +9,8 @@ import { Header } from "@/components/layout/header";
 import { AccountAccessAlert } from "@/components/layout/account-access-alert";
 import { AccessGuard, TrialBanner } from "@/components/layout/access-guard";
 import { PlatformProvider } from "@/hooks/use-platform";
+import { WalletProvider } from "@/hooks/use-wallet";
+import { TokensPausedBanner } from "@/components/wallet/paused-banner";
 import { PresenceHeartbeat } from "@/components/presence/presence-heartbeat";
 import { BrowserNotificationsListener } from "@/components/notifications/browser-notifications-listener";
 
@@ -64,6 +66,8 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
           {/* Subscriber trial countdown + per-user tab / trial gate
               (Settings → Subscription users). */}
           <TrialBanner />
+          {/* Token wallet: automated sends are paused at zero balance. */}
+          <TokensPausedBanner />
           <AccessGuard>{children}</AccessGuard>
         </main>
       </div>
@@ -75,7 +79,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
       <PlatformProvider>
-        <DashboardShellInner>{children}</DashboardShellInner>
+        <WalletProvider>
+          <DashboardShellInner>{children}</DashboardShellInner>
+        </WalletProvider>
       </PlatformProvider>
     </AuthProvider>
   );

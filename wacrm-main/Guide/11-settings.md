@@ -132,6 +132,16 @@ New sign-ups automatically get a **7-day free trial** with every tab. Settings i
 
 > **Tip:** The `platform_users` table is created by `db/schema.sql` (`npm run db:init`). The oldest user becomes the Super admin.
 
+### Token admin (Super admin, Admin 1, Admin 2)
+
+Shown under **Platform** in the settings menu. Five tabs:
+
+- **Recharges** — customers' GPay recharge requests. Check the money arrived in your GPay or bank app, then **Approve & credit**, or **Reject** with a note. A customer's screenshot alone is not proof of payment. Approving twice never credits twice.
+- **Accounts** — every account's balance and automated messages in the last 30 days. Super admin only: **Grant** or **Deduct** tokens (a reason is required; a balance can't go below zero), and switch **Chatbot**, **Workflow** or **AI agent** off for an account. A switched-off feature sends nothing and is not charged.
+- **Review** — automated sends where WhatsApp didn't answer clearly (timeout or server error). Their 0.5 token stays reserved, and they are never resent. Check the customer's chat, then mark **It was sent** or **Not sent — refund** (Super admin).
+- **Reports** — every transaction, filtered by account, dates and type, with **Export CSV**.
+- **Rate & GPay** — tokens per rupee (default 1 per ₹1) and the UPI ID, payee name and instructions customers see. Super admin only. A rate change only affects requests made afterwards.
+
 ### API keys (admin)
 
 For connecting other software (e.g. Zapier) to the CRM through its REST API (`/api/v1`).

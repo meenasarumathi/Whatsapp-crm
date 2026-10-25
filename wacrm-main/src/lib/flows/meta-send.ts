@@ -15,6 +15,8 @@ import {
 } from '@/lib/whatsapp/phone-utils'
 import { resolveContactSendTarget } from '@/lib/whatsapp/wa-identity'
 import { serviceDb } from './admin-client'
+import { sendWithCharge } from '@/lib/wallet/charge'
+import type { ChargeSpec } from '@/lib/wallet/policy'
 
 // ------------------------------------------------------------
 // Flows-side Meta sender (interactive variants).
@@ -56,6 +58,8 @@ export async function loadAccountMetaCredentials(
 }
 
 interface SendTextEngineArgs {
+  /** Token wallet charge: source + logical message key (PLAN.md §3). Required — every automated send is metered. */
+  charge: ChargeSpec
   /** Account-level tenancy key. Drives contact + whatsapp_config
    *  lookups so a flow authored by user A still sends through the
    *  WhatsApp number user B saved on the same account. */
@@ -127,21 +131,27 @@ export async function engineSendText(
 
   const variants = sendTarget.isPhone ? phoneVariants(sanitized) : [sanitized]
   let workingPhone = sanitized
-  let waMessageId = ''
-  let lastError: unknown = null
-  for (const v of variants) {
-    try {
-      waMessageId = await attempt(v)
-      workingPhone = v
-      lastError = null
-      break
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      if (!isRecipientNotAllowedError(msg)) throw err
-      lastError = err
-    }
-  }
-  if (lastError) throw lastError
+  // Token wallet: feature switch + 500-unit reserve before the provider
+  // call, confirm / release / review after (src/lib/wallet/charge.ts).
+  const waMessageId = await sendWithCharge({
+    accountId: args.accountId,
+    charge: args.charge,
+    send: async () => {
+      let lastError: unknown = null
+      for (const v of variants) {
+        try {
+          const id = await attempt(v)
+          workingPhone = v
+          return id
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err)
+          if (!isRecipientNotAllowedError(msg)) throw err
+          lastError = err
+        }
+      }
+      throw lastError ?? new Error('no WhatsApp address variant to try')
+    },
+  })
 
   if (sendTarget.isPhone && workingPhone !== sanitized) {
     await db.from('contacts').update({ phone: workingPhone }).eq('id', contact.id)
@@ -173,6 +183,8 @@ export async function engineSendText(
 }
 
 interface SendMediaEngineArgs {
+  /** Token wallet charge: source + logical message key (PLAN.md §3). Required — every automated send is metered. */
+  charge: ChargeSpec
   accountId: string
   userId: string
   conversationId: string
@@ -239,21 +251,27 @@ export async function engineSendMedia(
 
   const variants = sendTarget.isPhone ? phoneVariants(sanitized) : [sanitized]
   let workingPhone = sanitized
-  let waMessageId = ''
-  let lastError: unknown = null
-  for (const v of variants) {
-    try {
-      waMessageId = await attempt(v)
-      workingPhone = v
-      lastError = null
-      break
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      if (!isRecipientNotAllowedError(msg)) throw err
-      lastError = err
-    }
-  }
-  if (lastError) throw lastError
+  // Token wallet: feature switch + 500-unit reserve before the provider
+  // call, confirm / release / review after (src/lib/wallet/charge.ts).
+  const waMessageId = await sendWithCharge({
+    accountId: args.accountId,
+    charge: args.charge,
+    send: async () => {
+      let lastError: unknown = null
+      for (const v of variants) {
+        try {
+          const id = await attempt(v)
+          workingPhone = v
+          return id
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err)
+          if (!isRecipientNotAllowedError(msg)) throw err
+          lastError = err
+        }
+      }
+      throw lastError ?? new Error('no WhatsApp address variant to try')
+    },
+  })
 
   if (sendTarget.isPhone && workingPhone !== sanitized) {
     await db.from('contacts').update({ phone: workingPhone }).eq('id', contact.id)
@@ -289,6 +307,8 @@ export async function engineSendMedia(
 }
 
 interface SendInteractiveButtonsEngineArgs {
+  /** Token wallet charge: source + logical message key (PLAN.md §3). Required — every automated send is metered. */
+  charge: ChargeSpec
   accountId: string
   userId: string
   conversationId: string
@@ -300,6 +320,8 @@ interface SendInteractiveButtonsEngineArgs {
 }
 
 interface SendInteractiveListEngineArgs {
+  /** Token wallet charge: source + logical message key (PLAN.md §3). Required — every automated send is metered. */
+  charge: ChargeSpec
   accountId: string
   userId: string
   conversationId: string
@@ -406,21 +428,27 @@ async function sendInteractiveViaMeta(
   // need this to reliably land a message.
   const variants = sendTarget.isPhone ? phoneVariants(sanitized) : [sanitized]
   let workingPhone = sanitized
-  let waMessageId = ''
-  let lastError: unknown = null
-  for (const v of variants) {
-    try {
-      waMessageId = await attempt(v)
-      workingPhone = v
-      lastError = null
-      break
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      if (!isRecipientNotAllowedError(msg)) throw err
-      lastError = err
-    }
-  }
-  if (lastError) throw lastError
+  // Token wallet: feature switch + 500-unit reserve before the provider
+  // call, confirm / release / review after (src/lib/wallet/charge.ts).
+  const waMessageId = await sendWithCharge({
+    accountId: input.accountId,
+    charge: input.charge,
+    send: async () => {
+      let lastError: unknown = null
+      for (const v of variants) {
+        try {
+          const id = await attempt(v)
+          workingPhone = v
+          return id
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err)
+          if (!isRecipientNotAllowedError(msg)) throw err
+          lastError = err
+        }
+      }
+      throw lastError ?? new Error('no WhatsApp address variant to try')
+    },
+  })
 
   if (sendTarget.isPhone && workingPhone !== sanitized) {
     await db.from('contacts').update({ phone: workingPhone }).eq('id', contact.id)

@@ -41,6 +41,7 @@ import {
   engineSendText,
 } from "./meta-send";
 import { decideFallback, resolveFallbackPolicy } from "./fallback";
+import { flowMessageKey } from "@/lib/wallet/keys";
 import {
   entryTriggerTexts,
   evaluateConditionPredicate,
@@ -297,6 +298,7 @@ async function sendButtonsAndSuspend(
   // and the caller logs it — we never truncate silently.
   const { whatsapp_message_id } = await engineSendInteractiveButtons({
     accountId: run.account_id,
+    charge: { source: "chatbot", messageKey: flowMessageKey(run.id, node.node_key) },
     userId: run.user_id,
     conversationId: run.conversation_id!,
     contactId: run.contact_id!,
@@ -338,6 +340,7 @@ async function sendListAndSuspend(
   // never the row `reply_id`.
   const { whatsapp_message_id } = await engineSendInteractiveList({
     accountId: run.account_id,
+    charge: { source: "chatbot", messageKey: flowMessageKey(run.id, node.node_key) },
     userId: run.user_id,
     conversationId: run.conversation_id!,
     contactId: run.contact_id!,
@@ -511,6 +514,7 @@ async function advanceFromNodeKey(
       try {
         const { whatsapp_message_id } = await engineSendText({
           accountId: run.account_id,
+          charge: { source: "chatbot", messageKey: flowMessageKey(run.id, node.node_key) },
     userId: run.user_id,
           conversationId: run.conversation_id!,
           contactId: run.contact_id!,
@@ -536,6 +540,7 @@ async function advanceFromNodeKey(
       try {
         const { whatsapp_message_id } = await engineSendMedia({
           accountId: run.account_id,
+          charge: { source: "chatbot", messageKey: flowMessageKey(run.id, node.node_key) },
     userId: run.user_id,
           conversationId: run.conversation_id!,
           contactId: run.contact_id!,
@@ -569,6 +574,7 @@ async function advanceFromNodeKey(
       try {
         const { whatsapp_message_id } = await engineSendText({
           accountId: run.account_id,
+          charge: { source: "chatbot", messageKey: flowMessageKey(run.id, node.node_key) },
     userId: run.user_id,
           conversationId: run.conversation_id!,
           contactId: run.contact_id!,
@@ -978,6 +984,7 @@ async function handleReplyForActiveRun(
         const cfg = currentNode.config as unknown as CollectInputNodeConfig;
         await engineSendText({
           accountId: run.account_id,
+          charge: { source: "chatbot", messageKey: flowMessageKey(run.id, currentNode.node_key) },
           userId: run.user_id,
           conversationId: run.conversation_id!,
           contactId: run.contact_id!,

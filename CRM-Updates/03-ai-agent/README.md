@@ -19,3 +19,4 @@ Code: `src/lib/ai/`, `src/components/agents/`, `src/app/api/ai/`
 | Date | Change |
 | --- | --- |
 | — | Part of the original CRM. |
+| 2026-10-11 | Each automated send now costs 0.5 token and can be switched off per account — see [release notes](../2026-10-11-token-wallet/README.md). |

@@ -21,17 +21,21 @@ Everything about the WhatsApp CRM, in two kinds of folder:
 | [10-backup](10-backup/README.md) | Database backup | New 2026-10-10 |
 | [11-demo](11-demo/README.md) | Demo page for prospects | New 2026-10-10 |
 | [12-guide-api](12-guide-api/README.md) | In-app guide, REST API, MCP server | Original |
+| [13-token-wallet](13-token-wallet/README.md) | Token wallet — 0.5 token per automated message, GPay recharges, admin approval | New 2026-10-11 |
 
 ## Release folders
 
 | Date | Release | Highlights |
 | --- | --- | --- |
+| 2026-10-25 | [2026-10-25-wallet-postgresql](2026-10-25-wallet-postgresql/README.md) | Token wallet and Wallet Management on PostgreSQL |
+| 2026-10-13 | [2026-10-13-wallet-admin](2026-10-13-wallet-admin/README.md) | Wallet Management screen, unlimited platform owner, ₹ Adjust Wallet |
+| 2026-10-11 | [2026-10-11-token-wallet](2026-10-11-token-wallet/README.md) | Token wallet, metering of every automated send, GPay recharges, Token admin |
 | 2026-10-10 | [2026-10-10-release](2026-10-10-release/README.md) | Roles & subscriptions, Train AI, flow test mode, demo page, inbox Excel tab, database backup |
 | 2026-10-08 | In-app guide | User guide inside the CRM, flow errors panel |
 
 ## Adding an update
 
-1. Create a release folder `CRM-Updates/YYYY-MM-DD-short-name/` with a `README.md`.
+1. Create a git branch `update/YYYY-MM-DD-short-name` and a release folder `CRM-Updates/YYYY-MM-DD-short-name/` with a `README.md`.
 2. In each work folder the change touches, add a row to its **Update history** table.
 3. If it's a new kind of work, add a new numbered work folder and a row to the table above.
 4. Add the user-facing note in `wacrm-main/Guide/updates/YYYY-MM-DD-name/README.md`, so it shows in the app under Guide → What's new.

@@ -14,3 +14,4 @@ Code: `src/components/inbox/` (`conversation-data-sheet.tsx` is new), `src/lib/i
 | Date | Change |
 | --- | --- |
 | 2026-10-10 | Original feature; new items marked **New** were added in this release — see [release notes](../2026-10-10-release/README.md). |
+| 2026-10-11 | Manual replies stay free and keep working at zero token balance — see [release notes](../2026-10-11-token-wallet/README.md). |

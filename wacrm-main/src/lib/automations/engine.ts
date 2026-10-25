@@ -22,6 +22,7 @@ import { serviceDb } from './admin-client'
 import { addContactTagIfAbsent } from '@/lib/contacts/tag-write'
 import { MAX_TAG_CHAIN_DEPTH, getTagChainDepth } from '@/lib/contacts/tag-chain'
 import { engineSendText, engineSendTemplate, engineSendInteractive } from './meta-send'
+import { automationMessageKey } from '@/lib/wallet/keys'
 import { validateInteractivePayload } from '@/lib/whatsapp/interactive'
 import { isDeliverableUrl } from '@/lib/webhooks/ssrf'
 
@@ -367,6 +368,7 @@ async function runStep(step: AutomationStep, args: ExecuteArgs): Promise<string>
       const conversationId = await resolveConversationId(args)
       const { whatsapp_message_id } = await engineSendText({
         accountId: args.automation.account_id,
+        charge: { source: 'workflow', messageKey: automationMessageKey(args.logId, step.id) },
         userId: args.automation.user_id,
         conversationId,
         contactId: args.contactId,
@@ -387,6 +389,7 @@ async function runStep(step: AutomationStep, args: ExecuteArgs): Promise<string>
       const conversationId = await resolveConversationId(args)
       const { whatsapp_message_id } = await engineSendInteractive({
         accountId: args.automation.account_id,
+        charge: { source: 'workflow', messageKey: automationMessageKey(args.logId, step.id) },
         userId: args.automation.user_id,
         conversationId,
         contactId: args.contactId,
@@ -420,6 +423,7 @@ async function runStep(step: AutomationStep, args: ExecuteArgs): Promise<string>
         : []
       const { whatsapp_message_id } = await engineSendTemplate({
         accountId: args.automation.account_id,
+        charge: { source: 'workflow', messageKey: automationMessageKey(args.logId, step.id) },
         userId: args.automation.user_id,
         conversationId,
         contactId: args.contactId,
