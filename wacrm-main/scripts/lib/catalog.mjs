@@ -65,7 +65,9 @@ export function diffCatalog(ref, live) {
     for (const [col, rc] of Object.entries(cols)) {
       const lc = live.tables[t][col];
       if (!lc) { d.missingColumns.push({ table: t, column: col }); continue; }
-      if (lc.type !== rc.type) d.typeDiffs.push({ table: t, column: col, from: lc.type, to: rc.type });
+      // the schema's pgvector block stores embeddings as vector(n) where the extension exists, real[] otherwise
+      const pgvector = rc.type === "real[]" && /^vector\(\d+\)$/.test(lc.type);
+      if (lc.type !== rc.type && !pgvector) d.typeDiffs.push({ table: t, column: col, from: lc.type, to: rc.type });
       if (lc.notnull !== rc.notnull) d.nullDiffs.push({ table: t, column: col, to: rc.notnull });
       if ((lc.default ?? null) !== (rc.default ?? null) && !rc.generated) d.defaultDiffs.push({ table: t, column: col, from: lc.default, to: rc.default });
     }
