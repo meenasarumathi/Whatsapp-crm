@@ -12,6 +12,7 @@ import type { CrmTab } from "@/lib/platform/access";
 import {
   Bell,
   BookOpen,
+  Coins,
   Bot,
   Crown,
   GitBranch,
@@ -112,6 +113,9 @@ const navItems: NavItem[] = [
 ];
 
 const bottomNavItems = [
+  // Always visible (like Settings): owners must be able to recharge even
+  // when their plan hides other tabs.
+  { href: "/wallet", labelKey: "wallet", icon: Coins },
   { href: "/settings", labelKey: "settings", icon: Settings },
 ];
 

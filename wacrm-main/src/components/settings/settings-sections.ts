@@ -37,6 +37,7 @@ export const SETTINGS_SECTIONS = [
   'api',
   'backup',
   'subscriptions',
+  'tokens',
 ] as const;
 
 export type SettingsSection = (typeof SETTINGS_SECTIONS)[number];
@@ -64,11 +65,12 @@ export const SECTION_META: Record<SettingsSection, SectionMeta> = {
   members: { id: 'members', label: 'Team members', icon: UsersRound, group: 'workspace' },
   api: { id: 'api', label: 'API keys', icon: KeyRound, group: 'workspace' },
   backup: { id: 'backup', label: 'Backup', icon: DatabaseBackup, group: 'workspace' },
+  tokens: { id: 'tokens', label: 'Token admin', icon: Coins, group: 'platform' },
   subscriptions: { id: 'subscriptions', label: 'Subscription users', icon: Crown, group: 'platform' },
 };
 
 /** Sections only Super admin / Admin 1 / Admin 2 see in the rail. */
-export const PLATFORM_ADMIN_SECTIONS: readonly SettingsSection[] = ['subscriptions'];
+export const PLATFORM_ADMIN_SECTIONS: readonly SettingsSection[] = ['subscriptions', 'tokens'];
 
 export const RAIL_GROUPS: { label: string | null; group: SectionMeta['group'] }[] = [
   { label: null, group: 'top' },

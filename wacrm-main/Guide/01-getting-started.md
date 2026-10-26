@@ -64,8 +64,9 @@ A subscription user only sees the sidebar tabs they have been given. When a free
 
 ## The screen layout
 
-- **Left sidebar** — the main menu: Dashboard, Inbox, **Train AI**, Notifications, Contacts, Pipelines, Broadcasts, Automations, Flows (Beta), AI Agents, **Demo**, **Guide**, and Settings at the bottom. You only see the tabs your plan includes.
+- **Left sidebar** — the main menu: Dashboard, Inbox, **Train AI**, Notifications, Contacts, Pipelines, Broadcasts, Automations, Flows (Beta), AI Agents, **Demo**, **Guide**, and **Token Wallet** and Settings at the bottom. You only see the tabs your plan includes.
   - On a free trial, a strip at the top of every page shows how many days are left.
+  - When the token balance runs out, a red strip says automated replies are paused (manual replies keep working).
   - A pulsing dot next to **Inbox** means you have unread conversations.
   - A number next to **Notifications** is your unread notification count.
 - **Bottom of the sidebar** — your name and email. Click it for **Profile**, **Settings** and **Sign out**.

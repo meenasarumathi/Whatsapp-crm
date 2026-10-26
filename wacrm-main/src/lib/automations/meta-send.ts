@@ -15,6 +15,8 @@ import {
   templateContentText,
 } from '@/lib/whatsapp/template-body'
 import { serviceDb } from './admin-client'
+import { sendWithCharge } from '@/lib/wallet/charge'
+import type { ChargeSpec } from '@/lib/wallet/policy'
 
 // ------------------------------------------------------------
 // Automation-side Meta sender.
@@ -28,6 +30,8 @@ import { serviceDb } from './admin-client'
 // ------------------------------------------------------------
 
 interface SendTextArgs {
+  /** Token wallet charge: source + logical message key (PLAN.md §3). */
+  charge: ChargeSpec
   /** Account-level tenancy key. Drives contact + whatsapp_config
    *  lookups so an automation authored by user A still sends through
    *  the WhatsApp number user B saved on the same account. */
@@ -42,6 +46,8 @@ interface SendTextArgs {
 }
 
 interface SendTemplateArgs {
+  /** Token wallet charge: source + logical message key (PLAN.md §3). */
+  charge: ChargeSpec
   accountId: string
   userId: string
   conversationId: string
@@ -62,6 +68,8 @@ export async function engineSendTemplate(
 }
 
 interface SendInteractiveArgs {
+  /** Token wallet charge: source + logical message key (PLAN.md §3). */
+  charge: ChargeSpec
   accountId: string
   userId: string
   conversationId: string
@@ -83,8 +91,8 @@ interface SendInteractiveArgs {
 export async function engineSendInteractive(
   args: SendInteractiveArgs,
 ): Promise<{ whatsapp_message_id: string }> {
-  const { payload, accountId, userId, conversationId, contactId } = args
-  const common = { accountId, userId, conversationId, contactId }
+  const { payload, accountId, userId, conversationId, contactId, charge } = args
+  const common = { accountId, userId, conversationId, contactId, charge }
   if (payload.kind === 'buttons') {
     return engineSendInteractiveButtons({
       ...common,
@@ -192,21 +200,27 @@ async function sendViaMeta(input: SendInput): Promise<{ whatsapp_message_id: str
   // reliably land a message.
   const variants = sendTarget.isPhone ? phoneVariants(sanitized) : [sanitized]
   let workingPhone = sanitized
-  let waMessageId = ''
-  let lastError: unknown = null
-  for (const v of variants) {
-    try {
-      waMessageId = await attempt(v)
-      workingPhone = v
-      lastError = null
-      break
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      if (!isRecipientNotAllowedError(msg)) throw err
-      lastError = err
-    }
-  }
-  if (lastError) throw lastError
+  // Token wallet: feature switch + 500-unit reserve before the provider
+  // call, confirm / release / review after (src/lib/wallet/charge.ts).
+  const waMessageId = await sendWithCharge({
+    accountId: input.accountId,
+    charge: input.charge,
+    send: async () => {
+      let lastError: unknown = null
+      for (const v of variants) {
+        try {
+          const id = await attempt(v)
+          workingPhone = v
+          return id
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err)
+          if (!isRecipientNotAllowedError(msg)) throw err
+          lastError = err
+        }
+      }
+      throw lastError ?? new Error('no WhatsApp address variant to try')
+    },
+  })
 
   if (sendTarget.isPhone && workingPhone !== sanitized) {
     await db.from('contacts').update({ phone: workingPhone }).eq('id', contact.id)
