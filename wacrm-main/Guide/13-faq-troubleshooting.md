@@ -60,6 +60,12 @@ An admin must finish AI Agents → Setup and switch on **Enable AI assistant**.
 **I forgot my password.**
 On the sign-in page click **Forgot password?** and follow the email link.
 
+**After a password reset I see a blank page instead of the sign-in form.**
+This is fixed: an old sign-in from before the reset is now cleared automatically and you land on the sign-in page. Refresh the page once if it stays blank.
+
+**Sign-in succeeds but I am sent straight back to the sign-in page (local install).**
+When running on plain http (for example http://localhost), set AUTH_COOKIE_SECURE=false in .env.local and restart, otherwise the browser drops the sign-in cookie. Also make sure no other app uses the same port.
+
 **My invite link doesn't work.**
 It may have expired or been used. Ask an admin to revoke it and create a new one.
 
