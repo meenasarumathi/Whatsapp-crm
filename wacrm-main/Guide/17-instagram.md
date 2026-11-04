@@ -2,9 +2,11 @@
 
 Answer Instagram DMs, comments and story mentions from the CRM — automatically, with your automations, quick replies and the AI trained on your business.
 
+Find it in **Settings → Instagram** (under Workspace, next to WhatsApp). It has three parts: **Connect & test**, **Automations** and **Inbox**.
+
 ## What you can do
 
-- **Inbox** — every Instagram conversation in one list; open one to read the DMs, comments and story mentions and reply by hand.
+- **Inbox** — every Instagram conversation in Settings → Instagram → Inbox; open one to read the DMs, comments and story mentions and reply by hand.
 - **Automations** — the five basics, ready to switch on.
 - **AI auto-reply** — when no automation matches, the AI answers DMs from Train AI and your documents.
 - **Simulator** — try everything before Instagram is connected.

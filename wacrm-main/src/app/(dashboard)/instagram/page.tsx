@@ -1,5 +1,6 @@
-import { InstagramWorkspace } from "@/components/instagram/instagram-workspace"
+import { redirect } from "next/navigation"
 
+// Instagram lives in Settings → Instagram (next to WhatsApp); keep old links working.
 export default function InstagramPage() {
-  return <InstagramWorkspace />
+  redirect("/settings?tab=instagram")
 }

@@ -20,7 +20,6 @@ import {
   LayoutDashboard,
   LogOut,
   MessageSquare,
-  AtSign,
   Presentation,
   Radio,
   Settings,
@@ -101,7 +100,6 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: "/dashboard", tab: "dashboard", labelKey: "dashboard", icon: LayoutDashboard },
   { href: "/inbox", tab: "inbox", labelKey: "inbox", icon: MessageSquare },
-  { href: "/instagram", tab: "instagram", labelKey: "instagram", icon: AtSign },
   { href: "/train-ai", tab: "train-ai", labelKey: "trainAi", icon: GraduationCap },
   { href: "/notifications", tab: "notifications", labelKey: "notifications", icon: Bell },
   { href: "/contacts", tab: "contacts", labelKey: "contacts", icon: Users },

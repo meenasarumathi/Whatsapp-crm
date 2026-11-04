@@ -57,7 +57,6 @@ export const DEFAULT_SIGNUP_TRIAL_DAYS: TrialDays = 7;
 export const CRM_TABS = [
   { key: "dashboard", href: "/dashboard" },
   { key: "inbox", href: "/inbox" },
-  { key: "instagram", href: "/instagram" },
   { key: "train-ai", href: "/train-ai" },
   { key: "notifications", href: "/notifications" },
   { key: "contacts", href: "/contacts" },

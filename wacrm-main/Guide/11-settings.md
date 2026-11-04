@@ -55,6 +55,10 @@ Nothing works until this is done. You need a Meta (Facebook) Business account.
 
 **Reset Configuration** clears everything so you can enter it again.
 
+### Instagram (admin) — connect and auto-reply
+
+Connect your Instagram professional account, switch on the five Instagram auto-replies (comment → DM, keyword, welcome, story mention, away) and read Instagram conversations. Until a token is saved it runs in simulation mode. See the Instagram chapter.
+
 ### Templates (admin) — WhatsApp message templates
 
 Templates are pre-approved messages required for broadcasts and for messaging someone outside the 24-hour window.

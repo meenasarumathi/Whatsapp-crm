@@ -43,8 +43,7 @@
     "menuSignOut": "Sair",
     "trainAi": "Treinar IA",
     "demo": "Demo",
-    "wallet": "Carteira",
-    "instagram": "Instagram"
+    "wallet": "Carteira"
   },
   "Header": {
     "dashboard": "Painel",
@@ -67,8 +66,7 @@
     "agents": "Agentes de IA",
     "trainAi": "Treinar IA",
     "demo": "Demo",
-    "wallet": "Carteira",
-    "instagram": "Instagram"
+    "wallet": "Carteira"
   },
   "ModeToggle": {
     "switchMode": "Mudar para o modo {mode}"
@@ -1843,7 +1841,8 @@
       "api": "Chaves de API",
       "subscriptions": "Usuários de assinatura",
       "backup": "Backup",
-      "tokens": "Token admin"
+      "tokens": "Token admin",
+      "instagram": "Instagram"
     },
     "groups": {
       "account": "Conta",

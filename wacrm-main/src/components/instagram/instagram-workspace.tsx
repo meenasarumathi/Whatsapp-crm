@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
-import { AtSign, Bot, Copy, FlaskConical, Inbox, Link2, Loader2, Send, Zap } from "lucide-react"
+import { Bot, Copy, FlaskConical, Inbox, Link2, Loader2, Send, Zap } from "lucide-react"
 
 import { createBrowserDb } from "@/lib/db/browser"
 import { useCan } from "@/hooks/use-can"
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
+import { SettingsPanelHead } from "@/components/settings/settings-panel-head"
 import type { InstagramAutomation, InstagramAutomationConfig } from "@/lib/instagram/rules"
 
 type Section = "inbox" | "automations" | "connect"
@@ -56,7 +57,9 @@ const SELECT_CLASS =
 
 export function InstagramWorkspace() {
   const t = useTranslations("Instagram")
-  const [section, setSection] = useState<Section>("inbox")
+  // Lives in Settings → Instagram (next to WhatsApp): set up first, then
+  // automations, then the conversations it has handled.
+  const [section, setSection] = useState<Section>("connect")
   const [settings, setSettings] = useState<Settings | null>(null)
 
   const loadSettings = useCallback(async () => {
@@ -70,32 +73,30 @@ export function InstagramWorkspace() {
   }, [loadSettings])
 
   const sections: { key: Section; icon: typeof Inbox }[] = [
-    { key: "inbox", icon: Inbox },
-    { key: "automations", icon: Zap },
     { key: "connect", icon: Link2 },
+    { key: "automations", icon: Zap },
+    { key: "inbox", icon: Inbox },
   ]
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-foreground">
-            <AtSign className="h-6 w-6 text-primary" />
-            {t("title")}
-          </h1>
-          <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{t("subtitle")}</p>
-        </div>
-        {settings && (
-          <span
-            className={cn(
-              "rounded-full border px-3 py-1 text-xs font-medium",
-              settings.connected ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400" : "border-amber-500/40 bg-amber-500/10 text-amber-400",
-            )}
-          >
-            {settings.connected ? t("status.connected", { username: settings.username ?? "" }) : t("status.simulation")}
-          </span>
-        )}
-      </div>
+      <SettingsPanelHead
+        title={t("title")}
+        description={t("subtitle")}
+        className="mb-0"
+        action={
+          settings && (
+            <span
+              className={cn(
+                "whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium",
+                settings.connected ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400" : "border-amber-500/40 bg-amber-500/10 text-amber-400",
+              )}
+            >
+              {settings.connected ? t("status.connected", { username: settings.username ?? "" }) : t("status.simulation")}
+            </span>
+          )
+        }
+      />
 
       <div className="flex flex-wrap gap-2 border-b border-border pb-2">
         {sections.map(({ key, icon: Icon }) => (
@@ -185,7 +186,7 @@ function InstagramInbox() {
   const current = contacts.find((c) => c.id === selected)
 
   return (
-    <div className="grid min-h-[480px] gap-3 md:grid-cols-[300px_1fr]">
+    <div className="grid min-h-[480px] gap-3 xl:grid-cols-[260px_1fr]">
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         {contacts.length === 0 ? (
           <p className="p-6 text-center text-sm text-muted-foreground">{t("empty")}</p>
@@ -296,7 +297,7 @@ function InstagramAutomations() {
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">{t("intro")}</p>
-      <div className="grid gap-3 lg:grid-cols-2">
+      <div className="grid gap-3 xl:grid-cols-2">
         {rows.map((row) => (
           <div key={row.id} className="space-y-3 rounded-xl border border-border bg-card p-4">
             <div className="flex items-start justify-between gap-3">
@@ -413,7 +414,7 @@ function InstagramConnect({ settings, onChange }: { settings: Settings; onChange
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="grid gap-4 xl:grid-cols-2">
       <div className="space-y-4 rounded-xl border border-border bg-card p-4">
         <h2 className="text-sm font-semibold text-foreground">{t("title")}</h2>
         <ol className="list-decimal space-y-1 pl-5 text-xs text-muted-foreground">

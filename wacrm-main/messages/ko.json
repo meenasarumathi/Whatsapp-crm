@@ -43,8 +43,7 @@
     "menuSignOut": "로그아웃",
     "trainAi": "AI 학습",
     "demo": "데모",
-    "wallet": "지갑",
-    "instagram": "인스타그램"
+    "wallet": "지갑"
   },
   "Header": {
     "dashboard": "대시보드",
@@ -67,8 +66,7 @@
     "agents": "AI 에이전트",
     "trainAi": "AI 학습",
     "demo": "데모",
-    "wallet": "지갑",
-    "instagram": "인스타그램"
+    "wallet": "지갑"
   },
   "ModeToggle": {
     "switchMode": "{mode} 모드로 전환"
@@ -1843,7 +1841,8 @@
       "api": "API 키",
       "subscriptions": "구독 사용자",
       "backup": "백업",
-      "tokens": "Token admin"
+      "tokens": "Token admin",
+      "instagram": "인스타그램"
     },
     "groups": {
       "account": "계정",
