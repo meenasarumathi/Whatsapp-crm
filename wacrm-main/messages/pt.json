@@ -583,16 +583,34 @@
       "toastFailedMoveDeal": "Falha ao mover o negócio",
       "toastFailedCreatePipeline": "Falha ao criar o pipeline",
       "toastPipelineCreated": "Pipeline criado",
-      "toastNotLinkedToAccount": "Seu perfil não está vinculado a uma conta."
+      "toastNotLinkedToAccount": "Seu perfil não está vinculado a uma conta.",
+      "filterAll": "Todos os negócios",
+      "filterMine": "Meus negócios",
+      "filterOverdue": "Atrasados ({count})",
+      "template": "Começar com",
+      "templates": {
+        "settlement": {
+          "name": "Do lead ao pagamento concluído (passagem entre a equipe)",
+          "stages": "Nova consulta → Qualificado → Orçamento enviado → Pedido confirmado → Pagamento recebido → Enviado → Concluído / Perdido, com SLAs"
+        },
+        "sales": {
+          "name": "Funil de vendas",
+          "stages": "Novo lead → Qualificado → Proposta enviada → Negociação → Ganho"
+        }
+      }
     },
     "board": {
       "dropDealHere": "Solte um negócio aqui",
-      "addDeal": "Adicionar negócio"
+      "addDeal": "Adicionar negócio",
+      "owner": "Responsável: {name}",
+      "sla": "SLA {hours}h"
     },
     "card": {
       "noContact": "Sem contato",
       "won": "Ganho",
-      "lost": "Perdido"
+      "lost": "Perdido",
+      "inStage": "Tempo nesta etapa",
+      "overdue": "Atrasado · {age}"
     },
     "form": {
       "editDeal": "Editar negócio",
@@ -658,7 +676,14 @@
       "toastMoveOrDeleteDeals": "Mova ou exclua os negócios desta etapa primeiro",
       "toastFailedDeleteStage": "Falha ao excluir a etapa",
       "toastFailedDeletePipeline": "Falha ao excluir o pipeline",
-      "toastDeleted": "Pipeline excluído"
+      "toastDeleted": "Pipeline excluído",
+      "owner": "Responsável pela etapa",
+      "noOwner": "Sem responsável (manter atribuído)",
+      "slaHours": "SLA h",
+      "outcome": "Resultado da etapa",
+      "outcomeOpen": "Em andamento",
+      "outcomeWon": "Concluído (ganho)",
+      "outcomeLost": "Perdido"
     },
     "analytics": {
       "totalDeals": "Total de negócios",

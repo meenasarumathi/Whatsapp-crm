@@ -1,7 +1,8 @@
 "use client";
 
 import type { Row } from "@/lib/db/types";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { Suspense, useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { createBrowserDb } from "@/lib/db/browser";
 import type { Pipeline, PipelineStage, Deal } from "@/types";
 import { PipelineBoard } from "@/components/pipelines/pipeline-board";
@@ -31,27 +32,36 @@ import { useCan } from "@/hooks/use-can";
 import { useAuth } from "@/hooks/use-auth";
 import { GatedButton } from "@/components/ui/gated-button";
 import { useTranslations } from "next-intl";
+import { stageAge, templateStageRows, type PipelineTemplateKey } from "@/lib/pipelines/templates";
+import { cn } from "@/lib/utils";
 
 // Pipeline creation is admin-class (settings-tier write under
 // the new RLS); deal creation is operational and only requires
 // agent+. The two CTAs gate on different `useCan` capabilities,
 // not on different copy.
 
-// Spec-defined seed — name and color per the product spec.
-const SPEC_DEFAULT_STAGES = [
-  { name: "New Lead", color: "#3b82f6", position: 0 }, // blue
-  { name: "Qualified", color: "#eab308", position: 1 }, // yellow
-  { name: "Proposal Sent", color: "#f97316", position: 2 }, // orange
-  { name: "Negotiation", color: "#8b5cf6", position: 3 }, // purple
-  { name: "Won", color: "#22c55e", position: 4 }, // green
-];
+// New pipelines (and the first one seeded for a fresh account) start from
+// the "lead to payment settled" hand-off flow; "sales" is the classic funnel.
+const DEFAULT_TEMPLATE: PipelineTemplateKey = "settlement";
+const TEMPLATE_KEYS: PipelineTemplateKey[] = ["settlement", "sales"];
+
+type DealFilter = "all" | "mine" | "overdue";
 
 export default function PipelinesPage() {
+  return (
+    <Suspense fallback={null}>
+      <PipelinesPageInner />
+    </Suspense>
+  );
+}
+
+function PipelinesPageInner() {
   const t = useTranslations("Pipelines.page");
   const db = createBrowserDb();
   const canEditSettings = useCan("edit-settings");
   const canCreateDeals = useCan("send-messages");
-  const { accountId } = useAuth();
+  const { accountId, profile } = useAuth();
+  const searchParams = useSearchParams();
 
   const [pipelines, setPipelines] = useState<Pipeline[]>([]);
   const [selectedPipelineId, setSelectedPipelineId] = useState<string>("");
@@ -62,6 +72,9 @@ export default function PipelinesPage() {
   // Dialog / sheet state
   const [newPipelineOpen, setNewPipelineOpen] = useState(false);
   const [newPipelineName, setNewPipelineName] = useState("");
+  const [newPipelineTemplate, setNewPipelineTemplate] = useState<PipelineTemplateKey>(DEFAULT_TEMPLATE);
+  const [filter, setFilter] = useState<DealFilter>("all");
+  const [ownerNames, setOwnerNames] = useState<Record<string, string>>({});
   const [creating, setCreating] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -121,7 +134,7 @@ export default function PipelinesPage() {
 
     const { data: pipeline, error } = await db
       .from("pipelines")
-      .insert({ user_id: user.id, account_id: accountId, name: "Sales Pipeline" })
+      .insert({ user_id: user.id, account_id: accountId, name: "Lead to Settlement" })
       .select()
       .single();
 
@@ -130,13 +143,7 @@ export default function PipelinesPage() {
       return null;
     }
 
-    const stagesPayload = SPEC_DEFAULT_STAGES.map((s) => ({
-      pipeline_id: pipeline.id,
-      name: s.name,
-      color: s.color,
-      position: s.position,
-    }));
-    await db.from("pipeline_stages").insert(stagesPayload);
+    await db.from("pipeline_stages").insert(templateStageRows(pipeline.id, DEFAULT_TEMPLATE));
 
     return pipeline as Pipeline;
   }, [db, accountId]);
@@ -227,8 +234,10 @@ export default function PipelinesPage() {
         .eq("id", dealId);
       if (error) {
         toast.error(t("toastFailedMoveDeal"));
-        refreshDeals();
       }
+      // Reload either way: entering a stage can hand the deal to the
+      // stage owner and settle / lose it (database trigger).
+      refreshDeals();
     },
     [db, refreshDeals, t],
   );
@@ -280,13 +289,7 @@ export default function PipelinesPage() {
       return;
     }
 
-    const stagesPayload = SPEC_DEFAULT_STAGES.map((s) => ({
-      pipeline_id: pipeline.id,
-      name: s.name,
-      color: s.color,
-      position: s.position,
-    }));
-    await db.from("pipeline_stages").insert(stagesPayload);
+    await db.from("pipeline_stages").insert(templateStageRows(pipeline.id, newPipelineTemplate));
 
     setNewPipelineName("");
     setNewPipelineOpen(false);
@@ -297,6 +300,54 @@ export default function PipelinesPage() {
   }
 
   const selectedPipeline = pipelines.find((p) => p.id === selectedPipelineId);
+
+  // Teammate names for stage owners shown in the column headers.
+  useEffect(() => {
+    if (!accountId) return;
+    void db
+      .from("profiles")
+      .select("id, full_name")
+      .eq("account_id", accountId)
+      .then(({ data }) =>
+        setOwnerNames(
+          Object.fromEntries(((data ?? []) as { id: string; full_name: string }[]).map((p) => [p.id, p.full_name])),
+        ),
+      );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountId]);
+
+  // A deal_assigned notification links to /pipelines?deal=<id>: open it.
+  const linkedDealId = searchParams.get("deal");
+  const openedLinkedDeal = useRef<string | null>(null);
+  useEffect(() => {
+    if (!linkedDealId || openedLinkedDeal.current === linkedDealId) return;
+    void (async () => {
+      const { data } = await db.from("deals").select("pipeline_id").eq("id", linkedDealId).maybeSingle();
+      const pipelineId = (data as { pipeline_id?: string } | null)?.pipeline_id;
+      if (!pipelineId) return;
+      if (pipelineId !== selectedPipelineId) {
+        setSelectedPipelineId(pipelineId);
+        return;
+      }
+      const deal = deals.find((d) => d.id === linkedDealId);
+      if (deal) {
+        openedLinkedDeal.current = linkedDealId;
+        handleEditDeal(deal);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkedDealId, selectedPipelineId, deals]);
+
+  const stageById = useMemo(() => new Map(stages.map((s) => [s.id, s])), [stages]);
+  const visibleDeals = useMemo(() => {
+    if (filter === "mine") return deals.filter((d) => profile?.id && d.assigned_to === profile.id);
+    if (filter === "overdue") return deals.filter((d) => stageAge(d, stageById.get(d.stage_id)).overdue);
+    return deals;
+  }, [deals, filter, profile?.id, stageById]);
+  const overdueCount = useMemo(
+    () => deals.filter((d) => stageAge(d, stageById.get(d.stage_id)).overdue).length,
+    [deals, stageById],
+  );
 
   if (loading) {
     return (
@@ -414,12 +465,30 @@ export default function PipelinesPage() {
       ) : (
         <>
           <PipelineAnalytics stages={stages} deals={deals} />
+          <div className="flex flex-wrap items-center gap-2">
+            {(["all", "mine", "overdue"] as const).map((f) => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setFilter(f)}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-xs transition-colors",
+                  filter === f
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {f === "overdue" ? t("filterOverdue", { count: overdueCount }) : t(f === "all" ? "filterAll" : "filterMine")}
+              </button>
+            ))}
+          </div>
           <PipelineBoard
             stages={stages}
-            deals={deals}
+            deals={visibleDeals}
             onDealMoved={handleDealMoved}
             onAddDeal={handleAddDeal}
             onEditDeal={handleEditDeal}
+            ownerNames={ownerNames}
           />
         </>
       )}
@@ -441,9 +510,23 @@ export default function PipelinesPage() {
                 if (e.key === "Enter") handleCreatePipeline();
               }}
             />
-            <p className="mt-2 text-xs text-muted-foreground">
-              {t("defaultStagesDesc")}
-            </p>
+            <Label className="mt-4 block text-muted-foreground">{t("template")}</Label>
+            <div className="mt-2 grid gap-2">
+              {TEMPLATE_KEYS.map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setNewPipelineTemplate(key)}
+                  className={cn(
+                    "rounded-lg border p-3 text-left transition-colors",
+                    newPipelineTemplate === key ? "border-primary bg-primary/5" : "border-border hover:bg-muted",
+                  )}
+                >
+                  <p className="text-sm font-medium text-foreground">{t(`templates.${key}.name`)}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{t(`templates.${key}.stages`)}</p>
+                </button>
+              ))}
+            </div>
           </div>
           <DialogFooter className="bg-popover/50 border-border">
             <Button

@@ -583,16 +583,34 @@
       "toastFailedMoveDeal": "Failed to move deal",
       "toastFailedCreatePipeline": "Failed to create pipeline",
       "toastPipelineCreated": "Pipeline created",
-      "toastNotLinkedToAccount": "Your profile is not linked to an account."
+      "toastNotLinkedToAccount": "Your profile is not linked to an account.",
+      "filterAll": "All deals",
+      "filterMine": "My deals",
+      "filterOverdue": "Overdue ({count})",
+      "template": "Start from",
+      "templates": {
+        "settlement": {
+          "name": "Lead to payment settled (team hand-off)",
+          "stages": "New enquiry → Qualified → Quote sent → Order confirmed → Payment received → Dispatched → Settled / Lost, with SLAs"
+        },
+        "sales": {
+          "name": "Sales funnel",
+          "stages": "New Lead → Qualified → Proposal Sent → Negotiation → Won"
+        }
+      }
     },
     "board": {
       "dropDealHere": "Drop a deal here",
-      "addDeal": "Add Deal"
+      "addDeal": "Add Deal",
+      "owner": "Owner: {name}",
+      "sla": "SLA {hours}h"
     },
     "card": {
       "noContact": "No contact",
       "won": "Won",
-      "lost": "Lost"
+      "lost": "Lost",
+      "inStage": "Time in this stage",
+      "overdue": "Overdue · {age}"
     },
     "form": {
       "editDeal": "Edit Deal",
@@ -658,7 +676,14 @@
       "toastMoveOrDeleteDeals": "Move or delete deals in this stage first",
       "toastFailedDeleteStage": "Failed to delete stage",
       "toastFailedDeletePipeline": "Failed to delete pipeline",
-      "toastDeleted": "Pipeline deleted"
+      "toastDeleted": "Pipeline deleted",
+      "owner": "Stage owner",
+      "noOwner": "No owner (keep assignee)",
+      "slaHours": "SLA h",
+      "outcome": "Stage outcome",
+      "outcomeOpen": "In progress",
+      "outcomeWon": "Settled (won)",
+      "outcomeLost": "Lost"
     },
     "analytics": {
       "totalDeals": "Total Deals",

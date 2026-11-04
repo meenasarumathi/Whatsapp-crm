@@ -198,7 +198,7 @@ export interface Conversation {
 // Notifications (migration 027)
 // ============================================================
 
-export type NotificationType = 'conversation_assigned';
+export type NotificationType = 'conversation_assigned' | 'deal_assigned';
 
 export interface Notification {
   id: string;
@@ -208,6 +208,8 @@ export interface Notification {
   type: NotificationType;
   conversation_id?: string;
   contact_id?: string;
+  /** Set on deal_assigned: the deal handed to the recipient. */
+  deal_id?: string;
   /** Who triggered it. Null when an automation/system assigned it. */
   actor_user_id?: string;
   title: string;
@@ -381,6 +383,12 @@ export interface PipelineStage {
   position: number;
   color: string;
   created_at: string;
+  /** Teammate (profile id) who owns deals in this stage; entering it hands the deal over. */
+  owner_profile_id?: string | null;
+  /** Hours a deal may stay here before it shows as overdue. */
+  sla_hours?: number | null;
+  /** 'won' = settled, 'lost'; entering such a stage sets the deal status. */
+  outcome?: 'open' | 'won' | 'lost';
 }
 
 export type DealStatus = 'open' | 'won' | 'lost';
@@ -405,6 +413,10 @@ export interface Deal {
   status?: DealStatus;
   created_at: string;
   updated_at?: string;
+  /** When the deal entered its current stage (set by the database). */
+  stage_entered_at?: string;
+  /** When the deal reached a won (settled) stage. */
+  settled_at?: string | null;
   contact?: Contact;
   stage?: PipelineStage;
   assignee?: Profile;

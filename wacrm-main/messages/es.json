@@ -583,16 +583,34 @@
       "toastFailedMoveDeal": "Error al mover el negocio",
       "toastFailedCreatePipeline": "Error al crear el pipeline",
       "toastPipelineCreated": "Pipeline creado",
-      "toastNotLinkedToAccount": "Tu perfil no está vinculado a una cuenta."
+      "toastNotLinkedToAccount": "Tu perfil no está vinculado a una cuenta.",
+      "filterAll": "Todos los tratos",
+      "filterMine": "Mis tratos",
+      "filterOverdue": "Atrasados ({count})",
+      "template": "Empezar con",
+      "templates": {
+        "settlement": {
+          "name": "Del lead al pago liquidado (traspaso entre el equipo)",
+          "stages": "Nueva consulta → Calificado → Cotización enviada → Pedido confirmado → Pago recibido → Despachado → Liquidado / Perdido, con SLA"
+        },
+        "sales": {
+          "name": "Embudo de ventas",
+          "stages": "Nuevo lead → Calificado → Propuesta enviada → Negociación → Ganado"
+        }
+      }
     },
     "board": {
       "dropDealHere": "Suelta un negocio aquí",
-      "addDeal": "Agregar negocio"
+      "addDeal": "Agregar negocio",
+      "owner": "Responsable: {name}",
+      "sla": "SLA {hours}h"
     },
     "card": {
       "noContact": "Sin contacto",
       "won": "Ganado",
-      "lost": "Perdido"
+      "lost": "Perdido",
+      "inStage": "Tiempo en esta etapa",
+      "overdue": "Atrasado · {age}"
     },
     "form": {
       "editDeal": "Editar negocio",
@@ -658,7 +676,14 @@
       "toastMoveOrDeleteDeals": "Primero mueve o elimina los negocios de esta etapa",
       "toastFailedDeleteStage": "Error al eliminar la etapa",
       "toastFailedDeletePipeline": "Error al eliminar el pipeline",
-      "toastDeleted": "Pipeline eliminado"
+      "toastDeleted": "Pipeline eliminado",
+      "owner": "Responsable de la etapa",
+      "noOwner": "Sin responsable (mantener asignado)",
+      "slaHours": "SLA h",
+      "outcome": "Resultado de la etapa",
+      "outcomeOpen": "En curso",
+      "outcomeWon": "Liquidado (ganado)",
+      "outcomeLost": "Perdido"
     },
     "analytics": {
       "totalDeals": "Total de negocios",

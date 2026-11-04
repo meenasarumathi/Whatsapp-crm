@@ -1209,7 +1209,7 @@ CREATE TABLE IF NOT EXISTS public.notifications (
   read_at timestamp with time zone,
   created_at timestamp with time zone DEFAULT now() NOT NULL,
   CONSTRAINT notifications_pkey PRIMARY KEY (id),
-  CONSTRAINT notifications_type_check CHECK ((type = 'conversation_assigned'::text))
+  CONSTRAINT notifications_type_check CHECK ((type = ANY (ARRAY['conversation_assigned'::text, 'deal_assigned'::text])))
 );
 ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
 ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
@@ -4506,5 +4506,155 @@ CREATE POLICY "auto_reply_sends_select" ON public.auto_reply_sends FOR SELECT
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.auto_reply_rules TO wacrm_app;
 GRANT SELECT ON public.auto_reply_sends TO wacrm_app;
+
+-- ======================================================================
+-- 13. TEAM PIPELINE HANDOFFS (entry to settlement)
+-- Each stage can have an owner (a teammate's profile), an SLA in hours and an outcome
+-- ('open', 'won' = settled, 'lost'). When a deal enters a stage - from the board, the deal
+-- form, an automation or the API - the trigger stamps stage_entered_at, hands the deal to the
+-- stage owner, marks it won/lost for outcome stages, records deal_stage_history and notifies
+-- the new assignee. Living in the database keeps every write path consistent.
+-- ======================================================================
+
+ALTER TABLE public.pipeline_stages ADD COLUMN IF NOT EXISTS owner_profile_id uuid REFERENCES public.profiles(id) ON DELETE SET NULL;
+ALTER TABLE public.pipeline_stages ADD COLUMN IF NOT EXISTS sla_hours integer;
+ALTER TABLE public.pipeline_stages ADD COLUMN IF NOT EXISTS outcome text DEFAULT 'open' NOT NULL;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'pipeline_stages_sla_hours_check' AND conrelid = 'public.pipeline_stages'::regclass) THEN
+    ALTER TABLE public.pipeline_stages ADD CONSTRAINT pipeline_stages_sla_hours_check CHECK (sla_hours IS NULL OR (sla_hours BETWEEN 1 AND 8760));
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'pipeline_stages_outcome_check' AND conrelid = 'public.pipeline_stages'::regclass) THEN
+    ALTER TABLE public.pipeline_stages ADD CONSTRAINT pipeline_stages_outcome_check CHECK (outcome IN ('open', 'won', 'lost'));
+  END IF;
+END $$;
+COMMENT ON COLUMN public.pipeline_stages.owner_profile_id IS 'Teammate who owns deals in this stage; entering the stage assigns the deal to them.';
+COMMENT ON COLUMN public.pipeline_stages.sla_hours IS 'Hours a deal may stay in this stage before it shows as overdue.';
+COMMENT ON COLUMN public.pipeline_stages.outcome IS 'open, won (settled) or lost; entering a won/lost stage sets deals.status.';
+
+ALTER TABLE public.deals ADD COLUMN IF NOT EXISTS stage_entered_at timestamptz DEFAULT now() NOT NULL;
+ALTER TABLE public.deals ADD COLUMN IF NOT EXISTS settled_at timestamptz;
+
+CREATE TABLE IF NOT EXISTS public.deal_stage_history (
+  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  account_id     uuid NOT NULL REFERENCES public.accounts(id) ON DELETE CASCADE,
+  deal_id        uuid NOT NULL REFERENCES public.deals(id) ON DELETE CASCADE,
+  from_stage_id  uuid REFERENCES public.pipeline_stages(id) ON DELETE SET NULL,
+  to_stage_id    uuid REFERENCES public.pipeline_stages(id) ON DELETE SET NULL,
+  assigned_to    uuid REFERENCES public.profiles(id) ON DELETE SET NULL,
+  moved_by       uuid REFERENCES public.users(id) ON DELETE SET NULL,
+  -- Time the deal spent in from_stage, in seconds (null for the first entry).
+  seconds_in_from_stage integer,
+  created_at     timestamptz NOT NULL DEFAULT now()
+);
+COMMENT ON TABLE public.deal_stage_history IS 'One row per stage a deal enters: who moved it, who owns it next, time spent in the previous stage.';
+CREATE INDEX IF NOT EXISTS idx_deal_stage_history_deal ON public.deal_stage_history (deal_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_deal_stage_history_account ON public.deal_stage_history (account_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_deal_stage_history_to_stage ON public.deal_stage_history (to_stage_id);
+CREATE INDEX IF NOT EXISTS idx_deal_stage_history_from_stage ON public.deal_stage_history (from_stage_id);
+CREATE INDEX IF NOT EXISTS idx_deal_stage_history_assigned ON public.deal_stage_history (assigned_to);
+CREATE INDEX IF NOT EXISTS idx_pipeline_stages_owner ON public.pipeline_stages (owner_profile_id);
+
+ALTER TABLE public.deal_stage_history ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "deal_stage_history_select" ON public.deal_stage_history;
+CREATE POLICY "deal_stage_history_select" ON public.deal_stage_history FOR SELECT
+  USING (is_account_member(account_id));
+GRANT SELECT ON public.deal_stage_history TO wacrm_app;
+
+-- Deal notifications: a deal link and a new type.
+ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS deal_id uuid REFERENCES public.deals(id) ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_notifications_deal_id ON public.notifications (deal_id);
+ALTER TABLE public.notifications DROP CONSTRAINT IF EXISTS notifications_type_check;
+ALTER TABLE public.notifications ADD CONSTRAINT notifications_type_check CHECK (type IN ('conversation_assigned', 'deal_assigned'));
+
+-- BEFORE: stamp entry time, hand over to the stage owner, apply the outcome.
+CREATE OR REPLACE FUNCTION public.deal_stage_before()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_owner uuid;
+  v_outcome text;
+BEGIN
+  IF TG_OP = 'UPDATE' AND NEW.stage_id IS NOT DISTINCT FROM OLD.stage_id THEN
+    RETURN NEW;
+  END IF;
+  SELECT owner_profile_id, outcome INTO v_owner, v_outcome FROM pipeline_stages WHERE id = NEW.stage_id;
+  -- On INSERT the column default (now()) applies unless the writer set it, e.g. an import.
+  IF TG_OP = 'UPDATE' THEN
+    NEW.stage_entered_at := now();
+  END IF;
+  -- The stage owner takes over unless this same write picked someone explicitly.
+  IF v_owner IS NOT NULL AND (TG_OP = 'INSERT' AND NEW.assigned_to IS NULL
+      OR TG_OP = 'UPDATE' AND NEW.assigned_to IS NOT DISTINCT FROM OLD.assigned_to) THEN
+    NEW.assigned_to := v_owner;
+  END IF;
+  IF v_outcome = 'won' THEN
+    NEW.status := 'won';
+    NEW.settled_at := COALESCE(NEW.settled_at, now());
+  ELSIF v_outcome = 'lost' THEN
+    NEW.status := 'lost';
+    NEW.settled_at := NULL;
+  ELSIF TG_OP = 'UPDATE' AND OLD.status IN ('won', 'lost') AND NEW.status IS NOT DISTINCT FROM OLD.status THEN
+    -- Dragged back out of Settled / Lost: the deal is open again.
+    NEW.status := 'open';
+    NEW.settled_at := NULL;
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+
+-- AFTER: history row + notify the new assignee. Never blocks the write.
+CREATE OR REPLACE FUNCTION public.deal_stage_after()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_assignee_user uuid;
+  v_actor_name text;
+  v_stage_name text;
+BEGIN
+  IF TG_OP = 'INSERT' OR NEW.stage_id IS DISTINCT FROM OLD.stage_id THEN
+    INSERT INTO deal_stage_history (account_id, deal_id, from_stage_id, to_stage_id, assigned_to, moved_by, seconds_in_from_stage)
+    VALUES (
+      NEW.account_id, NEW.id,
+      CASE WHEN TG_OP = 'UPDATE' THEN OLD.stage_id END,
+      NEW.stage_id, NEW.assigned_to, current_user_id(),
+      CASE WHEN TG_OP = 'UPDATE' THEN GREATEST(0, EXTRACT(EPOCH FROM (now() - OLD.stage_entered_at)))::integer END
+    );
+  END IF;
+
+  IF NEW.assigned_to IS NOT NULL
+     AND (TG_OP = 'INSERT' OR NEW.assigned_to IS DISTINCT FROM OLD.assigned_to) THEN
+    SELECT user_id INTO v_assignee_user FROM profiles WHERE id = NEW.assigned_to;
+    IF v_assignee_user IS NOT NULL AND v_assignee_user IS DISTINCT FROM current_user_id() THEN
+      IF current_user_id() IS NOT NULL THEN
+        SELECT full_name INTO v_actor_name FROM profiles WHERE user_id = current_user_id();
+      END IF;
+      SELECT name INTO v_stage_name FROM pipeline_stages WHERE id = NEW.stage_id;
+      INSERT INTO notifications (account_id, user_id, type, contact_id, deal_id, actor_user_id, title, body)
+      VALUES (
+        NEW.account_id, v_assignee_user, 'deal_assigned', NEW.contact_id, NEW.id, current_user_id(),
+        'Deal handed to you',
+        COALESCE(v_actor_name, 'Someone') || ' moved "' || NEW.title || '" to ' || COALESCE(v_stage_name, 'a stage') || ' — it is yours now'
+      );
+    END IF;
+  END IF;
+  RETURN NEW;
+EXCEPTION WHEN OTHERS THEN
+  RAISE WARNING 'deal_stage_after failed for deal %: %', NEW.id, SQLERRM;
+  RETURN NEW;
+END;
+$function$;
+
+DROP TRIGGER IF EXISTS deal_stage_before ON public.deals;
+CREATE TRIGGER deal_stage_before BEFORE INSERT OR UPDATE OF stage_id ON public.deals
+  FOR EACH ROW EXECUTE FUNCTION deal_stage_before();
+DROP TRIGGER IF EXISTS deal_stage_after ON public.deals;
+CREATE TRIGGER deal_stage_after AFTER INSERT OR UPDATE OF stage_id, assigned_to ON public.deals
+  FOR EACH ROW EXECUTE FUNCTION deal_stage_after();
 
 -- End of schema.

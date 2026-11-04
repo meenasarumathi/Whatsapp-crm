@@ -18,6 +18,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { createBrowserDb } from "@/lib/db/browser";
 import type { Pipeline, PipelineStage } from "@/types";
+import { useAuth } from "@/hooks/use-auth";
 import {
   Dialog,
   DialogContent,
@@ -79,6 +80,21 @@ export function PipelineSettings({
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const { accountId } = useAuth();
+  const [teammates, setTeammates] = useState<{ id: string; full_name: string }[]>([]);
+
+  // Teammates who can own a stage. profiles RLS already limits this to
+  // the caller's account; the filter keeps a platform admin's view tidy.
+  useEffect(() => {
+    if (!open || !accountId) return;
+    void db
+      .from("profiles")
+      .select("id, full_name")
+      .eq("account_id", accountId)
+      .order("full_name")
+      .then(({ data }) => setTeammates((data ?? []) as { id: string; full_name: string }[]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, accountId]);
 
   // Reset form state when the dialog opens or its prop inputs change
   // — legitimate prop-driven sync.
@@ -116,6 +132,9 @@ export function PipelineSettings({
       name: s.name,
       color: s.color,
       position: i,
+      owner_profile_id: s.owner_profile_id ?? null,
+      sla_hours: s.sla_hours ?? null,
+      outcome: s.outcome ?? "open",
     }));
 
     const [renameRes, stagesRes] = await Promise.all([
@@ -201,7 +220,7 @@ export function PipelineSettings({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-popover border-border max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-xl bg-popover border-border max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-popover-foreground">{t("managePipeline")}</DialogTitle>
         </DialogHeader>
@@ -274,6 +293,12 @@ export function PipelineSettings({
                             updated[index] = { ...updated[index], color: v };
                             setLocalStages(updated);
                           }}
+                          onPatch={(patch) => {
+                            const updated = [...localStages];
+                            updated[index] = { ...updated[index], ...patch };
+                            setLocalStages(updated);
+                          }}
+                          teammates={teammates}
                           onRemove={() => handleRemoveStage(stage.id)}
                           colors={STAGE_COLORS}
                           t={t}
@@ -364,10 +389,15 @@ export function PipelineSettings({
   );
 }
 
+const STAGE_SELECT =
+  "h-7 rounded-md border border-border bg-background px-1.5 text-xs text-foreground focus:border-primary focus:outline-none";
+
 function SortableStageRow({
   stage,
   onNameChange,
   onColorChange,
+  onPatch,
+  teammates,
   onRemove,
   colors,
   t,
@@ -375,6 +405,8 @@ function SortableStageRow({
   stage: PipelineStage;
   onNameChange: (v: string) => void;
   onColorChange: (v: string) => void;
+  onPatch: (patch: Partial<PipelineStage>) => void;
+  teammates: { id: string; full_name: string }[];
   onRemove: () => void;
   colors: string[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -393,8 +425,9 @@ function SortableStageRow({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 rounded-lg border border-border bg-muted p-2"
+      className="space-y-1.5 rounded-lg border border-border bg-muted p-2"
     >
+      <div className="flex items-center gap-2">
       <button
         type="button"
         {...attributes}
@@ -418,6 +451,46 @@ function SortableStageRow({
       >
         <Trash2 className="h-3 w-3" />
       </Button>
+      </div>
+      {/* Hand-off settings: who owns the stage, how long a deal may sit
+          here, and whether entering it settles or loses the deal. */}
+      <div className="flex flex-wrap items-center gap-2 pl-6">
+        <select
+          aria-label={t("owner")}
+          value={stage.owner_profile_id ?? ""}
+          onChange={(e) => onPatch({ owner_profile_id: e.target.value || null })}
+          className={`${STAGE_SELECT} min-w-0 flex-1`}
+        >
+          <option value="">{t("noOwner")}</option>
+          {teammates.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.full_name}
+            </option>
+          ))}
+        </select>
+        <label className="flex items-center gap-1 text-[11px] text-muted-foreground">
+          {t("slaHours")}
+          <input
+            type="number"
+            min={1}
+            max={8760}
+            value={stage.sla_hours ?? ""}
+            onChange={(e) => onPatch({ sla_hours: e.target.value ? Math.min(8760, Math.max(1, Number(e.target.value))) : null })}
+            placeholder="—"
+            className={`${STAGE_SELECT} w-16`}
+          />
+        </label>
+        <select
+          aria-label={t("outcome")}
+          value={stage.outcome ?? "open"}
+          onChange={(e) => onPatch({ outcome: e.target.value as PipelineStage["outcome"] })}
+          className={STAGE_SELECT}
+        >
+          <option value="open">{t("outcomeOpen")}</option>
+          <option value="won">{t("outcomeWon")}</option>
+          <option value="lost">{t("outcomeLost")}</option>
+        </select>
+      </div>
     </div>
   );
 }

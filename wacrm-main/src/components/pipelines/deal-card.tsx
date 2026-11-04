@@ -1,9 +1,10 @@
 "use client";
 
 import type { Deal, PipelineStage } from "@/types";
-import { Calendar, Check, X } from "lucide-react";
+import { AlarmClock, Calendar, Check, X } from "lucide-react";
 import { formatCurrency } from "@/lib/currency";
 import { useTranslations } from "next-intl";
+import { formatAge, stageAge } from "@/lib/pipelines/templates";
 
 interface DealCardProps {
   deal: Deal;
@@ -30,6 +31,7 @@ export function DealCard({ deal, stage, onEdit, isOverlay }: DealCardProps) {
   const t = useTranslations("Pipelines.card");
   const contactLabel = deal.contact?.name || deal.contact?.phone || t("noContact");
   const assigneeLabel = deal.assignee?.full_name || null;
+  const age = stageAge(deal, stage);
 
   return (
     <button
@@ -92,16 +94,25 @@ export function DealCard({ deal, stage, onEdit, isOverlay }: DealCardProps) {
         )}
       </div>
 
-      {assigneeLabel && (
-        <div className="mt-2 flex items-center justify-end">
-          <span
-            title={assigneeLabel}
-            className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/15 text-[10px] font-semibold text-primary"
-          >
-            {initials(assigneeLabel)}
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <span
+          title={t("inStage")}
+          className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
+            age.overdue ? "bg-red-500/15 text-red-400" : "text-muted-foreground"
+          }`}
+        >
+          <AlarmClock className="h-3 w-3" />
+          {age.overdue ? t("overdue", { age: formatAge(age.hours) }) : formatAge(age.hours)}
+        </span>
+        {assigneeLabel && (
+          <span className="flex min-w-0 items-center gap-1" title={assigneeLabel}>
+            <span className="truncate text-[10px] text-muted-foreground">{assigneeLabel.split(" ")[0]}</span>
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[10px] font-semibold text-primary">
+              {initials(assigneeLabel)}
+            </span>
           </span>
-        </div>
-      )}
+        )}
+      </div>
     </button>
   );
 }
