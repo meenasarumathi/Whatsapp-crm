@@ -44,6 +44,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { canEditSettings, canSendMessages } from "@/lib/auth/roles";
 import { readinessScore, profileCompleteness, PROFILE_FIELDS } from "@/lib/ai/training";
 import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
 import { AiPlayground } from "@/components/agents/ai-playground";
 import { AiKnowledgeCard } from "@/components/settings/ai-knowledge";
 import { useTraining } from "@/components/train-ai/use-training";
@@ -205,7 +206,7 @@ export default function TrainAiPage() {
             <AiPlayground />
           </div>
         ) : (
-          <Abilities aiActive={data.aiActive} autoReply={data.autoReply} trained={qaCount + ruleCount > 0 || PROFILE_FIELDS.some((f) => data.profile[f.key])} />
+          <Abilities aiConfigured={data.aiConfigured} aiActive={data.aiActive} autoReply={data.autoReply} trained={qaCount + ruleCount > 0 || PROFILE_FIELDS.some((f) => data.profile[f.key])} />
         )}
       </div>
     </div>
@@ -240,7 +241,17 @@ function ScoreRing({ value }: { value: number }) {
   );
 }
 
-function Abilities({ aiActive, autoReply, trained }: { aiActive: boolean; autoReply: boolean; trained: boolean }) {
+function Abilities({
+  aiConfigured,
+  aiActive,
+  autoReply,
+  trained,
+}: {
+  aiConfigured: boolean;
+  aiActive: boolean;
+  autoReply: boolean;
+  trained: boolean;
+}) {
   const t = useTranslations("TrainAi.abilities");
   const items: { key: string; icon: typeof Bot; on: boolean; href: string }[] = [
     { key: "autoReply", icon: Zap, on: aiActive && autoReply, href: "/agents" },
@@ -255,6 +266,24 @@ function Abilities({ aiActive, autoReply, trained }: { aiActive: boolean; autoRe
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">{t("intro")}</p>
+      {/* The first five abilities call an LLM; without a provider key they
+          stay Off however complete the training is. Say so instead of
+          leaving the user to guess. */}
+      {!aiActive && (
+        <div className="flex flex-col gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-foreground">
+              {aiConfigured ? t("needsSwitch.title") : t("needsKey.title")}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {aiConfigured ? t("needsSwitch.desc") : t("needsKey.desc")}
+            </p>
+          </div>
+          <Link href="/agents" className={cn(buttonVariants({ size: "sm" }), "shrink-0")}>
+            {aiConfigured ? t("needsSwitch.cta") : t("needsKey.cta")}
+          </Link>
+        </div>
+      )}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {items.map(({ key, icon: Icon, on, href }) => (
           <Link

@@ -39,7 +39,7 @@ Click **Add step** and pick one:
 | **Send Message** | Sends a text reply. |
 | **Send Buttons** / **Send List** | Sends tappable options; their reply IDs can trigger other automations. |
 | **Send Template** | Sends an approved template (works outside the 24-hour window). |
-| **Add Tag** / **Remove Tag** | Changes the contact's tags. |
+| **Add Tag** / **Remove Tag** | Changes the contact's tags. Pick a tag, or click **New tag** to create one on the spot. |
 | **Assign Conversation** | Assigns the chat **Round-robin** across agents or to a **Specific agent**. |
 | **Update Contact Field** | Sets a contact field or custom field (can use values like `{{ message.text }}`). |
 | **Create Deal** | Creates a deal in the chosen pipeline and stage. |

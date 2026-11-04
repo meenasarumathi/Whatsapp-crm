@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { toast } from 'sonner';
 import { createBrowserDb } from "@/lib/db/browser";
 import { MessageTemplate } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Loader2, FileText, ArrowRight } from 'lucide-react';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Loader2, FileText, ArrowRight, RefreshCw, Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 const categoryColors: Record<string, string> = {
@@ -25,31 +27,52 @@ export function Step1ChooseTemplate({ selectedTemplate, onSelect, onNext, onBack
   const [templates, setTemplates] = useState<MessageTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notApproved, setNotApproved] = useState<MessageTemplate[]>([]);
+  const [syncing, setSyncing] = useState(false);
+
+  const fetchTemplates = useCallback(async () => {
+    try {
+      const db = createBrowserDb();
+      // Only APPROVED templates can be sent via Meta — anything else
+      // would 400 at broadcast time. Hide them rather than letting
+      // the user pick a template that will fail; the others are only
+      // listed in the empty state so the user knows they are waiting.
+      const { data, error: fetchError } = await db
+        .from('message_templates')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (fetchError) throw fetchError;
+      const all = (data ?? []) as MessageTemplate[];
+      setTemplates(all.filter((tpl) => tpl.status === 'APPROVED'));
+      setNotApproved(all.filter((tpl) => tpl.status !== 'APPROVED'));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('chooseTemplate.errorLoad'));
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
 
   useEffect(() => {
-    async function fetchTemplates() {
-      try {
-        const db = createBrowserDb();
-        // Only APPROVED templates can be sent via Meta — anything else
-        // would 400 at broadcast time. Hide them rather than letting
-        // the user pick a template that will fail.
-        const { data, error: fetchError } = await db
-          .from('message_templates')
-          .select('*')
-          .eq('status', 'APPROVED')
-          .order('created_at', { ascending: false });
+    void fetchTemplates();
+  }, [fetchTemplates]);
 
-        if (fetchError) throw fetchError;
-        setTemplates(data ?? []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : t('chooseTemplate.errorLoad'));
-      } finally {
-        setLoading(false);
-      }
+  // Pulls the templates already approved in WhatsApp Manager, so an
+  // account connected with existing templates can broadcast right away.
+  async function handleSync() {
+    setSyncing(true);
+    try {
+      const res = await fetch('/api/whatsapp/templates/sync', { method: 'POST' });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body?.error ?? t('chooseTemplate.syncFailed'));
+      toast.success(t('chooseTemplate.synced', { count: body?.total ?? 0 }));
+      await fetchTemplates();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t('chooseTemplate.syncFailed'));
+    } finally {
+      setSyncing(false);
     }
-
-    fetchTemplates();
-  }, []);
+  }
 
   if (loading) {
     return (
@@ -77,10 +100,33 @@ export function Step1ChooseTemplate({ selectedTemplate, onSelect, onNext, onBack
       </div>
 
       {templates.length === 0 ? (
-        <div className="flex h-48 flex-col items-center justify-center rounded-xl border border-border bg-card/50">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card/50 px-6 py-10 text-center">
           <FileText className="mb-2 h-8 w-8 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">{t('chooseTemplate.noTemplates')}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{t('chooseTemplate.createFirst')}</p>
+          <p className="mt-1 max-w-md text-xs text-muted-foreground">{t('chooseTemplate.howTo')}</p>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            <Button onClick={() => void handleSync()} disabled={syncing} variant="outline">
+              {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              {t('chooseTemplate.sync')}
+            </Button>
+            <Link href="/settings?tab=templates" className={buttonVariants()}>
+              <Plus className="h-4 w-4" />
+              {t('chooseTemplate.create')}
+            </Link>
+          </div>
+          {notApproved.length > 0 && (
+            <div className="mt-5 w-full max-w-md text-left">
+              <p className="text-xs font-medium text-foreground">{t('chooseTemplate.waiting')}</p>
+              <ul className="mt-1 space-y-1">
+                {notApproved.slice(0, 5).map((tpl) => (
+                  <li key={tpl.id} className="flex justify-between text-xs text-muted-foreground">
+                    <span className="truncate">{tpl.name}</span>
+                    <span>{tpl.status}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">

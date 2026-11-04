@@ -780,7 +780,13 @@
         "subtitle": "Select an approved message template for your broadcast.",
         "noTemplates": "No templates available.",
         "createFirst": "Create a template in Settings first.",
-        "errorLoad": "Failed to load templates"
+        "errorLoad": "Failed to load templates",
+        "howTo": "Broadcasts can only use WhatsApp templates approved by Meta. Already have templates in WhatsApp Manager? Sync them. Otherwise create one — Meta usually approves within minutes to a few hours.",
+        "sync": "Sync from Meta",
+        "create": "Create template",
+        "synced": "Synced {count} templates from Meta",
+        "syncFailed": "Could not sync templates from Meta",
+        "waiting": "Waiting for Meta approval"
       },
       "selectAudience": {
         "title": "Select Audience",
@@ -1017,7 +1023,14 @@
       "tags": {
         "select": "Select a tag…",
         "placeholder": "Tag id",
-        "unknown": "{id} (unknown tag)"
+        "unknown": "{id} (unknown tag)",
+        "new": "New tag",
+        "newPlaceholder": "Tag name, e.g. New lead",
+        "create": "Create",
+        "pickExisting": "Pick an existing tag instead",
+        "noneYet": "No tags yet — type a name to create your first one.",
+        "created": "Tag \"{name}\" created",
+        "createFailed": "Could not create the tag"
       },
       "fields": {
         "name": "Name",
@@ -2537,6 +2550,16 @@
       "funnel": {
         "title": "Powers the broadcast funnel",
         "desc": "Answers every broadcast reply so more readers turn into buyers."
+      },
+      "needsKey": {
+        "title": "The first five need an AI provider key",
+        "desc": "Auto-reply, drafts, handoff, languages and document answers are written by an AI model (OpenAI or Anthropic). Your training is saved — paste your own API key in AI Agents → Setup and switch the assistant on.",
+        "cta": "Add API key"
+      },
+      "needsSwitch": {
+        "title": "The AI assistant is switched off",
+        "desc": "Your API key is saved. Turn on Enable AI assistant in AI Agents → Setup to start using these features.",
+        "cta": "Open AI setup"
       }
     }
   },

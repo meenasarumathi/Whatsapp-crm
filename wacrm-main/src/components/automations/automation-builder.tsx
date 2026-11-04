@@ -62,6 +62,7 @@ import {
 } from "@/components/interactive/interactive-builder"
 import { interactivePayloadPreviewText } from "@/lib/whatsapp/interactive"
 import { createBrowserDb } from "@/lib/db/browser";
+import { useAuth } from "@/hooks/use-auth"
 import {
   childPath,
   insertAt,
@@ -219,6 +220,8 @@ interface AutomationResources {
   customFields: CustomField[]
   pipelines: PipelineOption[]
   stages: PipelineStageOption[]
+  /** Creates a tag in the account and adds it to `tags`; null on failure. */
+  addTag: (name: string) => Promise<TagRecord | null>
 }
 
 interface PipelineOption {
@@ -240,6 +243,7 @@ const ResourcesContext = createContext<AutomationResources>({
   customFields: [],
   pipelines: [],
   stages: [],
+  addTag: async () => null,
 })
 
 function useResources(): AutomationResources {
@@ -253,6 +257,35 @@ function ResourcesProvider({ children }: { children: ReactNode }) {
   const [customFields, setCustomFields] = useState<CustomField[]>([])
   const [pipelines, setPipelines] = useState<PipelineOption[]>([])
   const [stages, setStages] = useState<PipelineStageOption[]>([])
+  const { user, accountId } = useAuth()
+
+  // Lets the tag pickers create a tag on the spot. Without it a fresh
+  // account (no tags yet) could not finish an Add Tag step or a Tag
+  // Added trigger, and activation failed with "tag is required".
+  async function addTag(name: string): Promise<TagRecord | null> {
+    const trimmed = name.trim()
+    if (!trimmed || !user || !accountId) return null
+    const existing = tags.find(
+      (tg) => tg.name.toLowerCase() === trimmed.toLowerCase(),
+    )
+    if (existing) return existing
+    const { data, error } = await createBrowserDb()
+      .from("tags")
+      .insert({
+        user_id: user.id,
+        account_id: accountId,
+        name: trimmed,
+        color: "#0d9488",
+      })
+      .select("*")
+      .single()
+    if (error || !data) return null
+    const tag = data as TagRecord
+    setTags((prev) =>
+      [...prev, tag].sort((a, b) => a.name.localeCompare(b.name)),
+    )
+    return tag
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -307,7 +340,15 @@ function ResourcesProvider({ children }: { children: ReactNode }) {
 
   return (
     <ResourcesContext.Provider
-      value={{ tags, members, templates, customFields, pipelines, stages }}
+      value={{
+        tags,
+        members,
+        templates,
+        customFields,
+        pipelines,
+        stages,
+        addTag,
+      }}
     >
       {children}
     </ResourcesContext.Provider>
@@ -317,8 +358,9 @@ function ResourcesProvider({ children }: { children: ReactNode }) {
 const SELECT_CLASS =
   "w-full rounded-md border border-border bg-muted px-2 py-1.5 text-sm text-foreground focus:border-primary focus:outline-none"
 
-/** Tag dropdown by name + color, storing the tag's id. Falls back to a
- *  raw id input when no tags exist yet. */
+/** Tag dropdown by name + color, storing the tag's id, with an inline
+ *  "New tag" form so the step can be completed on an account that has
+ *  no tags yet. */
 function TagSelect({
   value,
   onChange,
@@ -328,42 +370,102 @@ function TagSelect({
   onChange: (v: string) => void
   t: ReturnType<typeof useTranslations>
 }) {
-  const { tags } = useResources()
-  if (tags.length === 0) {
+  const { tags, addTag } = useResources()
+  const [creating, setCreating] = useState(tags.length === 0 && !value)
+  const [newName, setNewName] = useState("")
+  const [saving, setSaving] = useState(false)
+  const selected = tags.find((t) => t.id === value)
+
+  async function handleCreate() {
+    if (!newName.trim()) return
+    setSaving(true)
+    const tag = await addTag(newName)
+    setSaving(false)
+    if (!tag) {
+      toast.error(t("tags.createFailed"))
+      return
+    }
+    onChange(tag.id)
+    setNewName("")
+    setCreating(false)
+    toast.success(t("tags.created", { name: tag.name }))
+  }
+
+  if (creating) {
     return (
-      <Input
-        placeholder={t("tags.placeholder")}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="bg-muted text-foreground"
-      />
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-2">
+          <Input
+            autoFocus
+            placeholder={t("tags.newPlaceholder")}
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault()
+                void handleCreate()
+              }
+            }}
+            className="bg-muted text-foreground"
+          />
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => void handleCreate()}
+            disabled={saving || !newName.trim()}
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : t("tags.create")}
+          </Button>
+        </div>
+        {tags.length > 0 ? (
+          <button
+            type="button"
+            onClick={() => setCreating(false)}
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
+            {t("tags.pickExisting")}
+          </button>
+        ) : (
+          <p className="text-xs text-muted-foreground">{t("tags.noneYet")}</p>
+        )}
+      </div>
     )
   }
-  const selected = tags.find((t) => t.id === value)
+
   return (
-    <div className="flex items-center gap-2">
-      <span
-        className="h-3 w-3 shrink-0 rounded-full border border-border"
-        style={{ backgroundColor: selected?.color ?? "transparent" }}
-        aria-hidden
-      />
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={SELECT_CLASS}
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2">
+        <span
+          className="h-3 w-3 shrink-0 rounded-full border border-border"
+          style={{ backgroundColor: selected?.color ?? "transparent" }}
+          aria-hidden
+        />
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={SELECT_CLASS}
+        >
+          <option value="">{t("tags.select")}</option>
+          {tags.map((tg) => (
+            <option key={tg.id} value={tg.id}>
+              {tg.name}
+            </option>
+          ))}
+          {/* Preserve a saved tag that's since been deleted so editing an
+              existing automation doesn't silently drop it. */}
+          {value && !selected && (
+            <option value={value}>{t("tags.unknown", { id: value })}</option>
+          )}
+        </select>
+      </div>
+      <button
+        type="button"
+        onClick={() => setCreating(true)}
+        className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
       >
-        <option value="">{t("tags.select")}</option>
-        {tags.map((tg) => (
-          <option key={tg.id} value={tg.id}>
-            {tg.name}
-          </option>
-        ))}
-        {/* Preserve a saved tag that's since been deleted so editing an
-            existing automation doesn't silently drop it. */}
-        {value && !selected && (
-          <option value={value}>{t("tags.unknown", { id: value })}</option>
-        )}
-      </select>
+        <Plus className="h-3 w-3" />
+        {t("tags.new")}
+      </button>
     </div>
   )
 }

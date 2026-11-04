@@ -780,7 +780,13 @@
         "subtitle": "Selecione um modelo de mensagem aprovado para o seu disparo.",
         "noTemplates": "Nenhum modelo disponível.",
         "createFirst": "Crie um modelo em Configurações primeiro.",
-        "errorLoad": "Falha ao carregar os modelos"
+        "errorLoad": "Falha ao carregar os modelos",
+        "howTo": "Transmissões só podem usar templates do WhatsApp aprovados pela Meta. Já tem templates no WhatsApp Manager? Sincronize-os. Caso contrário, crie um — a Meta costuma aprovar em minutos ou poucas horas.",
+        "sync": "Sincronizar da Meta",
+        "create": "Criar template",
+        "synced": "{count} templates sincronizados da Meta",
+        "syncFailed": "Não foi possível sincronizar os templates da Meta",
+        "waiting": "Aguardando aprovação da Meta"
       },
       "selectAudience": {
         "title": "Selecionar público",
@@ -1017,7 +1023,14 @@
       "tags": {
         "select": "Selecione uma tag…",
         "placeholder": "ID da tag",
-        "unknown": "{id} (tag desconhecida)"
+        "unknown": "{id} (tag desconhecida)",
+        "new": "Nova tag",
+        "newPlaceholder": "Nome da tag, ex.: Novo lead",
+        "create": "Criar",
+        "pickExisting": "Escolher uma tag existente",
+        "noneYet": "Ainda não há tags — digite um nome para criar a primeira.",
+        "created": "Tag \"{name}\" criada",
+        "createFailed": "Não foi possível criar a tag"
       },
       "fields": {
         "name": "Nome",
@@ -2537,6 +2550,16 @@
       "funnel": {
         "title": "Powers the broadcast funnel",
         "desc": "Answers every broadcast reply so more readers turn into buyers."
+      },
+      "needsKey": {
+        "title": "Os cinco primeiros precisam de uma chave de provedor de IA",
+        "desc": "Resposta automática, rascunhos, transferência, idiomas e respostas de documentos são escritos por um modelo de IA (OpenAI ou Anthropic). Seu treinamento está salvo — cole sua chave de API em Agentes de IA → Configuração e ative o assistente.",
+        "cta": "Adicionar chave de API"
+      },
+      "needsSwitch": {
+        "title": "O assistente de IA está desativado",
+        "desc": "Sua chave de API está salva. Ative Habilitar assistente de IA em Agentes de IA → Configuração.",
+        "cta": "Abrir configuração de IA"
       }
     }
   },

@@ -780,7 +780,13 @@
         "subtitle": "Selecciona una plantilla de mensaje aprobada para tu difusión.",
         "noTemplates": "No hay plantillas disponibles.",
         "createFirst": "Primero crea una plantilla en Configuración.",
-        "errorLoad": "Error al cargar las plantillas"
+        "errorLoad": "Error al cargar las plantillas",
+        "howTo": "Las difusiones solo pueden usar plantillas de WhatsApp aprobadas por Meta. ¿Ya tienes plantillas en WhatsApp Manager? Sincronízalas. Si no, crea una: Meta suele aprobarlas en minutos o pocas horas.",
+        "sync": "Sincronizar desde Meta",
+        "create": "Crear plantilla",
+        "synced": "{count} plantillas sincronizadas desde Meta",
+        "syncFailed": "No se pudieron sincronizar las plantillas desde Meta",
+        "waiting": "Esperando aprobación de Meta"
       },
       "selectAudience": {
         "title": "Seleccionar audiencia",
@@ -1017,7 +1023,14 @@
       "tags": {
         "select": "Selecciona una etiqueta…",
         "placeholder": "ID de etiqueta",
-        "unknown": "{id} (etiqueta desconocida)"
+        "unknown": "{id} (etiqueta desconocida)",
+        "new": "Nueva etiqueta",
+        "newPlaceholder": "Nombre de la etiqueta, p. ej. Nuevo lead",
+        "create": "Crear",
+        "pickExisting": "Elegir una etiqueta existente",
+        "noneYet": "Aún no hay etiquetas: escribe un nombre para crear la primera.",
+        "created": "Etiqueta \"{name}\" creada",
+        "createFailed": "No se pudo crear la etiqueta"
       },
       "fields": {
         "name": "Nombre",
@@ -2537,6 +2550,16 @@
       "funnel": {
         "title": "Powers the broadcast funnel",
         "desc": "Answers every broadcast reply so more readers turn into buyers."
+      },
+      "needsKey": {
+        "title": "Las cinco primeras necesitan una clave de proveedor de IA",
+        "desc": "La respuesta automática, los borradores, la derivación, los idiomas y las respuestas de documentos los escribe un modelo de IA (OpenAI o Anthropic). Tu entrenamiento está guardado: pega tu clave de API en Agentes de IA → Configuración y activa el asistente.",
+        "cta": "Agregar clave de API"
+      },
+      "needsSwitch": {
+        "title": "El asistente de IA está desactivado",
+        "desc": "Tu clave de API está guardada. Activa Habilitar asistente de IA en Agentes de IA → Configuración.",
+        "cta": "Abrir configuración de IA"
       }
     }
   },
