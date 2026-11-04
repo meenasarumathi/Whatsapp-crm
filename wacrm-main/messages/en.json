@@ -1144,6 +1144,48 @@
         "matchExact": "Exact",
         "closeConversationHint": "Sets the conversation status to \"closed\". No configuration needed."
       }
+    },
+    "library": {
+      "title": "Workflow library",
+      "subtitle": "Ready-made workflows wired to your tags and pipeline. Install as a draft, edit the wording, then switch it on.",
+      "install": "Install",
+      "open": "Open",
+      "statusOn": "Installed · On",
+      "statusDraft": "Installed · Draft",
+      "installed": "{name} installed as a draft — review it and switch it on",
+      "failed": "Could not install the workflow",
+      "items": {
+        "lead_capture": {
+          "name": "Welcome & lead capture",
+          "desc": "Turn every first message into a tracked lead.",
+          "flow": "First message → menu (View prices / Track my order / Talk to our team) → tag New lead → deal in Lead to Settlement › New enquiry."
+        },
+        "price_enquiry": {
+          "name": "Price & catalogue enquiry",
+          "desc": "Answer \"how much?\" instantly, day and night.",
+          "flow": "Keywords price, cost, rate, fees, catalogue (or the View prices button) → your price list → tag Price enquiry."
+        },
+        "order_tracking": {
+          "name": "Order tracking",
+          "desc": "Collect the order number and route to the right teammate.",
+          "flow": "Keywords track, delivery, where is my order → ask for the order number → tag Order support → assign to the least busy teammate."
+        },
+        "human_handoff": {
+          "name": "Human hand-off & complaints",
+          "desc": "Never let an unhappy customer wait on a bot.",
+          "flow": "Keywords agent, human, complaint, refund, damaged, not happy → apology → tag Needs human → assign a teammate."
+        },
+        "payment_reminder": {
+          "name": "Payment reminder",
+          "desc": "Get paid faster without chasing by hand.",
+          "flow": "Tag a contact Payment pending → payment details → 3 hours later, if still tagged, a gentle reminder. Remove the tag when paid."
+        },
+        "delivery_feedback": {
+          "name": "Delivery feedback & reviews",
+          "desc": "Collect reviews from happy buyers, catch problems early.",
+          "flow": "Tag Delivered → 2 hours later ask \"How was it?\" (Loved it ⭐ / Not happy) → Loved it: thanks, review link, tag Happy customer · Not happy: human hand-off."
+        }
+      }
     }
   },
   "Flows": {

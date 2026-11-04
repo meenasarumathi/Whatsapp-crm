@@ -71,6 +71,12 @@ From the ⋯ menu choose **View Logs**. Each run shows the contact, time, the st
 
 > **Tip:** Test with your own personal WhatsApp number before switching an automation on for everyone.
 
+## Workflow library
+
+Six ready-made workflows (lead capture, prices, order tracking, human hand-off, payment reminder, delivery feedback) are listed at the top of the Automations page. **Install** creates them as drafts with their tags and pipeline already chosen. See Workflows for what each one does.
+
+**Assign Conversation → Round-robin** now gives the chat to the teammate with the fewest open conversations (viewers are skipped).
+
 ## Scheduled auto-replies
 
 Automations → **Scheduled auto-replies** answers chosen customers automatically, on the days and hours you set, with an approved template or a text message. No builder needed.

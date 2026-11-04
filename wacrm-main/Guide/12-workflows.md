@@ -14,6 +14,21 @@ How the tabs work together: complete, step-by-step journeys from first setup to 
 
 ---
 
+## Ready-made workflow library (install in one click)
+
+Automations → **Workflow library** has six workflows already wired to tags and the **Lead to Settlement** pipeline. **Install** adds them as drafts; open each, replace the ___ placeholders (prices, UPI id, review link), then switch **Active** on.
+
+| Workflow | Starts when | What it does |
+| --- | --- | --- |
+| **Welcome & lead capture** | A contact's first message | Sends a menu (View prices / Track my order / Talk to our team), tags **New lead**, creates a deal in **New enquiry**. |
+| **Price & catalogue enquiry** | Words like price, cost, rate, catalogue — or the View prices button | Sends your price list, tags **Price enquiry**. |
+| **Order tracking** | Words like track, delivery, where is my order — or the Track my order button | Asks for the order number, tags **Order support**, assigns the least busy teammate. |
+| **Human hand-off & complaints** | Words like agent, complaint, refund, damaged, not happy — or the Talk to our team button | Apologises, tags **Needs human**, assigns a teammate. |
+| **Payment reminder** | You add the tag **Payment pending** | Sends payment details; 3 hours later reminds again if the tag is still there. Remove the tag once paid. |
+| **Delivery feedback & reviews** | You add the tag **Delivered** | 2 hours later asks "How was your experience?" — **Loved it ⭐** gets a thank-you, review link and the **Happy customer** tag; **Not happy** goes to the hand-off workflow. |
+
+> **Tip:** Wait steps (payment reminder, delivery feedback) need the scheduler. It runs inside the app once `AUTOMATION_CRON_SECRET` is set in `.env.local`.
+
 ## Workflow 1 — Setting up the CRM (admin, once)
 
 1. **Settings → WhatsApp** — connect your number and confirm "Registered".

@@ -43,6 +43,7 @@ import {
 import { AUTOMATION_TEMPLATES, type TemplateSlug } from "@/lib/automations/templates"
 import { triggerMeta, formatRelative, isKnownTrigger } from "@/lib/automations/trigger-meta"
 import { cn } from "@/lib/utils"
+import { WorkflowLibrary } from "@/components/automations/workflow-library"
 
 const TEMPLATE_ORDER: TemplateSlug[] = [
   "welcome_message",
@@ -183,6 +184,8 @@ export default function AutomationsPage() {
           </GatedButton>
         </div>
       </div>
+
+      <WorkflowLibrary onInstalled={() => void load()} />
 
       {showTemplates && (
         <section>

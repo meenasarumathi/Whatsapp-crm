@@ -1144,6 +1144,48 @@
         "matchExact": "Exata",
         "closeConversationHint": "Define o status da conversa como \"fechada\". Nenhuma configuração necessária."
       }
+    },
+    "library": {
+      "title": "Biblioteca de fluxos",
+      "subtitle": "Fluxos prontos ligados às suas tags e ao pipeline. Instale como rascunho, ajuste o texto e ative.",
+      "install": "Instalar",
+      "open": "Abrir",
+      "statusOn": "Instalado · Ativo",
+      "statusDraft": "Instalado · Rascunho",
+      "installed": "{name} instalado como rascunho — revise e ative",
+      "failed": "Não foi possível instalar o fluxo",
+      "items": {
+        "lead_capture": {
+          "name": "Boas-vindas e captura de leads",
+          "desc": "Transforme cada primeira mensagem em um lead acompanhado.",
+          "flow": "Primeira mensagem → menu (Ver preços / Rastrear pedido / Falar com a equipe) → tag Novo lead → negócio em Lead to Settlement › Nova consulta."
+        },
+        "price_enquiry": {
+          "name": "Consulta de preços e catálogo",
+          "desc": "Responda \"quanto custa?\" na hora, dia e noite.",
+          "flow": "Palavras preço, custo, taxa, catálogo (ou o botão Ver preços) → sua tabela de preços → tag Consulta de preço."
+        },
+        "order_tracking": {
+          "name": "Rastreamento de pedidos",
+          "desc": "Pede o número do pedido e encaminha para a pessoa certa.",
+          "flow": "Palavras rastrear, entrega, cadê meu pedido → pede o número do pedido → tag Suporte de pedido → atribui à pessoa menos ocupada."
+        },
+        "human_handoff": {
+          "name": "Atendimento humano e reclamações",
+          "desc": "Nunca deixe um cliente insatisfeito esperando um robô.",
+          "flow": "Palavras atendente, humano, reclamação, reembolso, danificado, insatisfeito → desculpas → tag Precisa de humano → atribui alguém."
+        },
+        "payment_reminder": {
+          "name": "Lembrete de pagamento",
+          "desc": "Receba mais rápido sem cobrar manualmente.",
+          "flow": "Marque o contato com Pagamento pendente → dados de pagamento → 3 horas depois, se ainda marcado, um lembrete. Remova a tag ao receber."
+        },
+        "delivery_feedback": {
+          "name": "Feedback de entrega e avaliações",
+          "desc": "Colete avaliações de clientes felizes e pegue problemas cedo.",
+          "flow": "Tag Entregue → 2 horas depois pergunta \"Como foi?\" (Amei ⭐ / Insatisfeito) → Amei: agradece, link de avaliação, tag Cliente feliz · Insatisfeito: atendimento humano."
+        }
+      }
     }
   },
   "Flows": {

@@ -173,7 +173,9 @@ export function AutoRepliesManager() {
     setLoading(false)
   }, [])
 
+  // Initial fetch; every setState in load() runs after an await.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load()
   }, [load])
 

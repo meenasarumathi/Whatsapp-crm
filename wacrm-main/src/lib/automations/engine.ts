@@ -489,15 +489,7 @@ async function runStep(step: AutomationStep, args: ExecuteArgs): Promise<string>
       if (!args.contactId) throw new Error('assign_conversation needs a contact')
       let agentId = cfg.agent_id
       if (cfg.mode === 'round_robin') {
-        // Pick any member of the account. The existing implementation
-        // only ever returned the automation's author; preserving that
-        // shape until a real round-robin algorithm replaces it.
-        const { data: profiles } = await db
-          .from('profiles')
-          .select('user_id')
-          .eq('account_id', args.automation.account_id)
-          .limit(1)
-        agentId = profiles?.[0]?.user_id
+        agentId = (await pickLeastBusyAgent(args.automation.account_id)) ?? undefined
       }
       if (!agentId) return 'no agent resolved'
       await db
@@ -657,6 +649,35 @@ async function resolveConversationId(args: ExecuteArgs): Promise<string> {
     throw new Error(`${prefix}: contact has no existing conversation`)
   }
   return data.id as string
+}
+
+/**
+ * Round-robin by load: the teammate (owner / admin / agent — never a
+ * viewer) with the fewest open conversations assigned. Ties go to the
+ * first in profile order, so a single-person account always gets it.
+ */
+export async function pickLeastBusyAgent(accountId: string): Promise<string | null> {
+  const db = serviceDb()
+  const { data: profiles } = await db
+    .from('profiles')
+    .select('user_id, account_role')
+    .eq('account_id', accountId)
+    .order('created_at', { ascending: true })
+  const candidates = ((profiles ?? []) as { user_id: string; account_role: string }[])
+    .filter((p) => p.account_role !== 'viewer')
+    .map((p) => p.user_id)
+  if (candidates.length <= 1) return candidates[0] ?? null
+  const { data: open } = await db
+    .from('conversations')
+    .select('assigned_agent_id')
+    .eq('account_id', accountId)
+    .eq('status', 'open')
+    .in('assigned_agent_id', candidates)
+  const load = new Map(candidates.map((id) => [id, 0]))
+  for (const c of (open ?? []) as { assigned_agent_id: string }[]) {
+    load.set(c.assigned_agent_id, (load.get(c.assigned_agent_id) ?? 0) + 1)
+  }
+  return candidates.reduce((best, id) => ((load.get(id) ?? 0) < (load.get(best) ?? 0) ? id : best), candidates[0])
 }
 
 /** Letter, digit or underscore in any script — the "inside a word" test. */

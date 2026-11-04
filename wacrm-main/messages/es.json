@@ -1144,6 +1144,48 @@
         "matchExact": "Exacta",
         "closeConversationHint": "Cambia el estado de la conversación a \"cerrada\". No requiere configuración."
       }
+    },
+    "library": {
+      "title": "Biblioteca de flujos",
+      "subtitle": "Flujos listos conectados a tus etiquetas y pipeline. Instálalos como borrador, ajusta el texto y actívalos.",
+      "install": "Instalar",
+      "open": "Abrir",
+      "statusOn": "Instalado · Activo",
+      "statusDraft": "Instalado · Borrador",
+      "installed": "{name} instalado como borrador: revísalo y actívalo",
+      "failed": "No se pudo instalar el flujo",
+      "items": {
+        "lead_capture": {
+          "name": "Bienvenida y captación de leads",
+          "desc": "Convierte cada primer mensaje en un lead con seguimiento.",
+          "flow": "Primer mensaje → menú (Ver precios / Rastrear pedido / Hablar con el equipo) → etiqueta Nuevo lead → trato en Lead to Settlement › Nueva consulta."
+        },
+        "price_enquiry": {
+          "name": "Consulta de precios y catálogo",
+          "desc": "Responde \"¿cuánto cuesta?\" al instante, de día y de noche.",
+          "flow": "Palabras precio, costo, tarifa, catálogo (o el botón Ver precios) → tu lista de precios → etiqueta Consulta de precio."
+        },
+        "order_tracking": {
+          "name": "Seguimiento de pedidos",
+          "desc": "Pide el número de pedido y lo envía a la persona adecuada.",
+          "flow": "Palabras rastrear, entrega, dónde está mi pedido → pide el número → etiqueta Soporte de pedido → asigna a la persona menos ocupada."
+        },
+        "human_handoff": {
+          "name": "Derivación humana y reclamos",
+          "desc": "Que un cliente molesto nunca espere a un bot.",
+          "flow": "Palabras agente, humano, reclamo, reembolso, dañado, no estoy contento → disculpa → etiqueta Necesita humano → asigna a alguien."
+        },
+        "payment_reminder": {
+          "name": "Recordatorio de pago",
+          "desc": "Cobra más rápido sin perseguir a mano.",
+          "flow": "Etiqueta al contacto Pago pendiente → datos de pago → 3 horas después, si sigue etiquetado, un recordatorio. Quita la etiqueta al cobrar."
+        },
+        "delivery_feedback": {
+          "name": "Opinión de entrega y reseñas",
+          "desc": "Reúne reseñas de clientes felices y detecta problemas a tiempo.",
+          "flow": "Etiqueta Entregado → 2 horas después pregunta \"¿Qué tal?\" (Me encantó ⭐ / No estoy contento) → Me encantó: gracias, enlace de reseña, etiqueta Cliente feliz · No contento: derivación humana."
+        }
+      }
     }
   },
   "Flows": {
