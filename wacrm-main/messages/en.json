@@ -918,7 +918,8 @@
         "updateError": "Failed to update",
         "duplicateError": "Failed to duplicate",
         "deleteError": "Failed to delete"
-      }
+      },
+      "scheduledReplies": "Scheduled auto-replies"
     },
     "edit": {
       "loading": "Loading...",
@@ -2933,6 +2934,108 @@
       "credited": "{amount} credited to {name}",
       "debited": "{amount} deducted from {name}",
       "failed": "Couldn't adjust the wallet."
+    }
+  },
+  "AutoReplies": {
+    "back": "Automations",
+    "title": "Scheduled auto-replies",
+    "subtitle": "Reply automatically to the contacts on your lists, on the days and hours you choose, with an approved template or a text message.",
+    "lists": {
+      "title": "Contact lists",
+      "subtitle": "Paste numbers or upload a CSV. Each list is also a tag, so you can use it in broadcasts and automations.",
+      "new": "New list",
+      "empty": "No lists yet. Create one and paste the phone numbers that should get your scheduled replies.",
+      "count": "{count, plural, one {# contact} other {# contacts}}",
+      "addNumbers": "Add numbers",
+      "delete": "Delete list",
+      "confirmDelete": "Delete the list \"{name}\"? The contacts stay; only the list (tag) is removed."
+    },
+    "rules": {
+      "title": "Auto-reply rules",
+      "subtitle": "When a listed contact messages you inside a rule's hours, the first matching rule replies once (then waits for its cooldown).",
+      "new": "New rule",
+      "empty": "No rules yet. Example: reply with your price-list template to the \"VIP parents\" list, Mon–Sat 9:00–21:00.",
+      "everyone": "Everyone",
+      "replyTemplate": "Template: {name}",
+      "replyText": "Text message",
+      "sent": "{count} sent",
+      "edit": "Edit rule",
+      "delete": "Delete rule",
+      "confirmDelete": "Delete the rule \"{name}\"?",
+      "newTitle": "New auto-reply rule",
+      "editTitle": "Edit auto-reply rule",
+      "dialogDescription": "Choose who gets it, when, and what they receive.",
+      "name": "Rule name",
+      "namePlaceholder": "e.g. VIP parents — business hours",
+      "who": "Who — contact lists",
+      "when": "When — days and hours",
+      "from": "From",
+      "to": "To",
+      "timezone": "Timezone",
+      "windowHint": "An end time earlier than the start runs past midnight (e.g. 18:00–09:00 for after-hours). Same start and end = all day.",
+      "reply": "What — the reply",
+      "kind": {
+        "template": "Approved template",
+        "text": "Text message"
+      },
+      "noTemplates": "No approved templates yet — sync or create one in Settings → Templates.",
+      "pickTemplate": "Pick a template…",
+      "textPlaceholder": "Hi {{contact.name}}, thanks for your message! Our price list: …",
+      "textHint": "Use {{contact.name}} for the customer's name. Text replies work because the customer just messaged you (24-hour window).",
+      "cooldown": "Reply to the same contact at most",
+      "priority": "Priority (lower runs first)",
+      "active": "Rule is on",
+      "save": "Save rule",
+      "errors": {
+        "name": "Give the rule a name",
+        "days": "Pick at least one day",
+        "template": "Pick a template",
+        "text": "Write the reply text"
+      }
+    },
+    "cooldowns": {
+      "0": "Every message",
+      "60": "Once an hour",
+      "360": "Once every 6 hours",
+      "720": "Once every 12 hours",
+      "1440": "Once a day",
+      "10080": "Once a week"
+    },
+    "days": {
+      "0": "Sun",
+      "1": "Mon",
+      "2": "Tue",
+      "3": "Wed",
+      "4": "Thu",
+      "5": "Fri",
+      "6": "Sat"
+    },
+    "activity": {
+      "title": "Recent auto-replies",
+      "empty": "Nothing sent yet.",
+      "sent": "Sent",
+      "failed": "Failed"
+    },
+    "toasts": {
+      "saved": "Rule saved",
+      "saveFailed": "Could not save",
+      "deleted": "Deleted",
+      "deleteFailed": "Could not delete"
+    },
+    "import": {
+      "newTitle": "New contact list",
+      "addTitle": "Add numbers to {name}",
+      "description": "One number per line, comma-separated, or a CSV with name and phone columns. New numbers become contacts.",
+      "name": "List name",
+      "namePlaceholder": "e.g. VIP parents",
+      "numbers": "Phone numbers",
+      "countryCode": "Default country code",
+      "csv": "Upload CSV",
+      "hint": "10-digit numbers get the default country code. Duplicates are skipped. Importing does not send any message.",
+      "cancel": "Cancel",
+      "submit": "Save list",
+      "done": "{numbers} numbers saved ({created} new contacts)",
+      "failed": "Could not import the numbers"
     }
   }
 }

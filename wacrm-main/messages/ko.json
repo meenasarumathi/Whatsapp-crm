@@ -918,7 +918,8 @@
         "updateError": "업데이트하지 못했습니다",
         "duplicateError": "복제하지 못했습니다",
         "deleteError": "삭제하지 못했습니다"
-      }
+      },
+      "scheduledReplies": "예약 자동 응답"
     },
     "edit": {
       "loading": "불러오는 중...",
@@ -2933,6 +2934,108 @@
       "credited": "{amount} credited to {name}",
       "debited": "{amount} deducted from {name}",
       "failed": "Couldn't adjust the wallet."
+    }
+  },
+  "AutoReplies": {
+    "back": "자동화",
+    "title": "예약 자동 응답",
+    "subtitle": "선택한 요일과 시간에 목록의 연락처에게 승인된 템플릿이나 텍스트로 자동 응답합니다.",
+    "lists": {
+      "title": "연락처 목록",
+      "subtitle": "번호를 붙여넣거나 CSV를 업로드하세요. 각 목록은 태그이기도 해서 브로드캐스트와 자동화에서도 쓸 수 있습니다.",
+      "new": "새 목록",
+      "empty": "아직 목록이 없습니다. 목록을 만들고 예약 응답을 받을 전화번호를 붙여넣으세요.",
+      "count": "연락처 {count}명",
+      "addNumbers": "번호 추가",
+      "delete": "목록 삭제",
+      "confirmDelete": "\"{name}\" 목록을 삭제할까요? 연락처는 남고 목록(태그)만 삭제됩니다."
+    },
+    "rules": {
+      "title": "자동 응답 규칙",
+      "subtitle": "목록의 연락처가 규칙 시간 안에 메시지를 보내면 처음 일치하는 규칙이 한 번 응답합니다(이후 대기 시간 적용).",
+      "new": "새 규칙",
+      "empty": "아직 규칙이 없습니다. 예: \"VIP 학부모\" 목록에 월–토 9:00–21:00 가격표 템플릿으로 응답.",
+      "everyone": "모든 연락처",
+      "replyTemplate": "템플릿: {name}",
+      "replyText": "텍스트 메시지",
+      "sent": "{count}건 발송",
+      "edit": "규칙 편집",
+      "delete": "규칙 삭제",
+      "confirmDelete": "\"{name}\" 규칙을 삭제할까요?",
+      "newTitle": "새 자동 응답 규칙",
+      "editTitle": "자동 응답 규칙 편집",
+      "dialogDescription": "누구에게, 언제, 무엇을 보낼지 선택하세요.",
+      "name": "규칙 이름",
+      "namePlaceholder": "예: VIP 학부모 — 영업시간",
+      "who": "대상 — 연락처 목록",
+      "when": "언제 — 요일과 시간",
+      "from": "시작",
+      "to": "종료",
+      "timezone": "시간대",
+      "windowHint": "종료 시간이 시작보다 이르면 자정을 넘깁니다(예: 영업 외 18:00–09:00). 시작과 종료가 같으면 하루 종일.",
+      "reply": "무엇 — 응답 내용",
+      "kind": {
+        "template": "승인된 템플릿",
+        "text": "텍스트 메시지"
+      },
+      "noTemplates": "아직 승인된 템플릿이 없습니다. 설정 → 템플릿에서 동기화하거나 만드세요.",
+      "pickTemplate": "템플릿 선택…",
+      "textPlaceholder": "안녕하세요 {{contact.name}}님, 메시지 감사합니다! 가격표: …",
+      "textHint": "고객 이름은 {{contact.name}}를 쓰세요. 고객이 방금 메시지를 보냈으므로(24시간 창) 텍스트 응답이 가능합니다.",
+      "cooldown": "같은 연락처에 최대 응답 빈도",
+      "priority": "우선순위(낮을수록 먼저)",
+      "active": "규칙 사용",
+      "save": "규칙 저장",
+      "errors": {
+        "name": "규칙 이름을 입력하세요",
+        "days": "하루 이상 선택하세요",
+        "template": "템플릿을 선택하세요",
+        "text": "응답 내용을 입력하세요"
+      }
+    },
+    "cooldowns": {
+      "0": "매 메시지마다",
+      "60": "1시간에 한 번",
+      "360": "6시간에 한 번",
+      "720": "12시간에 한 번",
+      "1440": "하루에 한 번",
+      "10080": "일주일에 한 번"
+    },
+    "days": {
+      "0": "일",
+      "1": "월",
+      "2": "화",
+      "3": "수",
+      "4": "목",
+      "5": "금",
+      "6": "토"
+    },
+    "activity": {
+      "title": "최근 자동 응답",
+      "empty": "아직 발송된 내용이 없습니다.",
+      "sent": "발송됨",
+      "failed": "실패"
+    },
+    "toasts": {
+      "saved": "규칙이 저장되었습니다",
+      "saveFailed": "저장할 수 없습니다",
+      "deleted": "삭제됨",
+      "deleteFailed": "삭제할 수 없습니다"
+    },
+    "import": {
+      "newTitle": "새 연락처 목록",
+      "addTitle": "{name}에 번호 추가",
+      "description": "한 줄에 번호 하나, 쉼표 구분, 또는 이름·전화 열이 있는 CSV. 새 번호는 연락처로 추가됩니다.",
+      "name": "목록 이름",
+      "namePlaceholder": "예: VIP 학부모",
+      "numbers": "전화번호",
+      "countryCode": "기본 국가 코드",
+      "csv": "CSV 업로드",
+      "hint": "10자리 번호에는 기본 국가 코드가 붙습니다. 중복은 건너뜁니다. 가져오기만으로는 메시지가 발송되지 않습니다.",
+      "cancel": "취소",
+      "submit": "목록 저장",
+      "done": "번호 {numbers}개 저장됨 (새 연락처 {created}명)",
+      "failed": "번호를 가져올 수 없습니다"
     }
   }
 }

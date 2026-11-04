@@ -4424,4 +4424,87 @@ REVOKE ALL ON FUNCTION token_submit_recharge(uuid,uuid,bigint,text,text) FROM PU
 REVOKE ALL ON FUNCTION token_decide_recharge(uuid,uuid,boolean,text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION token_usage_summary(timestamptz) FROM PUBLIC;
 
+-- ======================================================================
+-- 12. CONTACT LISTS AND SCHEDULED AUTO-REPLIES
+-- A contact list is a tag (tags.is_list = true) filled from pasted or CSV numbers, so it also
+-- works in broadcasts, conditions and every other tag filter.
+-- An auto-reply rule answers an inbound WhatsApp message when the contact is on one of the
+-- rule's lists (or the rule has no list = everyone), the local time in the rule's timezone is
+-- inside its days + time window, and the contact has not had this rule's reply within the
+-- cooldown. First matching rule (lowest priority number) wins; one reply per inbound message.
+-- Sends are logged in auto_reply_sends (written by the owner connection only).
+-- ======================================================================
+
+ALTER TABLE public.tags ADD COLUMN IF NOT EXISTS is_list boolean DEFAULT false NOT NULL;
+
+CREATE TABLE IF NOT EXISTS public.auto_reply_rules (
+  id                 uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  account_id         uuid NOT NULL REFERENCES public.accounts(id) ON DELETE CASCADE,
+  user_id            uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  name               text NOT NULL CHECK (length(name) BETWEEN 1 AND 120),
+  is_active          boolean NOT NULL DEFAULT true,
+  tag_ids            uuid[] NOT NULL DEFAULT '{}',
+  days               smallint[] NOT NULL DEFAULT '{0,1,2,3,4,5,6}',
+  start_time         text NOT NULL DEFAULT '00:00' CHECK (start_time ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$'),
+  end_time           text NOT NULL DEFAULT '23:59' CHECK (end_time ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$'),
+  timezone           text NOT NULL DEFAULT 'Asia/Kolkata' CHECK (length(timezone) <= 64),
+  reply_kind         text NOT NULL DEFAULT 'template' CHECK (reply_kind IN ('template', 'text')),
+  template_name      text,
+  template_language  text,
+  template_variables jsonb NOT NULL DEFAULT '{}'::jsonb,
+  message_text       text CHECK (message_text IS NULL OR length(message_text) <= 4096),
+  cooldown_minutes   integer NOT NULL DEFAULT 720 CHECK (cooldown_minutes BETWEEN 0 AND 43200),
+  priority           integer NOT NULL DEFAULT 100,
+  sent_count         integer NOT NULL DEFAULT 0,
+  last_sent_at       timestamptz,
+  created_at         timestamptz NOT NULL DEFAULT now(),
+  updated_at         timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT auto_reply_rules_reply_check CHECK (
+    (reply_kind = 'template' AND template_name IS NOT NULL AND length(template_name) > 0)
+    OR (reply_kind = 'text' AND message_text IS NOT NULL AND length(message_text) > 0)
+  )
+);
+COMMENT ON TABLE public.auto_reply_rules IS 'Scheduled auto-replies: contact lists x days/time window x template or text reply.';
+
+CREATE TABLE IF NOT EXISTS public.auto_reply_sends (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  rule_id     uuid NOT NULL REFERENCES public.auto_reply_rules(id) ON DELETE CASCADE,
+  account_id  uuid NOT NULL REFERENCES public.accounts(id) ON DELETE CASCADE,
+  contact_id  uuid NOT NULL REFERENCES public.contacts(id) ON DELETE CASCADE,
+  status      text NOT NULL CHECK (status IN ('sent', 'failed')),
+  error       text,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+COMMENT ON TABLE public.auto_reply_sends IS 'One row per scheduled auto-reply attempt (drives the cooldown and the activity log).';
+
+CREATE INDEX IF NOT EXISTS idx_auto_reply_rules_account ON public.auto_reply_rules (account_id, is_active, priority);
+CREATE INDEX IF NOT EXISTS idx_auto_reply_sends_rule_contact ON public.auto_reply_sends (rule_id, contact_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_auto_reply_sends_account ON public.auto_reply_sends (account_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_auto_reply_sends_contact ON public.auto_reply_sends (contact_id);
+
+DROP TRIGGER IF EXISTS set_updated_at ON public.auto_reply_rules;
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.auto_reply_rules FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+ALTER TABLE public.auto_reply_rules ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.auto_reply_sends ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "auto_reply_rules_select" ON public.auto_reply_rules;
+CREATE POLICY "auto_reply_rules_select" ON public.auto_reply_rules FOR SELECT
+  USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "auto_reply_rules_insert" ON public.auto_reply_rules;
+CREATE POLICY "auto_reply_rules_insert" ON public.auto_reply_rules FOR INSERT
+  WITH CHECK (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "auto_reply_rules_update" ON public.auto_reply_rules;
+CREATE POLICY "auto_reply_rules_update" ON public.auto_reply_rules FOR UPDATE
+  USING (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "auto_reply_rules_delete" ON public.auto_reply_rules;
+CREATE POLICY "auto_reply_rules_delete" ON public.auto_reply_rules FOR DELETE
+  USING (is_account_member(account_id, 'agent'::account_role_enum));
+-- Read-only for signed-in users; only the engine (owner connection) writes.
+DROP POLICY IF EXISTS "auto_reply_sends_select" ON public.auto_reply_sends;
+CREATE POLICY "auto_reply_sends_select" ON public.auto_reply_sends FOR SELECT
+  USING (is_account_member(account_id));
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.auto_reply_rules TO wacrm_app;
+GRANT SELECT ON public.auto_reply_sends TO wacrm_app;
+
 -- End of schema.

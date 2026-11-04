@@ -918,7 +918,8 @@
         "updateError": "Falha ao atualizar",
         "duplicateError": "Falha ao duplicar",
         "deleteError": "Falha ao excluir"
-      }
+      },
+      "scheduledReplies": "Respostas automáticas agendadas"
     },
     "edit": {
       "loading": "Carregando...",
@@ -2933,6 +2934,108 @@
       "credited": "{amount} credited to {name}",
       "debited": "{amount} deducted from {name}",
       "failed": "Couldn't adjust the wallet."
+    }
+  },
+  "AutoReplies": {
+    "back": "Automações",
+    "title": "Respostas automáticas agendadas",
+    "subtitle": "Responda automaticamente aos contatos das suas listas, nos dias e horários escolhidos, com um template aprovado ou uma mensagem de texto.",
+    "lists": {
+      "title": "Listas de contatos",
+      "subtitle": "Cole números ou envie um CSV. Cada lista também é uma tag, então pode ser usada em transmissões e automações.",
+      "new": "Nova lista",
+      "empty": "Ainda não há listas. Crie uma e cole os números que devem receber as respostas agendadas.",
+      "count": "{count, plural, one {# contato} other {# contatos}}",
+      "addNumbers": "Adicionar números",
+      "delete": "Excluir lista",
+      "confirmDelete": "Excluir a lista \"{name}\"? Os contatos permanecem; só a lista (tag) é removida."
+    },
+    "rules": {
+      "title": "Regras de resposta automática",
+      "subtitle": "Quando um contato da lista escreve dentro do horário de uma regra, a primeira regra correspondente responde uma vez (e respeita o intervalo).",
+      "new": "Nova regra",
+      "empty": "Ainda não há regras. Exemplo: responder com o template de preços à lista \"Pais VIP\", seg–sáb 9:00–21:00.",
+      "everyone": "Todos",
+      "replyTemplate": "Template: {name}",
+      "replyText": "Mensagem de texto",
+      "sent": "{count} enviadas",
+      "edit": "Editar regra",
+      "delete": "Excluir regra",
+      "confirmDelete": "Excluir a regra \"{name}\"?",
+      "newTitle": "Nova regra de resposta automática",
+      "editTitle": "Editar regra de resposta automática",
+      "dialogDescription": "Escolha quem recebe, quando e o quê.",
+      "name": "Nome da regra",
+      "namePlaceholder": "ex.: Pais VIP — horário comercial",
+      "who": "Quem — listas de contatos",
+      "when": "Quando — dias e horários",
+      "from": "De",
+      "to": "Até",
+      "timezone": "Fuso horário",
+      "windowHint": "Um fim antes do início passa da meia-noite (ex.: 18:00–09:00 fora do expediente). Início igual ao fim = o dia todo.",
+      "reply": "O quê — a resposta",
+      "kind": {
+        "template": "Template aprovado",
+        "text": "Mensagem de texto"
+      },
+      "noTemplates": "Ainda não há templates aprovados — sincronize ou crie em Configurações → Templates.",
+      "pickTemplate": "Escolha um template…",
+      "textPlaceholder": "Olá {{contact.name}}, obrigado pela mensagem! Nossa tabela de preços: …",
+      "textHint": "Use {{contact.name}} para o nome do cliente. Respostas de texto funcionam porque o cliente acabou de escrever (janela de 24 horas).",
+      "cooldown": "Responder ao mesmo contato no máximo",
+      "priority": "Prioridade (menor roda primeiro)",
+      "active": "Regra ativada",
+      "save": "Salvar regra",
+      "errors": {
+        "name": "Dê um nome à regra",
+        "days": "Escolha pelo menos um dia",
+        "template": "Escolha um template",
+        "text": "Escreva o texto da resposta"
+      }
+    },
+    "cooldowns": {
+      "0": "A cada mensagem",
+      "60": "Uma vez por hora",
+      "360": "Uma vez a cada 6 horas",
+      "720": "Uma vez a cada 12 horas",
+      "1440": "Uma vez por dia",
+      "10080": "Uma vez por semana"
+    },
+    "days": {
+      "0": "Dom",
+      "1": "Seg",
+      "2": "Ter",
+      "3": "Qua",
+      "4": "Qui",
+      "5": "Sex",
+      "6": "Sáb"
+    },
+    "activity": {
+      "title": "Respostas automáticas recentes",
+      "empty": "Nada enviado ainda.",
+      "sent": "Enviada",
+      "failed": "Falhou"
+    },
+    "toasts": {
+      "saved": "Regra salva",
+      "saveFailed": "Não foi possível salvar",
+      "deleted": "Excluído",
+      "deleteFailed": "Não foi possível excluir"
+    },
+    "import": {
+      "newTitle": "Nova lista de contatos",
+      "addTitle": "Adicionar números a {name}",
+      "description": "Um número por linha, separados por vírgula, ou um CSV com colunas de nome e telefone. Números novos viram contatos.",
+      "name": "Nome da lista",
+      "namePlaceholder": "ex.: Pais VIP",
+      "numbers": "Números de telefone",
+      "countryCode": "Código do país padrão",
+      "csv": "Enviar CSV",
+      "hint": "Números de 10 dígitos recebem o código do país padrão. Duplicados são ignorados. Importar não envia nenhuma mensagem.",
+      "cancel": "Cancelar",
+      "submit": "Salvar lista",
+      "done": "{numbers} números salvos ({created} novos contatos)",
+      "failed": "Não foi possível importar os números"
     }
   }
 }
