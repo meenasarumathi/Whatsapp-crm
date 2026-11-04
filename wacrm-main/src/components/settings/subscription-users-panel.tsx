@@ -81,6 +81,7 @@ interface PlatformUser {
 const TAB_LABEL_KEY: Record<CrmTab, string> = {
   dashboard: 'dashboard',
   inbox: 'inbox',
+  instagram: 'instagram',
   'train-ai': 'trainAi',
   notifications: 'notifications',
   contacts: 'contacts',

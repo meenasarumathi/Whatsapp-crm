@@ -43,7 +43,8 @@
     "menuSignOut": "로그아웃",
     "trainAi": "AI 학습",
     "demo": "데모",
-    "wallet": "지갑"
+    "wallet": "지갑",
+    "instagram": "인스타그램"
   },
   "Header": {
     "dashboard": "대시보드",
@@ -66,7 +67,8 @@
     "agents": "AI 에이전트",
     "trainAi": "AI 학습",
     "demo": "데모",
-    "wallet": "지갑"
+    "wallet": "지갑",
+    "instagram": "인스타그램"
   },
   "ModeToggle": {
     "switchMode": "{mode} 모드로 전환"
@@ -3124,5 +3126,121 @@
       }
     },
     "footer": "© Zyloop · 성장하는 팀을 위한 WhatsApp CRM"
+  },
+  "Instagram": {
+    "title": "인스타그램",
+    "subtitle": "자동화, 빠른 답장, 비즈니스로 학습한 AI로 인스타그램 DM·댓글·스토리 멘션에 자동으로 답하세요.",
+    "status": {
+      "connected": "연결됨 · @{username}",
+      "simulation": "시뮬레이션 모드 — 연결 안 됨"
+    },
+    "sections": {
+      "inbox": "받은편지함",
+      "automations": "자동화",
+      "connect": "연결 & 테스트"
+    },
+    "inbox": {
+      "empty": "아직 인스타그램 대화가 없습니다. 계정을 연결하거나 연결 & 테스트의 시뮬레이터를 써 보세요.",
+      "pick": "대화를 선택하세요",
+      "placeholder": "인스타그램으로 답장…",
+      "sendFailed": "보낼 수 없습니다",
+      "simulatedSend": "시뮬레이션으로 저장됨 — 실제로 보내려면 인스타그램을 연결하세요.",
+      "storyMention": "📸 스토리에서 회원님을 언급했습니다",
+      "kinds": {
+        "comment": "댓글",
+        "comment_reply": "공개 답글",
+        "story_mention": "스토리 멘션",
+        "story_reply": "스토리 답장"
+      },
+      "by": {
+        "agent": "상담원",
+        "automation": "자동화",
+        "ai": "AI"
+      },
+      "statuses": {
+        "sent": "보냄",
+        "simulated": "시뮬레이션",
+        "failed": "실패",
+        "received": "수신"
+      }
+    },
+    "automations": {
+      "intro": "인스타그램 판매자에게 꼭 필요한 다섯 가지입니다. 초안으로 시작하니 문구를 수정한 뒤 켜세요. 메시지마다 자동화 하나가 답하고, 일치하는 것이 없으면 AI 답장이 답할 수 있습니다.",
+      "kinds": {
+        "comment_to_dm": {
+          "title": "댓글 → DM",
+          "desc": "게시물에 키워드 댓글을 달면 DM으로 정보를 보내고 공개 답글을 남깁니다."
+        },
+        "keyword": {
+          "title": "키워드 답장",
+          "desc": "DM에 키워드(가격, 주문…)가 있으면 준비한 답을 보냅니다."
+        },
+        "welcome": {
+          "title": "환영 DM",
+          "desc": "처음 메시지를 보낸 사람에게 인사합니다."
+        },
+        "story_mention": {
+          "title": "스토리 멘션 감사",
+          "desc": "스토리에 태그한 사람에게 감사 인사 — 혜택 제공에 좋습니다."
+        },
+        "away": {
+          "title": "부재 메시지",
+          "desc": "영업시간 외에 언제 답할지 알려줍니다(사람마다 12시간에 한 번)."
+        }
+      },
+      "fields": {
+        "keywords": "키워드 (쉼표로 구분)",
+        "commentKeywords": "댓글 키워드 (비우면 모든 댓글)",
+        "mediaId": "이 게시물만 (미디어 ID)",
+        "anyPost": "모든 게시물",
+        "from": "부재 시작",
+        "to": "복귀",
+        "replyFrom": "답장 내용",
+        "customText": "직접 입력",
+        "quickReply": "빠른 답장: {title}",
+        "publicReply": "댓글 아래 공개 답글 (선택)"
+      },
+      "sent": "{count}건 발송",
+      "save": "저장",
+      "saved": "저장됨",
+      "saveFailed": "저장할 수 없습니다",
+      "placeholderHint": "고객 @사용자명은 {{name}}를 쓰세요. 빠른 답장은 설정 → 빠른 답장에서 가져옵니다."
+    },
+    "connect": {
+      "title": "인스타그램 프로페셔널 계정 연결",
+      "steps": {
+        "s1": "Meta for Developers에서 앱에 Instagram 제품(Instagram 로그인 API 설정)을 추가하세요.",
+        "s2": "Webhooks에 아래 콜백 URL과 확인 토큰을 붙여넣고 messages, comments를 구독하세요.",
+        "s3": "계정용 액세스 토큰(instagram_business_manage_messages, instagram_business_manage_comments)을 생성해 여기에 붙여넣으세요.",
+        "s4": "모든 고객에게 운영하기 전에 Meta 앱 검수에서 해당 권한을 승인받아야 합니다."
+      },
+      "webhookUrl": "콜백 URL",
+      "verifyToken": "확인 토큰",
+      "copy": "복사",
+      "copied": "복사됨",
+      "token": "인스타그램 액세스 토큰",
+      "tokenSaved": "저장됨 — 바꾸려면 새 토큰 입력",
+      "appSecret": "인스타그램 앱 시크릿",
+      "secretSaved": "저장됨",
+      "secretOptional": "선택 — 기본값 META_APP_SECRET",
+      "connect": "저장 & 확인",
+      "disconnect": "연결 해제",
+      "saved": "인스타그램 설정이 저장되었습니다",
+      "saveFailed": "저장할 수 없습니다",
+      "ai": "인스타그램 AI 자동 응답",
+      "aiDesc": "일치하는 자동화가 없으면 AI가 Train AI와 문서를 바탕으로 DM에 답합니다(AI 에이전트 → 설정에 AI 키 필요).",
+      "simTitle": "인스타그램 없이 테스트",
+      "simDesc": "가상 고객 메시지를 같은 엔진으로 보냅니다. 답장은 받은편지함에 시뮬레이션으로 표시되며 실제 발송·과금은 없습니다.",
+      "simKinds": {
+        "dm": "다이렉트 메시지",
+        "comment": "게시물 댓글",
+        "story_mention": "스토리 멘션",
+        "story_reply": "스토리 답장"
+      },
+      "simSend": "메시지 시뮬레이션",
+      "simFailed": "시뮬레이션 실패",
+      "simReplied": "{by}이(가) 답했습니다 — 받은편지함에서 확인하세요.",
+      "simNoReply": "저장됐지만 일치하는 활성 자동화가 없습니다(AI 꺼짐). 자동화를 켜고 다시 시도하세요."
+    }
   }
 }

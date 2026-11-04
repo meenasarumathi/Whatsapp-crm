@@ -1983,6 +1983,290 @@
     "generated": false
    }
   },
+  "instagram_accounts": {
+   "account_id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "ig_user_id": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "username": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "access_token_enc": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "app_secret_enc": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "verify_token": {
+    "type": "text",
+    "notnull": true,
+    "default": "encode(gen_random_bytes(16), 'hex'::text)",
+    "generated": false
+   },
+   "ai_auto_reply": {
+    "type": "boolean",
+    "notnull": true,
+    "default": "false",
+    "generated": false
+   },
+   "connected_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "last_event_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "created_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   },
+   "updated_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   }
+  },
+  "instagram_automations": {
+   "id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": "gen_random_uuid()",
+    "generated": false
+   },
+   "account_id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "user_id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "kind": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "name": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "is_active": {
+    "type": "boolean",
+    "notnull": true,
+    "default": "false",
+    "generated": false
+   },
+   "config": {
+    "type": "jsonb",
+    "notnull": true,
+    "default": "'{}'::jsonb",
+    "generated": false
+   },
+   "priority": {
+    "type": "integer",
+    "notnull": true,
+    "default": "100",
+    "generated": false
+   },
+   "sent_count": {
+    "type": "integer",
+    "notnull": true,
+    "default": "0",
+    "generated": false
+   },
+   "last_sent_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "created_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   },
+   "updated_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   }
+  },
+  "instagram_contacts": {
+   "id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": "gen_random_uuid()",
+    "generated": false
+   },
+   "account_id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "igsid": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "username": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "name": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "last_message_text": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "last_message_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "unread_count": {
+    "type": "integer",
+    "notnull": true,
+    "default": "0",
+    "generated": false
+   },
+   "created_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   }
+  },
+  "instagram_messages": {
+   "id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": "gen_random_uuid()",
+    "generated": false
+   },
+   "account_id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "contact_id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "direction": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "kind": {
+    "type": "text",
+    "notnull": true,
+    "default": "'dm'::text",
+    "generated": false
+   },
+   "text": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "mid": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "comment_id": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "media_id": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "status": {
+    "type": "text",
+    "notnull": true,
+    "default": "'received'::text",
+    "generated": false
+   },
+   "error": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "sent_by": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "automation_id": {
+    "type": "uuid",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "created_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   }
+  },
   "member_presence": {
    "user_id": {
     "type": "uuid",
@@ -5095,260 +5379,511 @@
    "kind": "c",
    "def": "CHECK ((type = ANY (ARRAY['conversation_assigned'::text, 'deal_assigned'::text])))",
    "refschema": null
+  },
+  "instagram_accounts.instagram_accounts_pkey": {
+   "table": "instagram_accounts",
+   "name": "instagram_accounts_pkey",
+   "kind": "p",
+   "def": "PRIMARY KEY (account_id)",
+   "refschema": null
+  },
+  "instagram_accounts.instagram_accounts_account_id_fkey": {
+   "table": "instagram_accounts",
+   "name": "instagram_accounts_account_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE",
+   "refschema": "public"
+  },
+  "instagram_contacts.instagram_contacts_pkey": {
+   "table": "instagram_contacts",
+   "name": "instagram_contacts_pkey",
+   "kind": "p",
+   "def": "PRIMARY KEY (id)",
+   "refschema": null
+  },
+  "instagram_contacts.instagram_contacts_account_igsid_key": {
+   "table": "instagram_contacts",
+   "name": "instagram_contacts_account_igsid_key",
+   "kind": "u",
+   "def": "UNIQUE (account_id, igsid)",
+   "refschema": null
+  },
+  "instagram_contacts.instagram_contacts_account_id_fkey": {
+   "table": "instagram_contacts",
+   "name": "instagram_contacts_account_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE",
+   "refschema": "public"
+  },
+  "instagram_messages.instagram_messages_direction_check": {
+   "table": "instagram_messages",
+   "name": "instagram_messages_direction_check",
+   "kind": "c",
+   "def": "CHECK ((direction = ANY (ARRAY['inbound'::text, 'outbound'::text])))",
+   "refschema": null
+  },
+  "instagram_messages.instagram_messages_kind_check": {
+   "table": "instagram_messages",
+   "name": "instagram_messages_kind_check",
+   "kind": "c",
+   "def": "CHECK ((kind = ANY (ARRAY['dm'::text, 'comment'::text, 'comment_reply'::text, 'story_mention'::text, 'story_reply'::text])))",
+   "refschema": null
+  },
+  "instagram_messages.instagram_messages_status_check": {
+   "table": "instagram_messages",
+   "name": "instagram_messages_status_check",
+   "kind": "c",
+   "def": "CHECK ((status = ANY (ARRAY['received'::text, 'sent'::text, 'simulated'::text, 'failed'::text])))",
+   "refschema": null
+  },
+  "instagram_messages.instagram_messages_sent_by_check": {
+   "table": "instagram_messages",
+   "name": "instagram_messages_sent_by_check",
+   "kind": "c",
+   "def": "CHECK (((sent_by IS NULL) OR (sent_by = ANY (ARRAY['agent'::text, 'automation'::text, 'ai'::text]))))",
+   "refschema": null
+  },
+  "instagram_messages.instagram_messages_pkey": {
+   "table": "instagram_messages",
+   "name": "instagram_messages_pkey",
+   "kind": "p",
+   "def": "PRIMARY KEY (id)",
+   "refschema": null
+  },
+  "instagram_messages.instagram_messages_account_id_fkey": {
+   "table": "instagram_messages",
+   "name": "instagram_messages_account_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE",
+   "refschema": "public"
+  },
+  "instagram_messages.instagram_messages_contact_id_fkey": {
+   "table": "instagram_messages",
+   "name": "instagram_messages_contact_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (contact_id) REFERENCES instagram_contacts(id) ON DELETE CASCADE",
+   "refschema": "public"
+  },
+  "instagram_automations.instagram_automations_kind_check": {
+   "table": "instagram_automations",
+   "name": "instagram_automations_kind_check",
+   "kind": "c",
+   "def": "CHECK ((kind = ANY (ARRAY['welcome'::text, 'keyword'::text, 'comment_to_dm'::text, 'story_mention'::text, 'away'::text])))",
+   "refschema": null
+  },
+  "instagram_automations.instagram_automations_name_check": {
+   "table": "instagram_automations",
+   "name": "instagram_automations_name_check",
+   "kind": "c",
+   "def": "CHECK (((length(name) >= 1) AND (length(name) <= 120)))",
+   "refschema": null
+  },
+  "instagram_automations.instagram_automations_pkey": {
+   "table": "instagram_automations",
+   "name": "instagram_automations_pkey",
+   "kind": "p",
+   "def": "PRIMARY KEY (id)",
+   "refschema": null
+  },
+  "instagram_automations.instagram_automations_account_id_fkey": {
+   "table": "instagram_automations",
+   "name": "instagram_automations_account_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE",
+   "refschema": "public"
+  },
+  "instagram_automations.instagram_automations_user_id_fkey": {
+   "table": "instagram_automations",
+   "name": "instagram_automations_user_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
+   "refschema": "public"
   }
  },
  "indexes": {
-  "idx_flow_runs_contact_id": {
-   "table": "flow_runs",
-   "def": "CREATE INDEX idx_flow_runs_contact_id ON public.flow_runs USING btree (contact_id)"
-  },
-  "idx_automation_pending_automation_id": {
-   "table": "automation_pending_executions",
-   "def": "CREATE INDEX idx_automation_pending_automation_id ON public.automation_pending_executions USING btree (automation_id)"
-  },
-  "idx_ai_training_examples_account": {
-   "table": "ai_training_examples",
-   "def": "CREATE INDEX idx_ai_training_examples_account ON public.ai_training_examples USING btree (account_id, kind, is_active)"
-  },
-  "idx_flow_nodes_flow": {
-   "table": "flow_nodes",
-   "def": "CREATE INDEX idx_flow_nodes_flow ON public.flow_nodes USING btree (flow_id)"
-  },
-  "idx_messages_message_id": {
-   "table": "messages",
-   "def": "CREATE INDEX idx_messages_message_id ON public.messages USING btree (message_id)"
-  },
-  "idx_automations_account": {
-   "table": "automations",
-   "def": "CREATE INDEX idx_automations_account ON public.automations USING btree (account_id)"
-  },
-  "idx_message_charges_open": {
-   "table": "message_charges",
-   "def": "CREATE INDEX idx_message_charges_open ON public.message_charges USING btree (updated_at) WHERE (status = ANY (ARRAY['reserved'::text, 'needs_reconciliation'::text]))"
-  },
-  "member_presence_account_idx": {
-   "table": "member_presence",
-   "def": "CREATE INDEX member_presence_account_idx ON public.member_presence USING btree (account_id)"
-  },
-  "idx_notifications_user_unread": {
-   "table": "notifications",
-   "def": "CREATE INDEX idx_notifications_user_unread ON public.notifications USING btree (user_id) WHERE (read_at IS NULL)"
-  },
-  "idx_broadcast_recipients_wamid": {
-   "table": "broadcast_recipients",
-   "def": "CREATE UNIQUE INDEX idx_broadcast_recipients_wamid ON public.broadcast_recipients USING btree (whatsapp_message_id) WHERE (whatsapp_message_id IS NOT NULL)"
-  },
-  "idx_automation_logs_contact_id": {
-   "table": "automation_logs",
-   "def": "CREATE INDEX idx_automation_logs_contact_id ON public.automation_logs USING btree (contact_id)"
-  },
-  "idx_quick_replies_account": {
-   "table": "quick_replies",
-   "def": "CREATE INDEX idx_quick_replies_account ON public.quick_replies USING btree (account_id)"
-  },
-  "idx_automations_user_id": {
-   "table": "automations",
-   "def": "CREATE INDEX idx_automations_user_id ON public.automations USING btree (user_id)"
-  },
-  "idx_contact_custom_values_field_id": {
-   "table": "contact_custom_values",
-   "def": "CREATE INDEX idx_contact_custom_values_field_id ON public.contact_custom_values USING btree (custom_field_id)"
-  },
-  "idx_deal_stage_history_to_stage": {
-   "table": "deal_stage_history",
-   "def": "CREATE INDEX idx_deal_stage_history_to_stage ON public.deal_stage_history USING btree (to_stage_id)"
-  },
-  "idx_custom_fields_account": {
-   "table": "custom_fields",
-   "def": "CREATE INDEX idx_custom_fields_account ON public.custom_fields USING btree (account_id)"
-  },
-  "idx_flow_runs_flow_started": {
-   "table": "flow_runs",
-   "def": "CREATE INDEX idx_flow_runs_flow_started ON public.flow_runs USING btree (flow_id, started_at DESC)"
-  },
-  "idx_recharge_requests_account": {
-   "table": "recharge_requests",
-   "def": "CREATE INDEX idx_recharge_requests_account ON public.recharge_requests USING btree (account_id, created_at DESC)"
-  },
-  "idx_contact_notes_account": {
-   "table": "contact_notes",
-   "def": "CREATE INDEX idx_contact_notes_account ON public.contact_notes USING btree (account_id)"
-  },
-  "idx_recharge_requests_pending": {
-   "table": "recharge_requests",
-   "def": "CREATE INDEX idx_recharge_requests_pending ON public.recharge_requests USING btree (created_at) WHERE (status = 'pending'::text)"
-  },
-  "idx_deals_contact_id": {
-   "table": "deals",
-   "def": "CREATE INDEX idx_deals_contact_id ON public.deals USING btree (contact_id)"
-  },
-  "idx_db_maintenance_log_created": {
-   "table": "db_maintenance_log",
-   "def": "CREATE INDEX idx_db_maintenance_log_created ON public.db_maintenance_log USING btree (created_at DESC)"
-  },
-  "uq_token_ledger_recharge_reference": {
-   "table": "token_ledger",
-   "def": "CREATE UNIQUE INDEX uq_token_ledger_recharge_reference ON public.token_ledger USING btree (reference) WHERE (entry_type = 'recharge_credit'::text)"
-  },
-  "idx_flow_runs_conversation_id": {
-   "table": "flow_runs",
-   "def": "CREATE INDEX idx_flow_runs_conversation_id ON public.flow_runs USING btree (conversation_id)"
-  },
-  "idx_deal_stage_history_deal": {
-   "table": "deal_stage_history",
-   "def": "CREATE INDEX idx_deal_stage_history_deal ON public.deal_stage_history USING btree (deal_id, created_at)"
-  },
-  "idx_automation_pending_contact_id": {
-   "table": "automation_pending_executions",
-   "def": "CREATE INDEX idx_automation_pending_contact_id ON public.automation_pending_executions USING btree (contact_id)"
-  },
-  "idx_contacts_account_phone_normalized": {
-   "table": "contacts",
-   "def": "CREATE UNIQUE INDEX idx_contacts_account_phone_normalized ON public.contacts USING btree (account_id, phone_normalized) WHERE (phone_normalized <> ''::text)"
-  },
-  "message_templates_user_name_language_key": {
-   "table": "message_templates",
-   "def": "CREATE UNIQUE INDEX message_templates_user_name_language_key ON public.message_templates USING btree (user_id, name, language)"
-  },
-  "idx_automation_pending_due": {
-   "table": "automation_pending_executions",
-   "def": "CREATE INDEX idx_automation_pending_due ON public.automation_pending_executions USING btree (run_at) WHERE (status = 'pending'::text)"
-  },
-  "idx_flow_runs_active_advanced": {
-   "table": "flow_runs",
-   "def": "CREATE INDEX idx_flow_runs_active_advanced ON public.flow_runs USING btree (last_advanced_at) WHERE (status = 'active'::text)"
-  },
-  "ai_knowledge_documents_account_id_idx": {
-   "table": "ai_knowledge_documents",
-   "def": "CREATE INDEX ai_knowledge_documents_account_id_idx ON public.ai_knowledge_documents USING btree (account_id)"
-  },
-  "idx_conversations_account": {
-   "table": "conversations",
-   "def": "CREATE INDEX idx_conversations_account ON public.conversations USING btree (account_id)"
-  },
-  "ai_knowledge_chunks_account_id_idx": {
-   "table": "ai_knowledge_chunks",
-   "def": "CREATE INDEX ai_knowledge_chunks_account_id_idx ON public.ai_knowledge_chunks USING btree (account_id)"
-  },
-  "idx_accounts_one_per_owner": {
-   "table": "accounts",
-   "def": "CREATE UNIQUE INDEX idx_accounts_one_per_owner ON public.accounts USING btree (owner_user_id)"
+  "idx_instagram_accounts_ig_user": {
+   "table": "instagram_accounts",
+   "def": "CREATE UNIQUE INDEX idx_instagram_accounts_ig_user ON public.instagram_accounts USING btree (ig_user_id) WHERE (ig_user_id IS NOT NULL)"
   },
   "idx_automation_logs_automation": {
    "table": "automation_logs",
    "def": "CREATE INDEX idx_automation_logs_automation ON public.automation_logs USING btree (automation_id, created_at DESC)"
   },
-  "idx_broadcast_recipients_broadcast_status": {
-   "table": "broadcast_recipients",
-   "def": "CREATE INDEX idx_broadcast_recipients_broadcast_status ON public.broadcast_recipients USING btree (broadcast_id, status)"
-  },
-  "idx_automation_logs_account": {
-   "table": "automation_logs",
-   "def": "CREATE INDEX idx_automation_logs_account ON public.automation_logs USING btree (account_id)"
-  },
-  "idx_contacts_user_id": {
-   "table": "contacts",
-   "def": "CREATE INDEX idx_contacts_user_id ON public.contacts USING btree (user_id)"
-  },
-  "idx_notifications_conversation_id": {
-   "table": "notifications",
-   "def": "CREATE INDEX idx_notifications_conversation_id ON public.notifications USING btree (conversation_id)"
+  "idx_contact_tags_contact": {
+   "table": "contact_tags",
+   "def": "CREATE INDEX idx_contact_tags_contact ON public.contact_tags USING btree (contact_id)"
   },
   "idx_flows_active_trigger": {
    "table": "flows",
    "def": "CREATE INDEX idx_flows_active_trigger ON public.flows USING btree (user_id, trigger_type) WHERE (status = 'active'::text)"
   },
-  "idx_broadcasts_account": {
-   "table": "broadcasts",
-   "def": "CREATE INDEX idx_broadcasts_account ON public.broadcasts USING btree (account_id)"
+  "idx_deals_pipeline": {
+   "table": "deals",
+   "def": "CREATE INDEX idx_deals_pipeline ON public.deals USING btree (pipeline_id)"
   },
-  "idx_whatsapp_config_account": {
-   "table": "whatsapp_config",
-   "def": "CREATE INDEX idx_whatsapp_config_account ON public.whatsapp_config USING btree (account_id)"
+  "api_keys_account_id_idx": {
+   "table": "api_keys",
+   "def": "CREATE INDEX api_keys_account_id_idx ON public.api_keys USING btree (account_id)"
   },
-  "idx_conversations_account_contact": {
-   "table": "conversations",
-   "def": "CREATE UNIQUE INDEX idx_conversations_account_contact ON public.conversations USING btree (account_id, contact_id)"
+  "ai_knowledge_chunks_account_id_idx": {
+   "table": "ai_knowledge_chunks",
+   "def": "CREATE INDEX ai_knowledge_chunks_account_id_idx ON public.ai_knowledge_chunks USING btree (account_id)"
   },
-  "idx_message_reactions_conversation": {
-   "table": "message_reactions",
-   "def": "CREATE INDEX idx_message_reactions_conversation ON public.message_reactions USING btree (conversation_id)"
+  "idx_token_ledger_account_time": {
+   "table": "token_ledger",
+   "def": "CREATE INDEX idx_token_ledger_account_time ON public.token_ledger USING btree (account_id, created_at DESC)"
   },
-  "idx_auto_reply_sends_account": {
-   "table": "auto_reply_sends",
-   "def": "CREATE INDEX idx_auto_reply_sends_account ON public.auto_reply_sends USING btree (account_id, created_at DESC)"
+  "message_templates_user_name_language_key": {
+   "table": "message_templates",
+   "def": "CREATE UNIQUE INDEX message_templates_user_name_language_key ON public.message_templates USING btree (user_id, name, language)"
   },
-  "idx_notifications_deal_id": {
-   "table": "notifications",
-   "def": "CREATE INDEX idx_notifications_deal_id ON public.notifications USING btree (deal_id)"
+  "idx_automation_pending_automation_id": {
+   "table": "automation_pending_executions",
+   "def": "CREATE INDEX idx_automation_pending_automation_id ON public.automation_pending_executions USING btree (automation_id)"
   },
-  "idx_message_charges_account_time": {
-   "table": "message_charges",
-   "def": "CREATE INDEX idx_message_charges_account_time ON public.message_charges USING btree (account_id, created_at DESC)"
+  "idx_quick_replies_account": {
+   "table": "quick_replies",
+   "def": "CREATE INDEX idx_quick_replies_account ON public.quick_replies USING btree (account_id)"
+  },
+  "idx_flow_runs_conversation_id": {
+   "table": "flow_runs",
+   "def": "CREATE INDEX idx_flow_runs_conversation_id ON public.flow_runs USING btree (conversation_id)"
+  },
+  "idx_contacts_account": {
+   "table": "contacts",
+   "def": "CREATE INDEX idx_contacts_account ON public.contacts USING btree (account_id)"
   },
   "idx_deals_conversation_id": {
    "table": "deals",
    "def": "CREATE INDEX idx_deals_conversation_id ON public.deals USING btree (conversation_id)"
   },
-  "idx_automation_pending_account": {
-   "table": "automation_pending_executions",
-   "def": "CREATE INDEX idx_automation_pending_account ON public.automation_pending_executions USING btree (account_id)"
+  "idx_profiles_account_role": {
+   "table": "profiles",
+   "def": "CREATE INDEX idx_profiles_account_role ON public.profiles USING btree (account_id, account_role)"
   },
-  "idx_conversations_user_id": {
-   "table": "conversations",
-   "def": "CREATE INDEX idx_conversations_user_id ON public.conversations USING btree (user_id)"
+  "idx_password_reset_tokens_user": {
+   "table": "password_reset_tokens",
+   "def": "CREATE INDEX idx_password_reset_tokens_user ON public.password_reset_tokens USING btree (user_id)"
   },
-  "idx_deals_stage": {
-   "table": "deals",
-   "def": "CREATE INDEX idx_deals_stage ON public.deals USING btree (stage_id)"
-  },
-  "idx_deal_stage_history_assigned": {
-   "table": "deal_stage_history",
-   "def": "CREATE INDEX idx_deal_stage_history_assigned ON public.deal_stage_history USING btree (assigned_to)"
-  },
-  "idx_flow_run_events_run_type": {
-   "table": "flow_run_events",
-   "def": "CREATE INDEX idx_flow_run_events_run_type ON public.flow_run_events USING btree (flow_run_id, event_type)"
-  },
-  "idx_platform_users_role": {
-   "table": "platform_users",
-   "def": "CREATE INDEX idx_platform_users_role ON public.platform_users USING btree (platform_role)"
-  },
-  "idx_automation_steps_automation_id": {
-   "table": "automation_steps",
-   "def": "CREATE INDEX idx_automation_steps_automation_id ON public.automation_steps USING btree (automation_id, \"position\")"
-  },
-  "idx_deal_stage_history_from_stage": {
-   "table": "deal_stage_history",
-   "def": "CREATE INDEX idx_deal_stage_history_from_stage ON public.deal_stage_history USING btree (from_stage_id)"
-  },
-  "idx_broadcast_recipients_broadcast": {
-   "table": "broadcast_recipients",
-   "def": "CREATE INDEX idx_broadcast_recipients_broadcast ON public.broadcast_recipients USING btree (broadcast_id)"
-  },
-  "idx_broadcast_recipients_contact_id": {
-   "table": "broadcast_recipients",
-   "def": "CREATE INDEX idx_broadcast_recipients_contact_id ON public.broadcast_recipients USING btree (contact_id)"
-  },
-  "idx_notifications_user_created": {
-   "table": "notifications",
-   "def": "CREATE INDEX idx_notifications_user_created ON public.notifications USING btree (user_id, created_at DESC)"
-  },
-  "idx_contact_notes_contact_id": {
-   "table": "contact_notes",
-   "def": "CREATE INDEX idx_contact_notes_contact_id ON public.contact_notes USING btree (contact_id)"
-  },
-  "idx_auto_reply_sends_rule_contact": {
-   "table": "auto_reply_sends",
-   "def": "CREATE INDEX idx_auto_reply_sends_rule_contact ON public.auto_reply_sends USING btree (rule_id, contact_id, created_at DESC)"
+  "idx_auto_reply_rules_account": {
+   "table": "auto_reply_rules",
+   "def": "CREATE INDEX idx_auto_reply_rules_account ON public.auto_reply_rules USING btree (account_id, is_active, priority)"
   },
   "idx_auto_reply_sends_contact": {
    "table": "auto_reply_sends",
    "def": "CREATE INDEX idx_auto_reply_sends_contact ON public.auto_reply_sends USING btree (contact_id)"
   },
+  "idx_contact_notes_contact_id": {
+   "table": "contact_notes",
+   "def": "CREATE INDEX idx_contact_notes_contact_id ON public.contact_notes USING btree (contact_id)"
+  },
+  "idx_messages_conversation_message_id": {
+   "table": "messages",
+   "def": "CREATE UNIQUE INDEX idx_messages_conversation_message_id ON public.messages USING btree (conversation_id, message_id)"
+  },
+  "ai_knowledge_chunks_fts_idx": {
+   "table": "ai_knowledge_chunks",
+   "def": "CREATE INDEX ai_knowledge_chunks_fts_idx ON public.ai_knowledge_chunks USING gin (fts)"
+  },
+  "idx_contact_tags_tag": {
+   "table": "contact_tags",
+   "def": "CREATE INDEX idx_contact_tags_tag ON public.contact_tags USING btree (tag_id)"
+  },
+  "idx_flow_nodes_flow": {
+   "table": "flow_nodes",
+   "def": "CREATE INDEX idx_flow_nodes_flow ON public.flow_nodes USING btree (flow_id)"
+  },
+  "idx_deal_stage_history_from_stage": {
+   "table": "deal_stage_history",
+   "def": "CREATE INDEX idx_deal_stage_history_from_stage ON public.deal_stage_history USING btree (from_stage_id)"
+  },
+  "idx_message_charges_account_time": {
+   "table": "message_charges",
+   "def": "CREATE INDEX idx_message_charges_account_time ON public.message_charges USING btree (account_id, created_at DESC)"
+  },
+  "idx_broadcast_recipients_broadcast_status": {
+   "table": "broadcast_recipients",
+   "def": "CREATE INDEX idx_broadcast_recipients_broadcast_status ON public.broadcast_recipients USING btree (broadcast_id, status)"
+  },
+  "users_email_lower_key": {
+   "table": "users",
+   "def": "CREATE UNIQUE INDEX users_email_lower_key ON public.users USING btree (lower(email))"
+  },
+  "idx_conversations_user_id": {
+   "table": "conversations",
+   "def": "CREATE INDEX idx_conversations_user_id ON public.conversations USING btree (user_id)"
+  },
+  "idx_contacts_phone": {
+   "table": "contacts",
+   "def": "CREATE INDEX idx_contacts_phone ON public.contacts USING btree (phone)"
+  },
+  "member_presence_account_idx": {
+   "table": "member_presence",
+   "def": "CREATE INDEX member_presence_account_idx ON public.member_presence USING btree (account_id)"
+  },
+  "idx_automations_user_id": {
+   "table": "automations",
+   "def": "CREATE INDEX idx_automations_user_id ON public.automations USING btree (user_id)"
+  },
+  "idx_message_charges_open": {
+   "table": "message_charges",
+   "def": "CREATE INDEX idx_message_charges_open ON public.message_charges USING btree (updated_at) WHERE (status = ANY (ARRAY['reserved'::text, 'needs_reconciliation'::text]))"
+  },
+  "idx_message_reactions_conversation": {
+   "table": "message_reactions",
+   "def": "CREATE INDEX idx_message_reactions_conversation ON public.message_reactions USING btree (conversation_id)"
+  },
+  "idx_broadcast_recipients_broadcast": {
+   "table": "broadcast_recipients",
+   "def": "CREATE INDEX idx_broadcast_recipients_broadcast ON public.broadcast_recipients USING btree (broadcast_id)"
+  },
+  "idx_ai_usage_log_account_created": {
+   "table": "ai_usage_log",
+   "def": "CREATE INDEX idx_ai_usage_log_account_created ON public.ai_usage_log USING btree (account_id, created_at DESC)"
+  },
+  "idx_custom_fields_account": {
+   "table": "custom_fields",
+   "def": "CREATE INDEX idx_custom_fields_account ON public.custom_fields USING btree (account_id)"
+  },
+  "idx_broadcast_recipients_wamid": {
+   "table": "broadcast_recipients",
+   "def": "CREATE UNIQUE INDEX idx_broadcast_recipients_wamid ON public.broadcast_recipients USING btree (whatsapp_message_id) WHERE (whatsapp_message_id IS NOT NULL)"
+  },
+  "webhook_endpoints_account_id_idx": {
+   "table": "webhook_endpoints",
+   "def": "CREATE INDEX webhook_endpoints_account_id_idx ON public.webhook_endpoints USING btree (account_id)"
+  },
+  "idx_auto_reply_sends_rule_contact": {
+   "table": "auto_reply_sends",
+   "def": "CREATE INDEX idx_auto_reply_sends_rule_contact ON public.auto_reply_sends USING btree (rule_id, contact_id, created_at DESC)"
+  },
+  "idx_flow_run_events_run_type": {
+   "table": "flow_run_events",
+   "def": "CREATE INDEX idx_flow_run_events_run_type ON public.flow_run_events USING btree (flow_run_id, event_type)"
+  },
+  "idx_messages_message_id": {
+   "table": "messages",
+   "def": "CREATE INDEX idx_messages_message_id ON public.messages USING btree (message_id)"
+  },
+  "idx_message_reactions_message": {
+   "table": "message_reactions",
+   "def": "CREATE INDEX idx_message_reactions_message ON public.message_reactions USING btree (message_id)"
+  },
+  "idx_automation_pending_due": {
+   "table": "automation_pending_executions",
+   "def": "CREATE INDEX idx_automation_pending_due ON public.automation_pending_executions USING btree (run_at) WHERE (status = 'pending'::text)"
+  },
+  "idx_instagram_contacts_recent": {
+   "table": "instagram_contacts",
+   "def": "CREATE INDEX idx_instagram_contacts_recent ON public.instagram_contacts USING btree (account_id, last_message_at DESC)"
+  },
+  "idx_flow_runs_account": {
+   "table": "flow_runs",
+   "def": "CREATE INDEX idx_flow_runs_account ON public.flow_runs USING btree (account_id)"
+  },
+  "ai_knowledge_documents_account_id_idx": {
+   "table": "ai_knowledge_documents",
+   "def": "CREATE INDEX ai_knowledge_documents_account_id_idx ON public.ai_knowledge_documents USING btree (account_id)"
+  },
+  "idx_platform_users_role": {
+   "table": "platform_users",
+   "def": "CREATE INDEX idx_platform_users_role ON public.platform_users USING btree (platform_role)"
+  },
+  "idx_accounts_one_per_owner": {
+   "table": "accounts",
+   "def": "CREATE UNIQUE INDEX idx_accounts_one_per_owner ON public.accounts USING btree (owner_user_id)"
+  },
+  "idx_flow_runs_active_advanced": {
+   "table": "flow_runs",
+   "def": "CREATE INDEX idx_flow_runs_active_advanced ON public.flow_runs USING btree (last_advanced_at) WHERE (status = 'active'::text)"
+  },
+  "idx_pipeline_stages_pipeline": {
+   "table": "pipeline_stages",
+   "def": "CREATE INDEX idx_pipeline_stages_pipeline ON public.pipeline_stages USING btree (pipeline_id)"
+  },
+  "idx_automation_pending_contact_id": {
+   "table": "automation_pending_executions",
+   "def": "CREATE INDEX idx_automation_pending_contact_id ON public.automation_pending_executions USING btree (contact_id)"
+  },
+  "idx_automations_active_trigger": {
+   "table": "automations",
+   "def": "CREATE INDEX idx_automations_active_trigger ON public.automations USING btree (trigger_type) WHERE (is_active = true)"
+  },
+  "idx_instagram_messages_mid": {
+   "table": "instagram_messages",
+   "def": "CREATE UNIQUE INDEX idx_instagram_messages_mid ON public.instagram_messages USING btree (account_id, mid) WHERE (mid IS NOT NULL)"
+  },
+  "idx_automation_logs_account": {
+   "table": "automation_logs",
+   "def": "CREATE INDEX idx_automation_logs_account ON public.automation_logs USING btree (account_id)"
+  },
+  "idx_message_templates_account": {
+   "table": "message_templates",
+   "def": "CREATE INDEX idx_message_templates_account ON public.message_templates USING btree (account_id)"
+  },
+  "idx_deal_stage_history_assigned": {
+   "table": "deal_stage_history",
+   "def": "CREATE INDEX idx_deal_stage_history_assigned ON public.deal_stage_history USING btree (assigned_to)"
+  },
+  "api_keys_key_hash_idx": {
+   "table": "api_keys",
+   "def": "CREATE INDEX api_keys_key_hash_idx ON public.api_keys USING btree (key_hash)"
+  },
+  "idx_conversations_account": {
+   "table": "conversations",
+   "def": "CREATE INDEX idx_conversations_account ON public.conversations USING btree (account_id)"
+  },
+  "idx_whatsapp_config_account": {
+   "table": "whatsapp_config",
+   "def": "CREATE INDEX idx_whatsapp_config_account ON public.whatsapp_config USING btree (account_id)"
+  },
+  "idx_notifications_user_unread": {
+   "table": "notifications",
+   "def": "CREATE INDEX idx_notifications_user_unread ON public.notifications USING btree (user_id) WHERE (read_at IS NULL)"
+  },
+  "idx_automation_steps_automation_id": {
+   "table": "automation_steps",
+   "def": "CREATE INDEX idx_automation_steps_automation_id ON public.automation_steps USING btree (automation_id, \"position\")"
+  },
+  "idx_flow_runs_flow_started": {
+   "table": "flow_runs",
+   "def": "CREATE INDEX idx_flow_runs_flow_started ON public.flow_runs USING btree (flow_id, started_at DESC)"
+  },
+  "idx_flows_account": {
+   "table": "flows",
+   "def": "CREATE INDEX idx_flows_account ON public.flows USING btree (account_id)"
+  },
+  "idx_contacts_account_wa_user_id": {
+   "table": "contacts",
+   "def": "CREATE UNIQUE INDEX idx_contacts_account_wa_user_id ON public.contacts USING btree (account_id, wa_user_id) WHERE (wa_user_id IS NOT NULL)"
+  },
+  "idx_contact_notes_account": {
+   "table": "contact_notes",
+   "def": "CREATE INDEX idx_contact_notes_account ON public.contact_notes USING btree (account_id)"
+  },
+  "idx_notifications_conversation_id": {
+   "table": "notifications",
+   "def": "CREATE INDEX idx_notifications_conversation_id ON public.notifications USING btree (conversation_id)"
+  },
+  "idx_automations_account": {
+   "table": "automations",
+   "def": "CREATE INDEX idx_automations_account ON public.automations USING btree (account_id)"
+  },
   "idx_messages_reply_to": {
    "table": "messages",
    "def": "CREATE INDEX idx_messages_reply_to ON public.messages USING btree (reply_to_message_id) WHERE (reply_to_message_id IS NOT NULL)"
+  },
+  "idx_account_invitations_account_pending": {
+   "table": "account_invitations",
+   "def": "CREATE INDEX idx_account_invitations_account_pending ON public.account_invitations USING btree (account_id, expires_at) WHERE (accepted_at IS NULL)"
+  },
+  "idx_deals_stage": {
+   "table": "deals",
+   "def": "CREATE INDEX idx_deals_stage ON public.deals USING btree (stage_id)"
+  },
+  "idx_deals_assigned_to": {
+   "table": "deals",
+   "def": "CREATE INDEX idx_deals_assigned_to ON public.deals USING btree (assigned_to)"
+  },
+  "idx_flow_runs_contact_id": {
+   "table": "flow_runs",
+   "def": "CREATE INDEX idx_flow_runs_contact_id ON public.flow_runs USING btree (contact_id)"
+  },
+  "ai_knowledge_chunks_embedding_idx": {
+   "table": "ai_knowledge_chunks",
+   "def": "CREATE INDEX ai_knowledge_chunks_embedding_idx ON public.ai_knowledge_chunks USING hnsw (embedding vector_cosine_ops)"
+  },
+  "idx_contacts_account_phone_normalized": {
+   "table": "contacts",
+   "def": "CREATE UNIQUE INDEX idx_contacts_account_phone_normalized ON public.contacts USING btree (account_id, phone_normalized) WHERE (phone_normalized <> ''::text)"
+  },
+  "idx_db_maintenance_log_created": {
+   "table": "db_maintenance_log",
+   "def": "CREATE INDEX idx_db_maintenance_log_created ON public.db_maintenance_log USING btree (created_at DESC)"
+  },
+  "idx_notifications_deal_id": {
+   "table": "notifications",
+   "def": "CREATE INDEX idx_notifications_deal_id ON public.notifications USING btree (deal_id)"
+  },
+  "idx_whatsapp_config_registered_at": {
+   "table": "whatsapp_config",
+   "def": "CREATE INDEX idx_whatsapp_config_registered_at ON public.whatsapp_config USING btree (registered_at) WHERE (registered_at IS NULL)"
+  },
+  "idx_deal_stage_history_to_stage": {
+   "table": "deal_stage_history",
+   "def": "CREATE INDEX idx_deal_stage_history_to_stage ON public.deal_stage_history USING btree (to_stage_id)"
+  },
+  "idx_broadcast_recipients_contact_id": {
+   "table": "broadcast_recipients",
+   "def": "CREATE INDEX idx_broadcast_recipients_contact_id ON public.broadcast_recipients USING btree (contact_id)"
+  },
+  "uq_token_ledger_recharge_reference": {
+   "table": "token_ledger",
+   "def": "CREATE UNIQUE INDEX uq_token_ledger_recharge_reference ON public.token_ledger USING btree (reference) WHERE (entry_type = 'recharge_credit'::text)"
+  },
+  "idx_deals_contact_id": {
+   "table": "deals",
+   "def": "CREATE INDEX idx_deals_contact_id ON public.deals USING btree (contact_id)"
+  },
+  "idx_instagram_automations_account": {
+   "table": "instagram_automations",
+   "def": "CREATE INDEX idx_instagram_automations_account ON public.instagram_automations USING btree (account_id, kind, is_active)"
+  },
+  "idx_contacts_user_id": {
+   "table": "contacts",
+   "def": "CREATE INDEX idx_contacts_user_id ON public.contacts USING btree (user_id)"
+  },
+  "idx_pipelines_account": {
+   "table": "pipelines",
+   "def": "CREATE INDEX idx_pipelines_account ON public.pipelines USING btree (account_id)"
+  },
+  "idx_conversations_contact_id": {
+   "table": "conversations",
+   "def": "CREATE INDEX idx_conversations_contact_id ON public.conversations USING btree (contact_id)"
+  },
+  "idx_auto_reply_sends_account": {
+   "table": "auto_reply_sends",
+   "def": "CREATE INDEX idx_auto_reply_sends_account ON public.auto_reply_sends USING btree (account_id, created_at DESC)"
+  },
+  "idx_message_templates_meta_template_id": {
+   "table": "message_templates",
+   "def": "CREATE INDEX idx_message_templates_meta_template_id ON public.message_templates USING btree (meta_template_id) WHERE (meta_template_id IS NOT NULL)"
+  },
+  "idx_conversations_account_contact": {
+   "table": "conversations",
+   "def": "CREATE UNIQUE INDEX idx_conversations_account_contact ON public.conversations USING btree (account_id, contact_id)"
+  },
+  "idx_recharge_requests_account": {
+   "table": "recharge_requests",
+   "def": "CREATE INDEX idx_recharge_requests_account ON public.recharge_requests USING btree (account_id, created_at DESC)"
+  },
+  "idx_deal_stage_history_account": {
+   "table": "deal_stage_history",
+   "def": "CREATE INDEX idx_deal_stage_history_account ON public.deal_stage_history USING btree (account_id, created_at DESC)"
+  },
+  "idx_flows_account_active": {
+   "table": "flows",
+   "def": "CREATE INDEX idx_flows_account_active ON public.flows USING btree (account_id) WHERE (status = 'active'::text)"
+  },
+  "idx_deal_stage_history_deal": {
+   "table": "deal_stage_history",
+   "def": "CREATE INDEX idx_deal_stage_history_deal ON public.deal_stage_history USING btree (deal_id, created_at)"
+  },
+  "idx_ai_training_examples_account": {
+   "table": "ai_training_examples",
+   "def": "CREATE INDEX idx_ai_training_examples_account ON public.ai_training_examples USING btree (account_id, kind, is_active)"
+  },
+  "idx_instagram_messages_account": {
+   "table": "instagram_messages",
+   "def": "CREATE INDEX idx_instagram_messages_account ON public.instagram_messages USING btree (account_id, created_at DESC)"
+  },
+  "ai_knowledge_chunks_document_id_idx": {
+   "table": "ai_knowledge_chunks",
+   "def": "CREATE INDEX ai_knowledge_chunks_document_id_idx ON public.ai_knowledge_chunks USING btree (document_id)"
+  },
+  "idx_deals_account": {
+   "table": "deals",
+   "def": "CREATE INDEX idx_deals_account ON public.deals USING btree (account_id)"
   },
   "idx_automation_logs_user": {
    "table": "automation_logs",
@@ -5358,169 +5893,61 @@
    "table": "flow_run_events",
    "def": "CREATE INDEX idx_flow_run_events_run_time ON public.flow_run_events USING btree (flow_run_id, created_at DESC)"
   },
-  "webhook_endpoints_account_id_idx": {
-   "table": "webhook_endpoints",
-   "def": "CREATE INDEX webhook_endpoints_account_id_idx ON public.webhook_endpoints USING btree (account_id)"
-  },
-  "idx_ai_usage_log_conversation_id": {
-   "table": "ai_usage_log",
-   "def": "CREATE INDEX idx_ai_usage_log_conversation_id ON public.ai_usage_log USING btree (conversation_id)"
-  },
-  "idx_message_templates_account": {
-   "table": "message_templates",
-   "def": "CREATE INDEX idx_message_templates_account ON public.message_templates USING btree (account_id)"
-  },
-  "idx_automations_account_active_trigger": {
-   "table": "automations",
-   "def": "CREATE INDEX idx_automations_account_active_trigger ON public.automations USING btree (account_id, trigger_type) WHERE (is_active = true)"
-  },
-  "ai_knowledge_chunks_embedding_idx": {
-   "table": "ai_knowledge_chunks",
-   "def": "CREATE INDEX ai_knowledge_chunks_embedding_idx ON public.ai_knowledge_chunks USING hnsw (embedding vector_cosine_ops)"
-  },
-  "idx_profiles_account_role": {
-   "table": "profiles",
-   "def": "CREATE INDEX idx_profiles_account_role ON public.profiles USING btree (account_id, account_role)"
-  },
-  "users_email_lower_key": {
-   "table": "users",
-   "def": "CREATE UNIQUE INDEX users_email_lower_key ON public.users USING btree (lower(email))"
-  },
-  "api_keys_account_id_idx": {
-   "table": "api_keys",
-   "def": "CREATE INDEX api_keys_account_id_idx ON public.api_keys USING btree (account_id)"
-  },
-  "idx_flows_account_active": {
-   "table": "flows",
-   "def": "CREATE INDEX idx_flows_account_active ON public.flows USING btree (account_id) WHERE (status = 'active'::text)"
-  },
-  "idx_pipeline_stages_pipeline": {
-   "table": "pipeline_stages",
-   "def": "CREATE INDEX idx_pipeline_stages_pipeline ON public.pipeline_stages USING btree (pipeline_id)"
-  },
-  "idx_pipelines_account": {
-   "table": "pipelines",
-   "def": "CREATE INDEX idx_pipelines_account ON public.pipelines USING btree (account_id)"
-  },
-  "idx_account_invitations_account_pending": {
-   "table": "account_invitations",
-   "def": "CREATE INDEX idx_account_invitations_account_pending ON public.account_invitations USING btree (account_id, expires_at) WHERE (accepted_at IS NULL)"
-  },
-  "idx_pipeline_stages_owner": {
-   "table": "pipeline_stages",
-   "def": "CREATE INDEX idx_pipeline_stages_owner ON public.pipeline_stages USING btree (owner_profile_id)"
-  },
-  "idx_messages_conversation": {
-   "table": "messages",
-   "def": "CREATE INDEX idx_messages_conversation ON public.messages USING btree (conversation_id)"
-  },
-  "idx_contacts_account_wa_user_id": {
-   "table": "contacts",
-   "def": "CREATE UNIQUE INDEX idx_contacts_account_wa_user_id ON public.contacts USING btree (account_id, wa_user_id) WHERE (wa_user_id IS NOT NULL)"
-  },
-  "idx_whatsapp_config_registered_at": {
-   "table": "whatsapp_config",
-   "def": "CREATE INDEX idx_whatsapp_config_registered_at ON public.whatsapp_config USING btree (registered_at) WHERE (registered_at IS NULL)"
-  },
-  "ai_knowledge_chunks_document_id_idx": {
-   "table": "ai_knowledge_chunks",
-   "def": "CREATE INDEX ai_knowledge_chunks_document_id_idx ON public.ai_knowledge_chunks USING btree (document_id)"
-  },
-  "idx_flows_account": {
-   "table": "flows",
-   "def": "CREATE INDEX idx_flows_account ON public.flows USING btree (account_id)"
-  },
-  "idx_contact_tags_contact": {
-   "table": "contact_tags",
-   "def": "CREATE INDEX idx_contact_tags_contact ON public.contact_tags USING btree (contact_id)"
-  },
-  "idx_token_ledger_account_time": {
-   "table": "token_ledger",
-   "def": "CREATE INDEX idx_token_ledger_account_time ON public.token_ledger USING btree (account_id, created_at DESC)"
+  "idx_contact_custom_values_field_id": {
+   "table": "contact_custom_values",
+   "def": "CREATE INDEX idx_contact_custom_values_field_id ON public.contact_custom_values USING btree (custom_field_id)"
   },
   "idx_automation_steps_parent": {
    "table": "automation_steps",
    "def": "CREATE INDEX idx_automation_steps_parent ON public.automation_steps USING btree (parent_step_id) WHERE (parent_step_id IS NOT NULL)"
   },
-  "idx_deals_pipeline": {
-   "table": "deals",
-   "def": "CREATE INDEX idx_deals_pipeline ON public.deals USING btree (pipeline_id)"
+  "idx_pipeline_stages_owner": {
+   "table": "pipeline_stages",
+   "def": "CREATE INDEX idx_pipeline_stages_owner ON public.pipeline_stages USING btree (owner_profile_id)"
   },
-  "idx_conversations_contact_id": {
-   "table": "conversations",
-   "def": "CREATE INDEX idx_conversations_contact_id ON public.conversations USING btree (contact_id)"
+  "idx_ai_usage_log_conversation_id": {
+   "table": "ai_usage_log",
+   "def": "CREATE INDEX idx_ai_usage_log_conversation_id ON public.ai_usage_log USING btree (conversation_id)"
   },
-  "idx_automations_active_trigger": {
+  "idx_automation_logs_contact_id": {
+   "table": "automation_logs",
+   "def": "CREATE INDEX idx_automation_logs_contact_id ON public.automation_logs USING btree (contact_id)"
+  },
+  "idx_messages_conversation": {
+   "table": "messages",
+   "def": "CREATE INDEX idx_messages_conversation ON public.messages USING btree (conversation_id)"
+  },
+  "idx_automation_pending_account": {
+   "table": "automation_pending_executions",
+   "def": "CREATE INDEX idx_automation_pending_account ON public.automation_pending_executions USING btree (account_id)"
+  },
+  "idx_instagram_messages_thread": {
+   "table": "instagram_messages",
+   "def": "CREATE INDEX idx_instagram_messages_thread ON public.instagram_messages USING btree (contact_id, created_at)"
+  },
+  "idx_broadcasts_account": {
+   "table": "broadcasts",
+   "def": "CREATE INDEX idx_broadcasts_account ON public.broadcasts USING btree (account_id)"
+  },
+  "idx_automations_account_active_trigger": {
    "table": "automations",
-   "def": "CREATE INDEX idx_automations_active_trigger ON public.automations USING btree (trigger_type) WHERE (is_active = true)"
-  },
-  "idx_deals_account": {
-   "table": "deals",
-   "def": "CREATE INDEX idx_deals_account ON public.deals USING btree (account_id)"
+   "def": "CREATE INDEX idx_automations_account_active_trigger ON public.automations USING btree (account_id, trigger_type) WHERE (is_active = true)"
   },
   "idx_one_active_run_per_contact": {
    "table": "flow_runs",
    "def": "CREATE UNIQUE INDEX idx_one_active_run_per_contact ON public.flow_runs USING btree (account_id, contact_id) WHERE (status = 'active'::text)"
   },
-  "idx_deals_assigned_to": {
-   "table": "deals",
-   "def": "CREATE INDEX idx_deals_assigned_to ON public.deals USING btree (assigned_to)"
-  },
-  "idx_password_reset_tokens_user": {
-   "table": "password_reset_tokens",
-   "def": "CREATE INDEX idx_password_reset_tokens_user ON public.password_reset_tokens USING btree (user_id)"
-  },
-  "idx_flow_runs_account": {
-   "table": "flow_runs",
-   "def": "CREATE INDEX idx_flow_runs_account ON public.flow_runs USING btree (account_id)"
-  },
-  "api_keys_key_hash_idx": {
-   "table": "api_keys",
-   "def": "CREATE INDEX api_keys_key_hash_idx ON public.api_keys USING btree (key_hash)"
-  },
-  "idx_contacts_account": {
-   "table": "contacts",
-   "def": "CREATE INDEX idx_contacts_account ON public.contacts USING btree (account_id)"
-  },
-  "idx_contacts_phone": {
-   "table": "contacts",
-   "def": "CREATE INDEX idx_contacts_phone ON public.contacts USING btree (phone)"
-  },
   "idx_tags_account": {
    "table": "tags",
    "def": "CREATE INDEX idx_tags_account ON public.tags USING btree (account_id)"
   },
-  "idx_message_reactions_message": {
-   "table": "message_reactions",
-   "def": "CREATE INDEX idx_message_reactions_message ON public.message_reactions USING btree (message_id)"
+  "idx_notifications_user_created": {
+   "table": "notifications",
+   "def": "CREATE INDEX idx_notifications_user_created ON public.notifications USING btree (user_id, created_at DESC)"
   },
-  "idx_messages_conversation_message_id": {
-   "table": "messages",
-   "def": "CREATE UNIQUE INDEX idx_messages_conversation_message_id ON public.messages USING btree (conversation_id, message_id)"
-  },
-  "idx_message_templates_meta_template_id": {
-   "table": "message_templates",
-   "def": "CREATE INDEX idx_message_templates_meta_template_id ON public.message_templates USING btree (meta_template_id) WHERE (meta_template_id IS NOT NULL)"
-  },
-  "idx_contact_tags_tag": {
-   "table": "contact_tags",
-   "def": "CREATE INDEX idx_contact_tags_tag ON public.contact_tags USING btree (tag_id)"
-  },
-  "idx_ai_usage_log_account_created": {
-   "table": "ai_usage_log",
-   "def": "CREATE INDEX idx_ai_usage_log_account_created ON public.ai_usage_log USING btree (account_id, created_at DESC)"
-  },
-  "idx_deal_stage_history_account": {
-   "table": "deal_stage_history",
-   "def": "CREATE INDEX idx_deal_stage_history_account ON public.deal_stage_history USING btree (account_id, created_at DESC)"
-  },
-  "idx_auto_reply_rules_account": {
-   "table": "auto_reply_rules",
-   "def": "CREATE INDEX idx_auto_reply_rules_account ON public.auto_reply_rules USING btree (account_id, is_active, priority)"
-  },
-  "ai_knowledge_chunks_fts_idx": {
-   "table": "ai_knowledge_chunks",
-   "def": "CREATE INDEX ai_knowledge_chunks_fts_idx ON public.ai_knowledge_chunks USING gin (fts)"
+  "idx_recharge_requests_pending": {
+   "table": "recharge_requests",
+   "def": "CREATE INDEX idx_recharge_requests_pending ON public.recharge_requests USING btree (created_at) WHERE (status = 'pending'::text)"
   }
  },
  "functions": {
@@ -5745,5 +6172,5 @@
    "publicExec": true
   }
  },
- "schemaChecksum": "6d4301873343e5cbb292befec95141b3b7801b45210c8c43ba7adfc30e2916dc"
+ "schemaChecksum": "c45e02372dbf29037ef0b5f98a273930a81fbc79f9fcd6c161b79880d2c60002"
 }

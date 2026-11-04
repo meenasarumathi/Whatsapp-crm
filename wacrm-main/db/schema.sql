@@ -4657,4 +4657,117 @@ DROP TRIGGER IF EXISTS deal_stage_after ON public.deals;
 CREATE TRIGGER deal_stage_after AFTER INSERT OR UPDATE OF stage_id, assigned_to ON public.deals
   FOR EACH ROW EXECUTE FUNCTION deal_stage_after();
 
+-- ======================================================================
+-- 14. INSTAGRAM CHANNEL (DMs, comments, story mentions)
+-- One Instagram professional account per CRM account, connected with an Instagram API access
+-- token (stored encrypted with ENCRYPTION_KEY, like WhatsApp tokens). Meta posts DMs, comments
+-- and story mentions to /api/instagram/webhook; the engine stores them and answers with the
+-- first matching Instagram automation (story mention, keyword, comment-to-DM, welcome, away)
+-- or, when switched on, an AI reply built from Train AI + the knowledge base.
+-- Until a token is saved the channel runs in simulation mode: replies are stored as
+-- 'simulated' and nothing is sent or charged.
+-- ======================================================================
+
+CREATE TABLE IF NOT EXISTS public.instagram_accounts (
+  account_id        uuid PRIMARY KEY REFERENCES public.accounts(id) ON DELETE CASCADE,
+  ig_user_id        text,
+  username          text,
+  access_token_enc  text,
+  app_secret_enc    text,
+  verify_token      text NOT NULL DEFAULT encode(gen_random_bytes(16), 'hex'),
+  ai_auto_reply     boolean NOT NULL DEFAULT false,
+  connected_at      timestamptz,
+  last_event_at     timestamptz,
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  updated_at        timestamptz NOT NULL DEFAULT now()
+);
+COMMENT ON TABLE public.instagram_accounts IS 'Instagram connection per account. Token and app secret are AES-256-GCM encrypted; read through the server only.';
+CREATE UNIQUE INDEX IF NOT EXISTS idx_instagram_accounts_ig_user ON public.instagram_accounts (ig_user_id) WHERE ig_user_id IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS public.instagram_contacts (
+  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  account_id     uuid NOT NULL REFERENCES public.accounts(id) ON DELETE CASCADE,
+  igsid          text NOT NULL,
+  username       text,
+  name           text,
+  last_message_text text,
+  last_message_at   timestamptz,
+  unread_count   integer NOT NULL DEFAULT 0,
+  created_at     timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT instagram_contacts_account_igsid_key UNIQUE (account_id, igsid)
+);
+COMMENT ON TABLE public.instagram_contacts IS 'People who messaged or commented on the Instagram account (IGSID = Instagram-scoped id).';
+CREATE INDEX IF NOT EXISTS idx_instagram_contacts_recent ON public.instagram_contacts (account_id, last_message_at DESC);
+
+CREATE TABLE IF NOT EXISTS public.instagram_messages (
+  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  account_id     uuid NOT NULL REFERENCES public.accounts(id) ON DELETE CASCADE,
+  contact_id     uuid NOT NULL REFERENCES public.instagram_contacts(id) ON DELETE CASCADE,
+  direction      text NOT NULL CHECK (direction IN ('inbound', 'outbound')),
+  kind           text NOT NULL DEFAULT 'dm' CHECK (kind IN ('dm', 'comment', 'comment_reply', 'story_mention', 'story_reply')),
+  text           text,
+  mid            text,
+  comment_id     text,
+  media_id       text,
+  status         text NOT NULL DEFAULT 'received' CHECK (status IN ('received', 'sent', 'simulated', 'failed')),
+  error          text,
+  sent_by        text CHECK (sent_by IS NULL OR sent_by IN ('agent', 'automation', 'ai')),
+  automation_id  uuid,
+  created_at     timestamptz NOT NULL DEFAULT now()
+);
+COMMENT ON TABLE public.instagram_messages IS 'Instagram DMs, comments and replies in both directions. mid dedupes webhook retries.';
+CREATE UNIQUE INDEX IF NOT EXISTS idx_instagram_messages_mid ON public.instagram_messages (account_id, mid) WHERE mid IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_instagram_messages_thread ON public.instagram_messages (contact_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_instagram_messages_account ON public.instagram_messages (account_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS public.instagram_automations (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  account_id   uuid NOT NULL REFERENCES public.accounts(id) ON DELETE CASCADE,
+  user_id      uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  kind         text NOT NULL CHECK (kind IN ('welcome', 'keyword', 'comment_to_dm', 'story_mention', 'away')),
+  name         text NOT NULL CHECK (length(name) BETWEEN 1 AND 120),
+  is_active    boolean NOT NULL DEFAULT false,
+  -- keywords[], match ('contains'|'exact'), reply_text, quick_reply_id, public_reply,
+  -- media_id, days[], start_time, end_time, timezone, cooldown_minutes
+  config       jsonb NOT NULL DEFAULT '{}'::jsonb,
+  priority     integer NOT NULL DEFAULT 100,
+  sent_count   integer NOT NULL DEFAULT 0,
+  last_sent_at timestamptz,
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  updated_at   timestamptz NOT NULL DEFAULT now()
+);
+COMMENT ON TABLE public.instagram_automations IS 'Instagram auto-replies: welcome DM, keyword reply, comment-to-DM, story-mention thanks, away message.';
+CREATE INDEX IF NOT EXISTS idx_instagram_automations_account ON public.instagram_automations (account_id, kind, is_active);
+
+DROP TRIGGER IF EXISTS set_updated_at ON public.instagram_accounts;
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.instagram_accounts FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS set_updated_at ON public.instagram_automations;
+CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.instagram_automations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+ALTER TABLE public.instagram_accounts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.instagram_contacts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.instagram_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.instagram_automations ENABLE ROW LEVEL SECURITY;
+-- instagram_accounts holds secrets: no policies, server routes only.
+DROP POLICY IF EXISTS "instagram_contacts_select" ON public.instagram_contacts;
+CREATE POLICY "instagram_contacts_select" ON public.instagram_contacts FOR SELECT USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "instagram_contacts_update" ON public.instagram_contacts;
+CREATE POLICY "instagram_contacts_update" ON public.instagram_contacts FOR UPDATE USING (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "instagram_messages_select" ON public.instagram_messages;
+CREATE POLICY "instagram_messages_select" ON public.instagram_messages FOR SELECT USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "instagram_automations_select" ON public.instagram_automations;
+CREATE POLICY "instagram_automations_select" ON public.instagram_automations FOR SELECT USING (is_account_member(account_id));
+DROP POLICY IF EXISTS "instagram_automations_insert" ON public.instagram_automations;
+CREATE POLICY "instagram_automations_insert" ON public.instagram_automations FOR INSERT WITH CHECK (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "instagram_automations_update" ON public.instagram_automations;
+CREATE POLICY "instagram_automations_update" ON public.instagram_automations FOR UPDATE USING (is_account_member(account_id, 'agent'::account_role_enum));
+DROP POLICY IF EXISTS "instagram_automations_delete" ON public.instagram_automations;
+CREATE POLICY "instagram_automations_delete" ON public.instagram_automations FOR DELETE USING (is_account_member(account_id, 'agent'::account_role_enum));
+
+GRANT SELECT, UPDATE ON public.instagram_contacts TO wacrm_app;
+GRANT SELECT ON public.instagram_messages TO wacrm_app;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.instagram_automations TO wacrm_app;
+-- Section 9 grants every table on re-runs; keep the secrets table closed.
+REVOKE ALL ON public.instagram_accounts FROM wacrm_app;
+
 -- End of schema.

@@ -43,7 +43,8 @@
     "menuSignOut": "Sair",
     "trainAi": "Treinar IA",
     "demo": "Demo",
-    "wallet": "Carteira"
+    "wallet": "Carteira",
+    "instagram": "Instagram"
   },
   "Header": {
     "dashboard": "Painel",
@@ -66,7 +67,8 @@
     "agents": "Agentes de IA",
     "trainAi": "Treinar IA",
     "demo": "Demo",
-    "wallet": "Carteira"
+    "wallet": "Carteira",
+    "instagram": "Instagram"
   },
   "ModeToggle": {
     "switchMode": "Mudar para o modo {mode}"
@@ -3124,5 +3126,121 @@
       }
     },
     "footer": "© Zyloop · CRM de WhatsApp para equipes em crescimento"
+  },
+  "Instagram": {
+    "title": "Instagram",
+    "subtitle": "Responda DMs, comentários e menções em stories do Instagram automaticamente — com suas automações, respostas rápidas e a IA treinada no seu negócio.",
+    "status": {
+      "connected": "Conectado · @{username}",
+      "simulation": "Modo simulação — não conectado"
+    },
+    "sections": {
+      "inbox": "Caixa de entrada",
+      "automations": "Automações",
+      "connect": "Conectar e testar"
+    },
+    "inbox": {
+      "empty": "Ainda não há conversas do Instagram. Conecte sua conta ou use o simulador em Conectar e testar.",
+      "pick": "Escolha uma conversa",
+      "placeholder": "Responder no Instagram…",
+      "sendFailed": "Não foi possível enviar",
+      "simulatedSend": "Salvo como simulado — conecte o Instagram para enviar de verdade.",
+      "storyMention": "📸 Mencionou você no story",
+      "kinds": {
+        "comment": "Comentário",
+        "comment_reply": "Resposta pública",
+        "story_mention": "Menção no story",
+        "story_reply": "Resposta ao story"
+      },
+      "by": {
+        "agent": "Atendente",
+        "automation": "Automação",
+        "ai": "IA"
+      },
+      "statuses": {
+        "sent": "enviada",
+        "simulated": "simulada",
+        "failed": "falhou",
+        "received": "recebida"
+      }
+    },
+    "automations": {
+      "intro": "Os cinco básicos de todo vendedor no Instagram. Começam como rascunho — edite o texto e ative. Uma automação responde cada mensagem; se nenhuma combinar, a resposta da IA pode responder.",
+      "kinds": {
+        "comment_to_dm": {
+          "title": "Comentário → DM",
+          "desc": "Alguém comenta uma palavra-chave num post: envie os detalhes por DM e responda publicamente."
+        },
+        "keyword": {
+          "title": "Resposta por palavra-chave",
+          "desc": "Uma DM contém uma palavra-chave (preço, pedido…): envie a resposta pronta."
+        },
+        "welcome": {
+          "title": "DM de boas-vindas",
+          "desc": "Cumprimenta quem escreve pela primeira vez."
+        },
+        "story_mention": {
+          "title": "Agradecer menção no story",
+          "desc": "Agradece quem marca você no story — ótimo para ofertas."
+        },
+        "away": {
+          "title": "Mensagem de ausência",
+          "desc": "Fora do horário, avisa quando você vai responder (uma vez a cada 12 horas por pessoa)."
+        }
+      },
+      "fields": {
+        "keywords": "Palavras-chave (separadas por vírgula)",
+        "commentKeywords": "Palavras do comentário (vazio = todos)",
+        "mediaId": "Só este post (id da mídia)",
+        "anyPost": "Qualquer post",
+        "from": "Ausente das",
+        "to": "Volta às",
+        "replyFrom": "Responder com",
+        "customText": "Texto personalizado",
+        "quickReply": "Resposta rápida: {title}",
+        "publicReply": "Resposta pública no comentário (opcional)"
+      },
+      "sent": "{count} enviadas",
+      "save": "Salvar",
+      "saved": "Salvo",
+      "saveFailed": "Não foi possível salvar",
+      "placeholderHint": "Use {{name}} para o @usuário do cliente. Respostas rápidas vêm de Configurações → Respostas rápidas."
+    },
+    "connect": {
+      "title": "Conecte sua conta profissional do Instagram",
+      "steps": {
+        "s1": "No Meta for Developers, adicione o produto Instagram (API com login do Instagram) ao seu app.",
+        "s2": "Em Webhooks cole a URL de retorno e o token de verificação abaixo e assine messages e comments.",
+        "s3": "Gere um token de acesso da conta (instagram_business_manage_messages, instagram_business_manage_comments) e cole aqui.",
+        "s4": "Antes de valer para todos os clientes, a Revisão de App da Meta precisa aprovar essas permissões."
+      },
+      "webhookUrl": "URL de retorno",
+      "verifyToken": "Token de verificação",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "token": "Token de acesso do Instagram",
+      "tokenSaved": "Salvo — cole outro para trocar",
+      "appSecret": "Segredo do app do Instagram",
+      "secretSaved": "Salvo",
+      "secretOptional": "Opcional — padrão META_APP_SECRET",
+      "connect": "Salvar e verificar",
+      "disconnect": "Desconectar",
+      "saved": "Configurações do Instagram salvas",
+      "saveFailed": "Não foi possível salvar",
+      "ai": "Resposta automática com IA no Instagram",
+      "aiDesc": "Quando nenhuma automação combina, a IA responde DMs com o Treinar IA e seus documentos (precisa de chave em Agentes de IA → Configuração).",
+      "simTitle": "Teste sem o Instagram",
+      "simDesc": "Envia uma mensagem de cliente fictícia pelo mesmo motor. As respostas aparecem na Caixa como simuladas — nada é enviado ou cobrado.",
+      "simKinds": {
+        "dm": "Mensagem direta",
+        "comment": "Comentário num post",
+        "story_mention": "Menção no story",
+        "story_reply": "Resposta ao seu story"
+      },
+      "simSend": "Simular mensagem",
+      "simFailed": "A simulação falhou",
+      "simReplied": "Respondido por {by} — veja na Caixa de entrada.",
+      "simNoReply": "Salvo, mas nenhuma automação ativa combinou (e a IA está desligada). Ative uma automação e tente de novo."
+    }
   }
 }
