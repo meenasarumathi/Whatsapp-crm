@@ -29,7 +29,7 @@ Click **Save changes**.
 ### Appearance
 
 - **Mode** — Light or Dark (also via the toggle in the top bar).
-- **Accent color** — the highlight colour used across the app.
+- **Accent color** — the highlight colour used across the app. **Zyloop** (electric teal on midnight ink) is the default; Violet, Emerald, Cobalt, Amber and Rose are also available.
 
 Saved on this device only and changes live.
 

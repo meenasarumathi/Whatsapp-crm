@@ -4,7 +4,7 @@ Your first login: how to sign in, what your role allows, how the screen is laid 
 
 ## What this CRM does
 
-This is a CRM built around **WhatsApp**. Customers message your business number on WhatsApp, and every conversation lands in one shared **Inbox** that your whole team can work from. Around the inbox you have:
+**Zyloop WACRM** is a CRM built around **WhatsApp**. Customers message your business number on WhatsApp, and every conversation lands in one shared **Inbox** that your whole team can work from. Around the inbox you have:
 
 - **Contacts** — everyone who has messaged you or that you have added.
 - **Pipelines** — sales deals moving through stages (New Lead → Won).

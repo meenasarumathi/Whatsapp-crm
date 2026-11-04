@@ -15,7 +15,7 @@
     "createAccount": "Crear cuenta"
   },
   "Sidebar": {
-    "title": "Plantilla de CRM para WhatsApp",
+    "title": "Zyloop WACRM",
     "primaryNav": "Principal",
     "dashboard": "Panel",
     "inbox": "Bandeja de entrada",
@@ -1553,7 +1553,7 @@
       "done": "Listo",
       "dialogTitle": "Invitar a un compañero",
       "networkError": "No se pudo conectar con el servidor. ¿Intentar de nuevo?",
-      "fallbackAccountName": "nuestra cuenta de wacrm",
+      "fallbackAccountName": "nuestra cuenta de Zyloop",
       "dialogDesc": "Genera un enlace de invitación de un solo uso. Compártelo por WhatsApp, Slack o el canal que prefieras; no se necesita servicio de correo.",
       "roleLabel": "Rol",
       "validForLabel": "Enlace válido por",
@@ -1570,7 +1570,7 @@
       "labelTooLong": "La etiqueta debe tener {max} caracteres o menos",
       "copied": "Enlace de invitación copiado",
       "clipboardBlocked": "Portapapeles bloqueado: copia el enlace manualmente",
-      "whatsappMessage": "Únete a {accountName} en wacrm con este enlace (válido por {expiresInDays} días): {url}"
+      "whatsappMessage": "Únete a {accountName} en Zyloop con este enlace (válido por {expiresInDays} días): {url}"
     },
     "tagsAndFields": {
       "title": "Campos y etiquetas",
@@ -1689,8 +1689,8 @@
       "saveResubmit": "Guardar y reenviar",
       "submitApproval": "Enviar para aprobación",
       "deleteDialogTitle": "¿Eliminar plantilla?",
-      "deleteMetaDesc": "\"{name}\" se eliminará de Meta y de wacrm. Las difusiones activas que usen esta plantilla empezarán a fallar en su próximo envío. No se puede deshacer.",
-      "deleteLocalDesc": "\"{name}\" se eliminará de wacrm. Nunca se envió a Meta, así que no hace falta limpieza remota.",
+      "deleteMetaDesc": "\"{name}\" se eliminará de Meta y de Zyloop. Las difusiones activas que usen esta plantilla empezarán a fallar en su próximo envío. No se puede deshacer.",
+      "deleteLocalDesc": "\"{name}\" se eliminará de Zyloop. Nunca se envió a Meta, así que no hace falta limpieza remota.",
       "deleting": "Eliminando…",
       "delete": "Eliminar",
       "toastLoadFailed": "Error al cargar las plantillas",
@@ -1733,7 +1733,7 @@
       "notConnected": "No conectado",
       "connectedDesc": "Tu token de acceso se autentica con Meta. Revisa el estado de registro abajo para saber si los webhooks están realmente conectados.",
       "notConnectedDesc": "Configura abajo tus credenciales de la API de Meta para conectar tu cuenta de WhatsApp Business.",
-      "registered": "Registrado: Meta entregará los eventos a wacrm",
+      "registered": "Registrado: Meta entregará los eventos a Zyloop",
       "notRegistered": "No registrado: Meta no entregará eventos",
       "verifyWithMeta": "Verificar con Meta",
       "subscribedSince": "Suscrito desde {date}. Haz clic en Verificar con Meta si los eventos dejan de llegar.",
@@ -1757,7 +1757,7 @@
       "twoStepPin": "PIN de verificación en dos pasos",
       "optional": "(opcional)",
       "pinPlaceholder": "PIN de 6 dígitos del Administrador de WhatsApp de Meta",
-      "pinHint": "Solo se necesita para recibir mensajes entrantes en un número de producción. Configúralo en Meta Business Manager → Cuentas de WhatsApp → Números de teléfono → Verificación en dos pasos y pégalo aquí para que wacrm pueda suscribir el número; de lo contrario, Meta envía los eventos entrantes a la última app que reclamó el número (el síntoma que afecta a segundos números bajo una WABA compartida). Los números de prueba de Meta no tienen PIN y ya vienen registrados: déjalo en blanco para ellos. Dejarlo en blanco también mantiene intacto un registro existente.",
+      "pinHint": "Solo se necesita para recibir mensajes entrantes en un número de producción. Configúralo en Meta Business Manager → Cuentas de WhatsApp → Números de teléfono → Verificación en dos pasos y pégalo aquí para que Zyloop pueda suscribir el número; de lo contrario, Meta envía los eventos entrantes a la última app que reclamó el número (el síntoma que afecta a segundos números bajo una WABA compartida). Los números de prueba de Meta no tienen PIN y ya vienen registrados: déjalo en blanco para ellos. Dejarlo en blanco también mantiene intacto un registro existente.",
       "webhookTitle": "Configuración del webhook",
       "webhookDesc": "Usa esta URL como callback del webhook en el panel de la app de Meta.",
       "webhookUrl": "URL de callback del webhook",
@@ -1990,7 +1990,7 @@
     },
     "aiConfig": {
       "title": "Configuración del agente",
-      "description": "Usa tu propia clave de OpenAI o Anthropic. wacrm llama al proveedor directamente con tu clave: sin cargos de IA por usuario, y tus datos siguen siendo tuyos. Esto impulsa las respuestas redactadas con IA en la bandeja de entrada, el bot de respuesta automática y el Playground.",
+      "description": "Usa tu propia clave de OpenAI o Anthropic. Zyloop llama al proveedor directamente con tu clave: sin cargos de IA por usuario, y tus datos siguen siendo tuyos. Esto impulsa las respuestas redactadas con IA en la bandeja de entrada, el bot de respuesta automática y el Playground.",
       "adminOnlyConfig": "Solo los administradores y propietarios pueden cambiar la configuración de IA.",
       "loadFailed": "Error al cargar la configuración de IA",
       "providerAndKey": "Proveedor y clave",
@@ -2169,7 +2169,7 @@
     "titleJoin": "Crear cuenta y unirse",
     "title": "Crear cuenta",
     "descJoin": "Verifica tu correo y luego acepta la invitación para unirte a tu equipo.",
-    "desc": "Empieza a usar la Plantilla de CRM para WhatsApp",
+    "desc": "Empieza con Zyloop WACRM",
     "fullNameLabel": "Nombre completo",
     "fullNamePlaceholder": "Juan Pérez",
     "emailLabel": "Correo electrónico",
@@ -3104,5 +3104,25 @@
       "done": "{numbers} números guardados ({created} contactos nuevos)",
       "failed": "No se pudieron importar los números"
     }
+  },
+  "AuthShell": {
+    "headline": "Cada chat de WhatsApp,",
+    "headlineAccent": "cerrado en un ciclo.",
+    "subline": "Zyloop WACRM convierte conversaciones en clientes: una bandeja para todo el equipo, IA que responde como tu mejor agente y un pipeline del primer hola al pago liquidado.",
+    "points": {
+      "inbox": {
+        "title": "Una bandeja compartida",
+        "desc": "Asigna, etiqueta y responde en equipo: nadie espera."
+      },
+      "ai": {
+        "title": "IA + respuestas automáticas programadas",
+        "desc": "Entrenada con tu negocio, de guardia 24/7."
+      },
+      "pipeline": {
+        "title": "Lead → pago liquidado",
+        "desc": "Traspasos entre el equipo con SLA."
+      }
+    },
+    "footer": "© Zyloop · CRM de WhatsApp para equipos en crecimiento"
   }
 }

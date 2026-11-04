@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { AuthShell } from "@/components/brand/auth-shell";
 import { createBrowserDb } from "@/lib/db/browser";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,8 +76,8 @@ function LoginPageInner() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md border-border bg-card">
+    <AuthShell>
+      <Card className="w-full border-border bg-card/80 shadow-xl shadow-black/10 backdrop-blur">
         <CardHeader className="items-center text-center">
           <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
             {inviteToken ? (
@@ -164,6 +165,6 @@ function LoginPageInner() {
           </p>
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   );
 }

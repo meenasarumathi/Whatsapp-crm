@@ -126,6 +126,7 @@ interface SidebarProps {
 }
 
 import { useTranslations } from "next-intl";
+import { BrandLockup } from "@/components/brand/brand-mark";
 
 export function Sidebar({ open = false, onClose }: SidebarProps) {
   const t = useTranslations("Sidebar");
@@ -204,13 +205,8 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
         {/* Logo row. On mobile we put a close button here; on desktop the
             close button is hidden since the sidebar is always-visible. */}
         <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border px-4">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <MessageSquare className="h-4 w-4" />
-            </div>
-            <span className="text-sm font-semibold text-foreground">
-              {t("title")}
-            </span>
+          <Link href="/dashboard" aria-label={t("title")}>
+            <BrandLockup compact />
           </Link>
           <button
             type="button"
@@ -246,12 +242,15 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                     href={item.href}
                     className={cn(
                       // Taller on mobile so fingers can hit the row reliably (≥44px).
-                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:py-2",
+                      "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:py-2",
                       isActive
                         ? "bg-primary/10 text-primary"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
+                    {isActive && (
+                      <span aria-hidden className="bg-brand-gradient absolute inset-y-1.5 left-0 w-[3px] rounded-full" />
+                    )}
                     <item.icon className="h-4 w-4" />
                     <span className="flex-1">{t(item.labelKey as string)}</span>
                     {item.beta && (
@@ -295,12 +294,15 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
                   <Link
                     href={item.href}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:py-2",
+                      "relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:py-2",
                       isActive
                         ? "bg-primary/10 text-primary"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
+                    {isActive && (
+                      <span aria-hidden className="bg-brand-gradient absolute inset-y-1.5 left-0 w-[3px] rounded-full" />
+                    )}
                     <item.icon className="h-4 w-4" />
                     {t(item.labelKey as string)}
                   </Link>
