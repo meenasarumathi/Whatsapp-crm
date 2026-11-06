@@ -4683,6 +4683,14 @@ CREATE TABLE IF NOT EXISTS public.instagram_accounts (
 );
 COMMENT ON TABLE public.instagram_accounts IS 'Instagram connection per account. Token and app secret are AES-256-GCM encrypted; read through the server only.';
 CREATE UNIQUE INDEX IF NOT EXISTS idx_instagram_accounts_ig_user ON public.instagram_accounts (ig_user_id) WHERE ig_user_id IS NOT NULL;
+-- GET /me returns user_id and id; Meta's docs do not say which one is entry.id in webhooks, so both are kept and matched.
+ALTER TABLE public.instagram_accounts ADD COLUMN IF NOT EXISTS ig_alt_id text;
+-- Per-account webhook subscription (POST /<id>/subscribed_apps): without it Meta delivers nothing.
+ALTER TABLE public.instagram_accounts ADD COLUMN IF NOT EXISTS webhook_subscribed_at timestamptz;
+ALTER TABLE public.instagram_accounts ADD COLUMN IF NOT EXISTS webhook_error text;
+-- Long-lived tokens last 60 days; the scheduler refreshes them before they expire.
+ALTER TABLE public.instagram_accounts ADD COLUMN IF NOT EXISTS token_refreshed_at timestamptz;
+CREATE INDEX IF NOT EXISTS idx_instagram_accounts_ig_alt ON public.instagram_accounts (ig_alt_id) WHERE ig_alt_id IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS public.instagram_contacts (
   id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),

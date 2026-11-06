@@ -1502,7 +1502,8 @@
       "fieldsCount": "{count} {count, plural, =1 {campo personalizado} other {campos personalizados}}",
       "appearance": "modo {mode} · acento {theme}",
       "yourAccount": "Tu cuenta",
-      "loading": "Cargando…"
+      "loading": "Cargando…",
+      "notReceiving": "Conectado · no recibe mensajes"
     },
     "members": {
       "title": "Miembros del equipo",
@@ -3131,7 +3132,8 @@
     "subtitle": "Responde DMs, comentarios y menciones en historias de Instagram automáticamente, con tus automatizaciones, respuestas rápidas y la IA entrenada con tu negocio.",
     "status": {
       "connected": "Conectado · @{username}",
-      "simulation": "Modo simulación: sin conectar"
+      "simulation": "Modo simulación: sin conectar",
+      "needsReconnecting": "Necesita reconectarse"
     },
     "sections": {
       "inbox": "Bandeja",
@@ -3206,12 +3208,13 @@
       "placeholderHint": "Usa {{name}} para el @usuario del cliente. Las respuestas rápidas vienen de Configuración → Respuestas rápidas."
     },
     "connect": {
-      "title": "Conecta tu cuenta profesional de Instagram",
+      "title": "Credenciales de la API",
       "steps": {
-        "s1": "En Meta for Developers, agrega el producto Instagram (API con inicio de sesión de Instagram) a tu app.",
-        "s2": "En Webhooks pega la URL de devolución y el token de verificación de abajo y suscríbete a messages y comments.",
-        "s3": "Genera un token de acceso de la cuenta (instagram_business_manage_messages, instagram_business_manage_comments) y pégalo aquí.",
-        "s4": "Antes de usarlo con todos los clientes, la Revisión de apps de Meta debe aprobar esos permisos."
+        "s1": "En Meta for Developers, agrega el producto Instagram (API setup with Instagram login) a tu app. Tu Instagram debe ser una cuenta profesional.",
+        "s2": "En Webhooks, pega la URL de devolución y el token de verificación que se muestran aquí y selecciona messages y comments.",
+        "s3": "Genera un token de acceso con instagram_business_basic, instagram_business_manage_messages e instagram_business_manage_comments.",
+        "s4": "Pega el token y pulsa Guardar y conectar. Esto también suscribe tu cuenta a mensajes y comentarios.",
+        "s5": "Publica tu app de Meta (Live): Meta solo entrega notificaciones a apps publicadas. Atender cuentas de otras empresas también requiere la Revisión de apps."
       },
       "webhookUrl": "URL de devolución",
       "verifyToken": "Token de verificación",
@@ -3222,7 +3225,7 @@
       "appSecret": "Secreto de la app de Instagram",
       "secretSaved": "Guardado",
       "secretOptional": "Opcional: por defecto META_APP_SECRET",
-      "connect": "Guardar y comprobar",
+      "connect": "Guardar y conectar",
       "disconnect": "Desconectar",
       "saved": "Configuración de Instagram guardada",
       "saveFailed": "No se pudo guardar",
@@ -3239,7 +3242,32 @@
       "simSend": "Simular mensaje",
       "simFailed": "La simulación falló",
       "simReplied": "Respondido por {by}: míralo en la bandeja.",
-      "simNoReply": "Guardado, pero ninguna automatización activa coincidió (y la IA está apagada). Activa una y vuelve a intentarlo."
+      "simNoReply": "Guardado, pero ninguna automatización activa coincidió (y la IA está apagada). Activa una y vuelve a intentarlo.",
+      "credentialsDesc": "Al guardar se comprueba el token con Instagram y se activa la entrega de mensajes para tu cuenta.",
+      "credentialsValid": "Conectado como @{username}",
+      "credentialsValidDesc": "Instagram acaba de aceptar tu token. Se renueva automáticamente antes de caducar.",
+      "needsReconnecting": "Necesita reconectarse",
+      "invalidDesc": "Instagram rechazó el token guardado (caducado o revocado). Genera uno nuevo y guárdalo abajo. Hasta entonces no se pueden enviar respuestas automáticas.",
+      "unreachableDesc": "No se pudo contactar con Instagram para comprobar el token. Suele ser temporal; recarga para volver a comprobar.",
+      "notConnected": "Sin conectar",
+      "notConnectedDesc": "Modo simulación: las respuestas se guardan aquí pero no se envía nada. Sigue los pasos y guarda tu token para activarlo.",
+      "subscribed": "Suscrito a mensajes y comentarios",
+      "notSubscribed": "Aún no recibe mensajes",
+      "notSubscribedDesc": "Instagram no ha aceptado la suscripción del webhook, así que no entregará DMs ni comentarios. Revisa el token y sus permisos y pulsa Verificar.",
+      "subscribedSince": "Suscrito desde {date}.",
+      "lastEvent": "Último evento recibido: {date}.",
+      "noEventYet": "Aún no ha llegado ningún evento. Envía un DM desde otra cuenta de Instagram para probar; si no aparece nada, revisa el webhook y que tu app de Meta esté Live.",
+      "verify": "Verificar con Instagram",
+      "verifyOk": "Instagram aceptó la suscripción",
+      "verifyFailed": "Instagram no aceptó la suscripción",
+      "toggleToken": "Mostrar u ocultar token",
+      "tokenHint": "Usa un token de larga duración (60 días). Se guarda cifrado y no se vuelve a mostrar.",
+      "disconnectConfirm": "¿Desconectar Instagram? Dejan de enviarse las respuestas automáticas. Tus conversaciones y automatizaciones se conservan.",
+      "webhookTitle": "Configuración del webhook",
+      "webhookDesc": "Pégalos en tu app de Meta en Instagram > API setup with Instagram login > Webhooks.",
+      "localWarning": "Esta dirección no es HTTPS pública, así que Meta no puede acceder y la verificación fallará. Abre el CRM en tu dominio HTTPS (o un túnel) para copiar la URL correcta.",
+      "fields": "Campos del webhook a suscribir",
+      "setupTitle": "Pasos de configuración"
     }
   }
 }

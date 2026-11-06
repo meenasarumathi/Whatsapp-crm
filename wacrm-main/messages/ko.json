@@ -1502,7 +1502,8 @@
       "fieldsCount": "커스텀 필드 {count}개",
       "appearance": "{mode} 모드 · {theme} 색상",
       "yourAccount": "내 계정",
-      "loading": "불러오는 중…"
+      "loading": "불러오는 중…",
+      "notReceiving": "연결됨 · 메시지 수신 안 됨"
     },
     "members": {
       "title": "팀원",
@@ -3131,7 +3132,8 @@
     "subtitle": "자동화, 빠른 답장, 비즈니스로 학습한 AI로 인스타그램 DM·댓글·스토리 멘션에 자동으로 답하세요.",
     "status": {
       "connected": "연결됨 · @{username}",
-      "simulation": "시뮬레이션 모드 — 연결 안 됨"
+      "simulation": "시뮬레이션 모드 — 연결 안 됨",
+      "needsReconnecting": "다시 연결 필요"
     },
     "sections": {
       "inbox": "받은편지함",
@@ -3206,12 +3208,13 @@
       "placeholderHint": "고객 @사용자명은 {{name}}를 쓰세요. 빠른 답장은 설정 → 빠른 답장에서 가져옵니다."
     },
     "connect": {
-      "title": "인스타그램 프로페셔널 계정 연결",
+      "title": "API 자격 증명",
       "steps": {
-        "s1": "Meta for Developers에서 앱에 Instagram 제품(Instagram 로그인 API 설정)을 추가하세요.",
-        "s2": "Webhooks에 아래 콜백 URL과 확인 토큰을 붙여넣고 messages, comments를 구독하세요.",
-        "s3": "계정용 액세스 토큰(instagram_business_manage_messages, instagram_business_manage_comments)을 생성해 여기에 붙여넣으세요.",
-        "s4": "모든 고객에게 운영하기 전에 Meta 앱 검수에서 해당 권한을 승인받아야 합니다."
+        "s1": "Meta for Developers에서 앱에 Instagram 제품(API setup with Instagram login)을 추가하세요. 인스타그램은 프로페셔널 계정이어야 합니다.",
+        "s2": "Webhooks에 여기 표시된 콜백 URL과 확인 토큰을 붙여넣고 messages와 comments를 선택하세요.",
+        "s3": "instagram_business_basic, instagram_business_manage_messages, instagram_business_manage_comments 권한으로 액세스 토큰을 생성하세요.",
+        "s4": "토큰을 붙여넣고 저장 & 연결을 누르세요. 계정이 메시지와 댓글에 자동으로 구독됩니다.",
+        "s5": "Meta 앱을 게시(Live)하세요. Meta는 게시된 앱에만 알림을 전달합니다. 다른 비즈니스 계정을 지원하려면 앱 검수도 필요합니다."
       },
       "webhookUrl": "콜백 URL",
       "verifyToken": "확인 토큰",
@@ -3222,7 +3225,7 @@
       "appSecret": "인스타그램 앱 시크릿",
       "secretSaved": "저장됨",
       "secretOptional": "선택 — 기본값 META_APP_SECRET",
-      "connect": "저장 & 확인",
+      "connect": "저장 & 연결",
       "disconnect": "연결 해제",
       "saved": "인스타그램 설정이 저장되었습니다",
       "saveFailed": "저장할 수 없습니다",
@@ -3239,7 +3242,32 @@
       "simSend": "메시지 시뮬레이션",
       "simFailed": "시뮬레이션 실패",
       "simReplied": "{by}이(가) 답했습니다 — 받은편지함에서 확인하세요.",
-      "simNoReply": "저장됐지만 일치하는 활성 자동화가 없습니다(AI 꺼짐). 자동화를 켜고 다시 시도하세요."
+      "simNoReply": "저장됐지만 일치하는 활성 자동화가 없습니다(AI 꺼짐). 자동화를 켜고 다시 시도하세요.",
+      "credentialsDesc": "저장하면 인스타그램에서 토큰을 확인하고 계정의 메시지 수신을 켭니다.",
+      "credentialsValid": "@{username}(으)로 연결됨",
+      "credentialsValidDesc": "인스타그램이 방금 토큰을 승인했습니다. 만료 전에 자동으로 갱신됩니다.",
+      "needsReconnecting": "다시 연결 필요",
+      "invalidDesc": "인스타그램이 저장된 토큰을 거부했습니다(만료 또는 취소). 새 토큰을 생성해 아래에 저장하세요. 그때까지 자동 답장을 보낼 수 없습니다.",
+      "unreachableDesc": "토큰 확인을 위해 인스타그램에 연결할 수 없습니다. 보통 일시적이니 새로고침해 다시 확인하세요.",
+      "notConnected": "연결되지 않음",
+      "notConnectedDesc": "시뮬레이션 모드: 답장은 여기에 저장되지만 발송되지 않습니다. 설정 단계를 따라 토큰을 저장하면 실제로 운영됩니다.",
+      "subscribed": "메시지와 댓글 구독됨",
+      "notSubscribed": "아직 메시지를 받지 못함",
+      "notSubscribedDesc": "인스타그램이 웹훅 구독을 승인하지 않아 DM과 댓글이 전달되지 않습니다. 토큰과 권한을 확인한 뒤 확인 버튼을 누르세요.",
+      "subscribedSince": "구독 시작: {date}.",
+      "lastEvent": "마지막 이벤트 수신: {date}.",
+      "noEventYet": "아직 도착한 이벤트가 없습니다. 다른 인스타그램 계정에서 DM을 보내 테스트하세요. 아무것도 보이지 않으면 웹훅 설정과 Meta 앱의 Live 상태를 확인하세요.",
+      "verify": "인스타그램으로 확인",
+      "verifyOk": "인스타그램이 구독을 승인했습니다",
+      "verifyFailed": "인스타그램이 구독을 거부했습니다",
+      "toggleToken": "토큰 표시/숨기기",
+      "tokenHint": "장기 토큰(60일)을 사용하세요. 암호화되어 저장되며 다시 표시되지 않습니다.",
+      "disconnectConfirm": "인스타그램 연결을 해제할까요? 자동 답장 발송이 중단됩니다. 대화와 자동화는 유지됩니다.",
+      "webhookTitle": "웹훅 설정",
+      "webhookDesc": "Meta 앱의 Instagram > API setup with Instagram login > Webhooks에 붙여넣으세요.",
+      "localWarning": "이 주소는 공개 HTTPS가 아니어서 Meta가 접근할 수 없고 확인이 실패합니다. 운영 중인 HTTPS 도메인(또는 터널)으로 CRM을 열어 올바른 URL을 복사하세요.",
+      "fields": "구독할 웹훅 필드",
+      "setupTitle": "설정 단계"
     }
   }
 }

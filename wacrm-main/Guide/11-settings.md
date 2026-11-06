@@ -6,7 +6,7 @@ Open **Settings** at the bottom of the sidebar. A menu on the left (a scrolling 
 
 ## Overview
 
-The landing page: a status card per area — whether WhatsApp is **Connected**, **Not set up yet** or **Needs reconnecting**, how many members and pending invites, templates (and how many are pending review), tags and custom fields, and your appearance. Click any card to jump to it.
+The landing page: a status card per area — whether WhatsApp and Instagram are **Connected**, **Not set up yet** or **Needs reconnecting**, how many members and pending invites, templates (and how many are pending review), tags and custom fields, and your appearance. Click any card to jump to it.
 
 ---
 

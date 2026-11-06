@@ -9,7 +9,7 @@
 // (Vercel Cron, cron-job.org, …) already hits the endpoints.
 // ============================================================
 
-const ENDPOINTS = ['/api/automations/cron', '/api/flows/cron', '/api/wallet/reconcile']
+const ENDPOINTS = ['/api/automations/cron', '/api/flows/cron', '/api/wallet/reconcile', '/api/instagram/cron']
 const INTERVAL_MS = 60_000
 
 export async function register() {

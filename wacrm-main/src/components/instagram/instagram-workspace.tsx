@@ -3,11 +3,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
-import { Bot, Copy, FlaskConical, Inbox, Link2, Loader2, Send, Zap } from "lucide-react"
+import { AlertTriangle, Bot, CheckCircle2, Copy, Eye, EyeOff, FlaskConical, Inbox, Link2, Loader2, Send, XCircle, Zap } from "lucide-react"
 
 import { createBrowserDb } from "@/lib/db/browser"
 import { useCan } from "@/hooks/use-can"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
@@ -22,9 +25,13 @@ interface Settings {
   ig_user_id: string | null
   username: string | null
   has_app_secret: boolean
-  verify_token: string
+  /** Admins only. */
+  verify_token: string | null
   ai_auto_reply: boolean
   last_event_at: string | null
+  webhook_subscribed_at: string | null
+  webhook_error: string | null
+  token_health?: "none" | "ok" | "invalid" | "unreachable"
 }
 
 interface Contact {
@@ -63,7 +70,7 @@ export function InstagramWorkspace() {
   const [settings, setSettings] = useState<Settings | null>(null)
 
   const loadSettings = useCallback(async () => {
-    const res = await fetch("/api/instagram/settings", { cache: "no-store" })
+    const res = await fetch("/api/instagram/settings?check=1", { cache: "no-store" })
     if (res.ok) setSettings((await res.json()) as Settings)
   }, [])
 
@@ -89,10 +96,14 @@ export function InstagramWorkspace() {
             <span
               className={cn(
                 "whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium",
-                settings.connected ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400" : "border-amber-500/40 bg-amber-500/10 text-amber-400",
+                settings.connected && settings.token_health === "ok" ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400" : "border-amber-500/40 bg-amber-500/10 text-amber-400",
               )}
             >
-              {settings.connected ? t("status.connected", { username: settings.username ?? "" }) : t("status.simulation")}
+              {!settings.connected
+                ? t("status.simulation")
+                : settings.token_health === "ok"
+                  ? t("status.connected", { username: settings.username ?? "" })
+                  : t("status.needsReconnecting")}
             </span>
           )
         }
@@ -381,22 +392,43 @@ function InstagramConnect({ settings, onChange }: { settings: Settings; onChange
   const canAdmin = useCan("edit-settings")
   const canTest = useCan("send-messages")
   const [token, setToken] = useState("")
+  const [showToken, setShowToken] = useState(false)
   const [secret, setSecret] = useState("")
   const [busy, setBusy] = useState(false)
+  const [verifying, setVerifying] = useState(false)
   const [sim, setSim] = useState({ kind: "dm", text: "Hi! What is the price?", username: "test_customer" })
   const [simResult, setSimResult] = useState<string | null>(null)
-  const webhookUrl = useMemo(() => (typeof window === "undefined" ? "" : `${window.location.origin}/api/instagram/webhook`), [])
+  const origin = useMemo(() => (typeof window === "undefined" ? "" : window.location.origin), [])
+  const webhookUrl = `${origin}/api/instagram/webhook`
+  // Meta only calls public HTTPS URLs, so a local address can never receive events.
+  const isLocal = /^https?:\/\/(localhost|127\.|\[::1\])/.test(origin) || origin.startsWith("http:")
 
   async function put(body: Record<string, unknown>) {
-    setBusy(true)
     const res = await fetch("/api/instagram/settings", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
     const json = await res.json().catch(() => ({}))
-    setBusy(false)
-    if (!res.ok) return toast.error(json?.error ?? t("saveFailed"))
+    if (!res.ok) {
+      toast.error(json?.error ?? t("saveFailed"))
+      return null
+    }
     onChange(json as Settings)
+    return json as Settings
+  }
+
+  async function save(body: Record<string, unknown>) {
+    setBusy(true)
+    const saved = await put(body)
+    setBusy(false)
+    if (!saved) return
     setToken("")
     setSecret("")
     toast.success(t("saved"))
+  }
+
+  async function verify() {
+    setVerifying(true)
+    const saved = await put({ verify: true })
+    setVerifying(false)
+    if (saved) toast[saved.webhook_subscribed_at ? "success" : "error"](saved.webhook_subscribed_at ? t("verifyOk") : t("verifyFailed"))
   }
 
   async function simulate() {
@@ -413,67 +445,170 @@ function InstagramConnect({ settings, onChange }: { settings: Settings; onChange
     toast.success(t("copied"))
   }
 
+  const tokenOk = settings.connected && settings.token_health === "ok"
+  const subscribed = Boolean(settings.webhook_subscribed_at)
+
   return (
-    <div className="grid gap-4 xl:grid-cols-2">
-      <div className="space-y-4 rounded-xl border border-border bg-card p-4">
-        <h2 className="text-sm font-semibold text-foreground">{t("title")}</h2>
-        <ol className="list-decimal space-y-1 pl-5 text-xs text-muted-foreground">
-          {(["s1", "s2", "s3", "s4"] as const).map((k) => (
-            <li key={k}>{t(`steps.${k}`)}</li>
-          ))}
-        </ol>
-        {[
-          { label: t("webhookUrl"), value: webhookUrl },
-          { label: t("verifyToken"), value: settings.verify_token },
-        ].map((f) => (
-          <div key={f.label} className="space-y-1">
-            <p className="text-xs text-muted-foreground">{f.label}</p>
-            <div className="flex gap-2">
-              <Input readOnly value={f.value} className="font-mono text-xs" />
-              <Button size="icon" variant="outline" onClick={() => copy(f.value)} aria-label={t("copy")}>
-                <Copy className="h-4 w-4" />
+    <div className="grid gap-4 xl:grid-cols-[1fr_340px]">
+      <div className="space-y-4">
+        <Alert className="border-border bg-card">
+          <div className="flex items-center gap-2">
+            {tokenOk ? <CheckCircle2 className="size-4 text-primary" /> : <XCircle className="size-4 text-red-500" />}
+            <AlertTitle className="mb-0 text-foreground">
+              {tokenOk ? t("credentialsValid", { username: settings.username ?? "" }) : settings.connected ? t("needsReconnecting") : t("notConnected")}
+            </AlertTitle>
+          </div>
+          <AlertDescription className="text-muted-foreground">
+            {tokenOk ? t("credentialsValidDesc") : settings.connected ? t(settings.token_health === "unreachable" ? "unreachableDesc" : "invalidDesc") : t("notConnectedDesc")}
+          </AlertDescription>
+        </Alert>
+
+        {settings.connected && (
+          <Alert className={subscribed ? "border-emerald-700/50 bg-emerald-950/30" : "border-amber-700/50 bg-amber-950/30"}>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                {subscribed ? <CheckCircle2 className="size-4 text-emerald-400" /> : <AlertTriangle className="size-4 text-amber-400" />}
+                <AlertTitle className={cn("mb-0", subscribed ? "text-emerald-200" : "text-amber-200")}>{subscribed ? t("subscribed") : t("notSubscribed")}</AlertTitle>
+              </div>
+              <Button variant="outline" size="sm" disabled={!canAdmin || verifying} onClick={() => void verify()} className="h-7 border-border bg-transparent text-foreground hover:bg-muted">
+                {verifying ? <Loader2 className="size-3.5 animate-spin" /> : <Zap className="size-3.5" />}
+                {t("verify")}
               </Button>
             </div>
-          </div>
-        ))}
-        <label className="block space-y-1 text-xs text-muted-foreground">
-          {t("token")}
-          <Input type="password" value={token} onChange={(e) => setToken(e.target.value)} placeholder={settings.connected ? t("tokenSaved") : "IGAA…"} disabled={!canAdmin} />
-        </label>
-        <label className="block space-y-1 text-xs text-muted-foreground">
-          {t("appSecret")}
-          <Input type="password" value={secret} onChange={(e) => setSecret(e.target.value)} placeholder={settings.has_app_secret ? t("secretSaved") : t("secretOptional")} disabled={!canAdmin} />
-        </label>
-        <div className="flex flex-wrap gap-2">
-          <Button disabled={!canAdmin || busy || (!token.trim() && !secret.trim())} onClick={() => void put({ access_token: token || undefined, app_secret: secret || undefined })}>
-            {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-            {t("connect")}
-          </Button>
-          {settings.connected && (
-            <Button variant="outline" disabled={!canAdmin || busy} onClick={() => void put({ disconnect: true })}>
-              {t("disconnect")}
-            </Button>
-          )}
-        </div>
-        <div className="flex items-center justify-between rounded-lg border border-border p-3">
+            <AlertDescription className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              {subscribed ? (
+                <>
+                  {t("subscribedSince", { date: new Date(settings.webhook_subscribed_at as string).toLocaleString() })}{" "}
+                  {settings.last_event_at ? t("lastEvent", { date: new Date(settings.last_event_at).toLocaleString() }) : t("noEventYet")}
+                </>
+              ) : (
+                <>
+                  {t("notSubscribedDesc")}
+                  {settings.webhook_error && <span className="mt-1 block break-all text-red-300">{settings.webhook_error}</span>}
+                </>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-foreground">{t("title")}</CardTitle>
+            <CardDescription className="text-muted-foreground">{t("credentialsDesc")}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">{t("token")}</Label>
+              <div className="relative">
+                <Input
+                  type={showToken ? "text" : "password"}
+                  value={token}
+                  onChange={(e) => setToken(e.target.value)}
+                  placeholder={settings.connected ? t("tokenSaved") : "IGAA…"}
+                  disabled={!canAdmin}
+                  className="border-border bg-muted pr-10 text-foreground placeholder:text-muted-foreground"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowToken(!showToken)}
+                  aria-label={t("toggleToken")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {showToken ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground">{t("tokenHint")}</p>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">{t("appSecret")}</Label>
+              <Input
+                type="password"
+                value={secret}
+                onChange={(e) => setSecret(e.target.value)}
+                placeholder={settings.has_app_secret ? t("secretSaved") : t("secretOptional")}
+                disabled={!canAdmin}
+                className="border-border bg-muted text-foreground placeholder:text-muted-foreground"
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button disabled={!canAdmin || busy || (!token.trim() && !secret.trim())} onClick={() => void save({ access_token: token || undefined, app_secret: secret || undefined })}>
+                {busy && <Loader2 className="size-4 animate-spin" />}
+                {t("connect")}
+              </Button>
+              {settings.connected && (
+                <Button
+                  variant="outline"
+                  disabled={!canAdmin || busy}
+                  onClick={() => {
+                    if (window.confirm(t("disconnectConfirm"))) void save({ disconnect: true })
+                  }}
+                >
+                  {t("disconnect")}
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {canAdmin && settings.verify_token && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-foreground">{t("webhookTitle")}</CardTitle>
+              <CardDescription className="text-muted-foreground">{t("webhookDesc")}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isLocal && <p className="rounded-md border border-amber-700/50 bg-amber-950/30 p-2 text-xs text-amber-200">{t("localWarning")}</p>}
+              {[
+                { label: t("webhookUrl"), value: webhookUrl },
+                { label: t("verifyToken"), value: settings.verify_token },
+                { label: t("fields"), value: "messages, comments" },
+              ].map((f) => (
+                <div key={f.label} className="space-y-2">
+                  <Label className="text-muted-foreground">{f.label}</Label>
+                  <div className="flex gap-2">
+                    <Input readOnly value={f.value} className="border-border bg-muted font-mono text-xs text-foreground" />
+                    <Button size="icon" variant="outline" onClick={() => copy(f.value)} aria-label={t("copy")}>
+                      <Copy className="size-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
           <div>
             <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-              <Bot className="h-4 w-4 text-primary" />
+              <Bot className="size-4 text-primary" />
               {t("ai")}
             </p>
             <p className="text-xs text-muted-foreground">{t("aiDesc")}</p>
           </div>
-          <Switch checked={settings.ai_auto_reply} disabled={!canAdmin || busy} onCheckedChange={(v) => void put({ ai_auto_reply: v })} />
+          <Switch checked={settings.ai_auto_reply} disabled={!canAdmin || busy} onCheckedChange={(v) => void save({ ai_auto_reply: v })} />
         </div>
       </div>
 
-      <div className="space-y-3 rounded-xl border border-border bg-card p-4">
-        <h2 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
-          <FlaskConical className="h-4 w-4 text-primary" />
-          {t("simTitle")}
-        </h2>
-        <p className="text-xs text-muted-foreground">{t("simDesc")}</p>
-        <div className="grid grid-cols-2 gap-2">
+      <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-foreground">{t("setupTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ol className="list-decimal space-y-2 pl-5 text-xs leading-relaxed text-muted-foreground">
+              {(["s1", "s2", "s3", "s4", "s5"] as const).map((k) => (
+                <li key={k}>{t(`steps.${k}`)}</li>
+              ))}
+            </ol>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-3 rounded-xl border border-border bg-card p-4">
+          <h2 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+            <FlaskConical className="size-4 text-primary" />
+            {t("simTitle")}
+          </h2>
+          <p className="text-xs text-muted-foreground">{t("simDesc")}</p>
           <select value={sim.kind} onChange={(e) => setSim({ ...sim, kind: e.target.value })} className={SELECT_CLASS}>
             {(["dm", "comment", "story_mention", "story_reply"] as const).map((k) => (
               <option key={k} value={k}>
@@ -482,13 +617,13 @@ function InstagramConnect({ settings, onChange }: { settings: Settings; onChange
             ))}
           </select>
           <Input value={sim.username} onChange={(e) => setSim({ ...sim, username: e.target.value })} placeholder="@username" />
+          <Textarea rows={3} value={sim.text} onChange={(e) => setSim({ ...sim, text: e.target.value })} />
+          <Button onClick={() => void simulate()} disabled={!canTest || busy}>
+            {busy && <Loader2 className="size-4 animate-spin" />}
+            {t("simSend")}
+          </Button>
+          {simResult && <p className="rounded-md bg-muted p-2 text-xs text-foreground">{simResult}</p>}
         </div>
-        <Textarea rows={3} value={sim.text} onChange={(e) => setSim({ ...sim, text: e.target.value })} />
-        <Button onClick={() => void simulate()} disabled={!canTest || busy}>
-          {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-          {t("simSend")}
-        </Button>
-        {simResult && <p className="rounded-md bg-muted p-2 text-xs text-foreground">{simResult}</p>}
       </div>
     </div>
   )

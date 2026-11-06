@@ -3,7 +3,14 @@ import { NextResponse } from 'next/server'
 import { requireRole, toErrorResponse } from '@/lib/auth/account'
 import { serviceDb } from '@/lib/automations/admin-client'
 import { encrypt } from '@/lib/whatsapp/encryption'
-import { InstagramApiError, fetchInstagramMe } from '@/lib/instagram/graph'
+import { hasMinRole, type AccountRole } from '@/lib/auth/roles'
+import {
+  checkInstagramToken,
+  connectInstagramToken,
+  verifyInstagramConnection,
+  type InstagramAccountRow,
+  type TokenHealth,
+} from '@/lib/instagram/connection'
 import { defaultInstagramAutomations } from '@/lib/instagram/defaults'
 
 async function ensureRow(accountId: string, userId: string) {
@@ -23,58 +30,70 @@ async function ensureRow(accountId: string, userId: string) {
   return data as Record<string, unknown>
 }
 
-function publicView(row: Record<string, unknown>) {
+function publicView(row: Record<string, unknown>, role: AccountRole, token?: TokenHealth) {
   return {
     connected: Boolean(row.access_token_enc && row.ig_user_id),
     ig_user_id: row.ig_user_id ?? null,
     username: row.username ?? null,
     has_app_secret: Boolean(row.app_secret_enc),
-    verify_token: row.verify_token,
+    // Anyone holding this can complete Meta's webhook handshake: admins only.
+    verify_token: hasMinRole(role, 'admin') ? row.verify_token : null,
     ai_auto_reply: Boolean(row.ai_auto_reply),
     connected_at: row.connected_at ?? null,
     last_event_at: row.last_event_at ?? null,
+    webhook_subscribed_at: row.webhook_subscribed_at ?? null,
+    webhook_error: row.webhook_error ?? null,
+    ...(token ? { token_health: token } : {}),
   }
 }
 
-export async function GET() {
+/** `?check=1` also pings Instagram to test the token (slower, like the WhatsApp health check). */
+export async function GET(request: Request) {
   try {
     const ctx = await requireRole('viewer')
-    return NextResponse.json(publicView(await ensureRow(ctx.accountId, ctx.userId)))
+    const row = await ensureRow(ctx.accountId, ctx.userId)
+    const check = new URL(request.url).searchParams.get('check') === '1'
+    const token = check ? await checkInstagramToken(row as unknown as InstagramAccountRow) : undefined
+    return NextResponse.json(publicView(row, ctx.role, token))
   } catch (error) {
     return toErrorResponse(error)
   }
 }
 
-/** Body: { access_token?, app_secret?, ai_auto_reply?, disconnect? } — admins only. */
+/** Body: { access_token?, app_secret?, ai_auto_reply?, disconnect?, verify? } — admins only. */
 export async function PUT(request: Request) {
   try {
     const ctx = await requireRole('admin')
-    await ensureRow(ctx.accountId, ctx.userId)
+    const current = await ensureRow(ctx.accountId, ctx.userId)
     const body = (await request.json().catch(() => ({}))) as {
       access_token?: unknown
       app_secret?: unknown
       ai_auto_reply?: unknown
       disconnect?: unknown
+      verify?: unknown
     }
     const patch: Record<string, unknown> = {}
     if (body.disconnect === true) {
-      Object.assign(patch, { access_token_enc: null, ig_user_id: null, username: null, connected_at: null })
+      Object.assign(patch, {
+        access_token_enc: null,
+        ig_user_id: null,
+        ig_alt_id: null,
+        username: null,
+        connected_at: null,
+        webhook_subscribed_at: null,
+        webhook_error: null,
+        token_refreshed_at: null,
+      })
     }
     if (typeof body.access_token === 'string' && body.access_token.trim()) {
-      const token = body.access_token.trim()
       try {
-        const me = await fetchInstagramMe(token)
-        if (!me.userId) throw new InstagramApiError('Token did not return an Instagram account', 400)
-        Object.assign(patch, {
-          access_token_enc: encrypt(token),
-          ig_user_id: me.userId,
-          username: me.username,
-          connected_at: new Date().toISOString(),
-        })
+        Object.assign(patch, await connectInstagramToken(body.access_token.trim()))
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Token check failed'
         return NextResponse.json({ error: `Instagram rejected the token: ${message}` }, { status: 400 })
       }
+    } else if (body.verify === true) {
+      Object.assign(patch, await verifyInstagramConnection(current as unknown as InstagramAccountRow))
     }
     if (typeof body.app_secret === 'string') {
       patch.app_secret_enc = body.app_secret.trim() ? encrypt(body.app_secret.trim()) : null
@@ -93,7 +112,8 @@ export async function PUT(request: Request) {
         { status: taken ? 409 : 500 },
       )
     }
-    return NextResponse.json(publicView(data as Record<string, unknown>))
+    const row = data as Record<string, unknown>
+    return NextResponse.json(publicView(row, ctx.role, await checkInstagramToken(row as unknown as InstagramAccountRow)))
   } catch (error) {
     return toErrorResponse(error)
   }

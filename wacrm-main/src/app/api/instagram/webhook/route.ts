@@ -2,6 +2,7 @@ import { NextResponse, after } from 'next/server'
 
 import { serviceDb } from '@/lib/automations/admin-client'
 import { decrypt } from '@/lib/whatsapp/encryption'
+import { findInstagramAccount } from '@/lib/instagram/connection'
 import { processInstagramEvent } from '@/lib/instagram/engine'
 import { parseInstagramWebhook, verifyInstagramSignature, type InstagramEvent } from '@/lib/instagram/webhook'
 
@@ -41,11 +42,9 @@ export async function POST(request: Request) {
   for (const e of events) byIgUser.set(e.igUserId, [...(byIgUser.get(e.igUserId) ?? []), e])
 
   // Resolve each business account and the secret its app signs with.
-  const db = serviceDb()
   const targets: { accountId: string; events: InstagramEvent[]; secret: string | null }[] = []
   for (const [igUserId, list] of byIgUser) {
-    const { data } = await db.from('instagram_accounts').select('account_id, app_secret_enc').eq('ig_user_id', igUserId).maybeSingle()
-    const row = data as { account_id: string; app_secret_enc: string | null } | null
+    const row = await findInstagramAccount(igUserId)
     if (!row) continue
     let secret: string | null = null
     if (row.app_secret_enc) {
