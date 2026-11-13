@@ -23,8 +23,9 @@ Click **Save changes**.
 
 ### Login & security
 
-- **Password** — enter **Current password**, **New password**, **Confirm new password**, then **Update password**.
-- **Active sessions** — **Sign out of all devices** if you lost a laptop or shared your password.
+- **Password** — enter **Current password**, **New password**, **Confirm new password**, then **Update password**. Your other devices are signed out.
+- **Two-step verification** — click **Turn on**, add the set-up key to an authenticator app, type the 6-digit code and save the 10 recovery codes. Required for Super admin, Admin 1 and Admin 2 (they cannot turn it off). **New recovery codes** replaces the old ones.
+- **Signed-in devices** — every browser or device signed in to your account, with when it was last active (India time). **Sign out** ends one device; **Sign out everywhere** ends all of them, including this one, and asks for a reason (for example "lost my laptop").
 
 ### Appearance
 
@@ -122,11 +123,14 @@ Shown under **Platform** in the settings menu, only to platform admins. It lists
 - **Plan** — Free trial (with days left), Paid, Expired or Suspended.
 - **Tabs** — how many sidebar tabs the person can open.
 
+The same list also opens from the **Users** tab in the left sidebar (between Wallet and Settings).
+
 Click a row to open it:
 
 1. **Subscription** — give a free trial of **1 day**, **7 days** or **15 days** (it starts now), **Mark paid**, **End now** or **Suspend**.
 2. **Tabs this user can open** — tick the tabs they should see (Dashboard, Inbox, Train AI, Notifications, Contacts, Pipelines, Broadcasts, Automations, Flows, AI Agents, Demo, Guide). Use **Select all** / **Clear**, then **Save tabs**.
 3. **Internal notes** — e.g. how they paid.
+4. **Temporary password** — **Issue temporary password** sets a one-off password valid for 72 hours and signs the user out everywhere. Copy it and give it to them; it is shown once. They must choose their own password at the next sign-in. The Super admin can do this for anyone except another Super admin; Admin 1 and Admin 2 for subscription users.
 
 **Many users at once:** tick the checkboxes on the left of the list (or the one in the header for everyone shown). A bar appears to give them all a 1 / 7 / 15-day trial, mark them paid, suspend them, set their tabs or change their role in one go.
 

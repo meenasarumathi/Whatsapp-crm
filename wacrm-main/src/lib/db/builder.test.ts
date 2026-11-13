@@ -15,7 +15,17 @@ d("query builder", () => {
     pool = await import("./pool");
     db = await import("./client");
     const p = pool.getPool();
-    await p.query("TRUNCATE public.users CASCADE");
+    // Test reset. The User Management audit tables refuse TRUNCATE (append-only);
+    // replica mode skips that trigger for this throwaway test database only.
+    const c = await p.connect();
+    try {
+      await c.query("BEGIN");
+      await c.query("SET LOCAL session_replication_role = replica");
+      await c.query("TRUNCATE public.users CASCADE");
+      await c.query("COMMIT");
+    } finally {
+      c.release();
+    }
     const u = await p.query("INSERT INTO public.users (email, password_hash, raw_user_meta_data) VALUES ('t@x.com','h','{\"full_name\":\"T\"}') RETURNING id");
     ids.user = u.rows[0].id;
     ids.account = (await p.query("SELECT account_id FROM profiles WHERE user_id=$1", [ids.user])).rows[0].account_id;

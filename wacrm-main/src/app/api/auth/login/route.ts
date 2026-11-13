@@ -1,16 +1,28 @@
 import { NextResponse } from "next/server";
 import { startSession } from "@/lib/auth/session";
-import { signIn } from "@/lib/auth/service";
-import { authRateLimited, errorResponse, readJson } from "@/lib/auth/http";
+import { recordRateLimitedAttempt, signInSecure } from "@/lib/auth/security-service";
+import { authRateLimited, errorResponse, readJson, requestMeta } from "@/lib/auth/http";
 
+/**
+ * Body { email, password, code?, recoveryCode? }.
+ * 401 { error.code: "mfa_required" } → ask for the authenticator code and post again.
+ * 200 { restrictions: [...] } → the client sends the user to /account-security first.
+ */
 export async function POST(request: Request) {
+  const b = await readJson(request);
+  const meta = requestMeta(request);
   const limited = authRateLimited(request, "login");
-  if (limited) return limited;
+  if (limited) {
+    await recordRateLimitedAttempt(b.email, meta);
+    return limited;
+  }
   try {
-    const b = await readJson(request);
-    const u = await signIn(b.email, b.password);
-    await startSession(u.id, u.session_version);
-    return NextResponse.json({ user: { id: u.id, email: u.email } });
+    const r = await signInSecure(
+      { email: b.email, password: b.password, code: b.code, recoveryCode: b.recoveryCode },
+      meta,
+    );
+    await startSession(r.userId, r.sessionVersion, r.sessionId);
+    return NextResponse.json({ user: { id: r.userId, email: r.email }, restrictions: r.restrictions });
   } catch (e) {
     return errorResponse(e);
   }

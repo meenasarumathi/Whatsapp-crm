@@ -58,7 +58,19 @@ An admin must finish AI Agents → Setup and switch on **Enable AI assistant**.
 ## Account
 
 **I forgot my password.**
-On the sign-in page click **Forgot password?** and follow the email link.
+On the sign-in page click **Forgot password?** and follow the email link. All your devices are signed out. If you use two-step verification you sign in again with your new password and a code.
+
+**"Too many failed sign-in attempts. Try again in N minutes."**
+5 wrong passwords or codes in a row lock the account for 15 minutes. Wait, or reset your password with **Forgot password?** (that also unlocks the account).
+
+**I lost the phone with my authenticator app.**
+Click **Use a recovery code** on the sign-in page and enter one of your saved recovery codes. Each code works once. Then turn on two-step verification again on your new phone (Settings → Login & security).
+
+**I was signed out of the CRM after the update.**
+Expected: everyone signs in once more after the sign-in security update.
+
+**"Your temporary password has expired."**
+Temporary passwords work for 72 hours. Ask an administrator for a new one.
 
 **After a password reset I see a blank page instead of the sign-in form.**
 This is fixed: an old sign-in from before the reset is now cleared automatically and you land on the sign-in page. Refresh the page once if it stays blank.

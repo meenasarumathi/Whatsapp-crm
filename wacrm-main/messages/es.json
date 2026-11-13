@@ -43,7 +43,8 @@
     "menuSignOut": "Cerrar sesión",
     "trainAi": "Entrenar IA",
     "demo": "Demo",
-    "wallet": "Monedero"
+    "wallet": "Monedero",
+    "users": "Usuarios"
   },
   "Header": {
     "dashboard": "Panel",
@@ -66,7 +67,8 @@
     "agents": "Agentes de IA",
     "trainAi": "Entrenar IA",
     "demo": "Demo",
-    "wallet": "Monedero"
+    "wallet": "Monedero",
+    "users": "Usuarios"
   },
   "ModeToggle": {
     "switchMode": "Cambiar al modo {mode}"
@@ -3268,6 +3270,91 @@
       "localWarning": "Esta dirección no es HTTPS pública, así que Meta no puede acceder y la verificación fallará. Abre el CRM en tu dominio HTTPS (o un túnel) para copiar la URL correcta.",
       "fields": "Campos del webhook a suscribir",
       "setupTitle": "Pasos de configuración"
+    }
+  },
+  "AccountSecurity": {
+    "signOut": "Cerrar sesión",
+    "login": {
+      "codeLabel": "Código de autenticación",
+      "recoveryLabel": "Código de recuperación",
+      "codeHint": "Abre tu app de autenticación e introduce el código de 6 dígitos.",
+      "recoveryHint": "Cada código de recuperación funciona una sola vez.",
+      "useApp": "Usar la app de autenticación",
+      "useRecovery": "Usar un código de recuperación"
+    },
+    "password": {
+      "title": "Elige una contraseña nueva",
+      "description": "Iniciaste sesión con una contraseña temporal. Define tu propia contraseña para continuar.",
+      "current": "Contraseña temporal",
+      "new": "Contraseña nueva",
+      "confirm": "Repite la contraseña nueva",
+      "submit": "Guardar contraseña",
+      "mismatch": "Las contraseñas nuevas no coinciden.",
+      "failed": "No se pudo cambiar la contraseña."
+    },
+    "mfa": {
+      "title": "Configura la verificación en dos pasos",
+      "mandatoryDescription": "Los administradores deben usar una app de autenticación al iniciar sesión.",
+      "startIntro": "Necesitarás una app de autenticación como Google Authenticator, Microsoft Authenticator o 1Password.",
+      "startButton": "Empezar",
+      "stepApp": "Abre tu app de autenticación y añade una cuenta.",
+      "stepKey": "Introduce la clave de configuración (o abre el enlace en tu teléfono).",
+      "stepCode": "Escribe el código de 6 dígitos que muestra la app.",
+      "keyLabel": "Clave de configuración",
+      "openInApp": "Abrir en la app de autenticación",
+      "codeLabel": "Código de 6 dígitos",
+      "verifyButton": "Verificar y activar",
+      "enabled": "La verificación en dos pasos está activada.",
+      "savedContinue": "Ya guardé mis códigos de recuperación",
+      "cardTitle": "Verificación en dos pasos",
+      "cardMandatory": "Obligatoria para tu rol. Inicias sesión con tu contraseña y un código de tu app de autenticación.",
+      "cardOptional": "Añade un código de una app de autenticación a tu inicio de sesión para más protección.",
+      "turnOn": "Activar",
+      "statusOn": "Activada.",
+      "codesLeft": "{count, plural, one {Queda # código de recuperación} other {Quedan # códigos de recuperación}}",
+      "newCodes": "Nuevos códigos de recuperación",
+      "turnOff": "Desactivar",
+      "passwordLabel": "Contraseña actual",
+      "cancel": "Cancelar",
+      "failed": "No funcionó. Revisa el código e inténtalo de nuevo.",
+      "disabled": "La verificación en dos pasos está desactivada."
+    },
+    "recovery": {
+      "intro": "Guarda estos códigos en un lugar seguro. Cada uno te permite entrar una vez si pierdes el teléfono. No se volverán a mostrar.",
+      "copy": "Copiar",
+      "download": "Descargar",
+      "copied": "Códigos copiados",
+      "copyFailed": "No se pudo copiar. Selecciona los códigos y cópialos a mano.",
+      "fileHeader": "Códigos de recuperación. Cada código funciona una vez."
+    },
+    "sessions": {
+      "title": "Dispositivos con sesión iniciada",
+      "description": "Cada navegador o dispositivo con tu cuenta abierta. Cierra la sesión de los que no reconozcas.",
+      "unknownDevice": "Dispositivo desconocido",
+      "thisDevice": "Este dispositivo",
+      "lastActive": "Última actividad {when}",
+      "signOut": "Cerrar sesión",
+      "signOutAll": "Cerrar sesión en todas partes",
+      "revoked": "Sesión cerrada en ese dispositivo",
+      "revokeFailed": "No se pudo cerrar la sesión de ese dispositivo.",
+      "confirmTitle": "¿Cerrar sesión en todos los dispositivos?",
+      "confirmDescription": "Todas las sesiones terminan, incluida esta. Tendrás que iniciar sesión de nuevo.",
+      "reasonLabel": "Motivo",
+      "reasonPlaceholder": "Por ejemplo: perdí mi portátil",
+      "cancel": "Cancelar",
+      "confirmButton": "Cerrar sesión en todas partes"
+    },
+    "tempPassword": {
+      "label": "Contraseña temporal",
+      "shownOnce": "Entrega esta contraseña a {email}. Solo se muestra una vez.",
+      "expires": "Válida hasta {when}. El usuario debe cambiarla al iniciar sesión.",
+      "done": "Listo",
+      "confirm": "Su contraseña actual deja de funcionar y se cierran todas sus sesiones.",
+      "cancel": "Cancelar",
+      "issue": "Crear contraseña temporal",
+      "failed": "No se pudo crear la contraseña temporal.",
+      "copied": "Contraseña copiada",
+      "copyFailed": "No se pudo copiar. Selecciona la contraseña y cópiala a mano."
     }
   }
 }

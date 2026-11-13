@@ -43,7 +43,8 @@
     "menuSignOut": "로그아웃",
     "trainAi": "AI 학습",
     "demo": "데모",
-    "wallet": "지갑"
+    "wallet": "지갑",
+    "users": "사용자"
   },
   "Header": {
     "dashboard": "대시보드",
@@ -66,7 +67,8 @@
     "agents": "AI 에이전트",
     "trainAi": "AI 학습",
     "demo": "데모",
-    "wallet": "지갑"
+    "wallet": "지갑",
+    "users": "사용자"
   },
   "ModeToggle": {
     "switchMode": "{mode} 모드로 전환"
@@ -3268,6 +3270,91 @@
       "localWarning": "이 주소는 공개 HTTPS가 아니어서 Meta가 접근할 수 없고 확인이 실패합니다. 운영 중인 HTTPS 도메인(또는 터널)으로 CRM을 열어 올바른 URL을 복사하세요.",
       "fields": "구독할 웹훅 필드",
       "setupTitle": "설정 단계"
+    }
+  },
+  "AccountSecurity": {
+    "signOut": "로그아웃",
+    "login": {
+      "codeLabel": "인증 코드",
+      "recoveryLabel": "복구 코드",
+      "codeHint": "인증 앱을 열고 6자리 코드를 입력하세요.",
+      "recoveryHint": "복구 코드는 각각 한 번만 사용할 수 있습니다.",
+      "useApp": "인증 앱 사용",
+      "useRecovery": "복구 코드 사용"
+    },
+    "password": {
+      "title": "새 비밀번호 설정",
+      "description": "임시 비밀번호로 로그인했습니다. 계속하려면 새 비밀번호를 설정하세요.",
+      "current": "임시 비밀번호",
+      "new": "새 비밀번호",
+      "confirm": "새 비밀번호 확인",
+      "submit": "비밀번호 저장",
+      "mismatch": "새 비밀번호가 일치하지 않습니다.",
+      "failed": "비밀번호를 변경하지 못했습니다."
+    },
+    "mfa": {
+      "title": "2단계 인증 설정",
+      "mandatoryDescription": "관리자는 로그인할 때 인증 앱을 사용해야 합니다.",
+      "startIntro": "Google Authenticator, Microsoft Authenticator, 1Password 같은 인증 앱이 필요합니다.",
+      "startButton": "설정 시작",
+      "stepApp": "인증 앱을 열고 계정을 추가하세요.",
+      "stepKey": "아래 설정 키를 입력하세요(또는 휴대폰에서 링크를 여세요).",
+      "stepCode": "앱에 표시된 6자리 코드를 입력하세요.",
+      "keyLabel": "설정 키",
+      "openInApp": "인증 앱에서 열기",
+      "codeLabel": "6자리 코드",
+      "verifyButton": "확인 후 사용",
+      "enabled": "2단계 인증이 켜졌습니다.",
+      "savedContinue": "복구 코드를 저장했습니다",
+      "cardTitle": "2단계 인증",
+      "cardMandatory": "현재 역할에 필수입니다. 비밀번호와 인증 앱의 코드로 로그인합니다.",
+      "cardOptional": "로그인에 인증 앱 코드를 추가해 계정을 더 안전하게 보호하세요.",
+      "turnOn": "켜기",
+      "statusOn": "켜짐.",
+      "codesLeft": "{count, plural, other {복구 코드 #개 남음}}",
+      "newCodes": "새 복구 코드",
+      "turnOff": "끄기",
+      "passwordLabel": "현재 비밀번호",
+      "cancel": "취소",
+      "failed": "실패했습니다. 코드를 확인하고 다시 시도하세요.",
+      "disabled": "2단계 인증이 꺼졌습니다."
+    },
+    "recovery": {
+      "intro": "이 복구 코드를 안전한 곳에 보관하세요. 휴대폰을 잃어버렸을 때 각 코드로 한 번 로그인할 수 있습니다. 다시 표시되지 않습니다.",
+      "copy": "복사",
+      "download": "다운로드",
+      "copied": "복구 코드를 복사했습니다",
+      "copyFailed": "복사하지 못했습니다. 코드를 선택해 직접 복사하세요.",
+      "fileHeader": "복구 코드. 각 코드는 한 번만 사용할 수 있습니다."
+    },
+    "sessions": {
+      "title": "로그인된 기기",
+      "description": "계정에 로그인된 모든 브라우저와 기기입니다. 모르는 기기는 로그아웃하세요.",
+      "unknownDevice": "알 수 없는 기기",
+      "thisDevice": "이 기기",
+      "lastActive": "마지막 활동 {when}",
+      "signOut": "로그아웃",
+      "signOutAll": "모든 기기에서 로그아웃",
+      "revoked": "기기를 로그아웃했습니다",
+      "revokeFailed": "해당 기기를 로그아웃하지 못했습니다.",
+      "confirmTitle": "모든 기기에서 로그아웃할까요?",
+      "confirmDescription": "이 기기를 포함한 모든 세션이 종료됩니다. 다시 로그인해야 합니다.",
+      "reasonLabel": "사유",
+      "reasonPlaceholder": "예: 노트북 분실",
+      "cancel": "취소",
+      "confirmButton": "모든 기기에서 로그아웃"
+    },
+    "tempPassword": {
+      "label": "임시 비밀번호",
+      "shownOnce": "{email} 사용자에게 이 비밀번호를 전달하세요. 한 번만 표시됩니다.",
+      "expires": "{when}까지 유효합니다. 사용자는 로그인할 때 비밀번호를 변경해야 합니다.",
+      "done": "완료",
+      "confirm": "현재 비밀번호는 더 이상 작동하지 않으며 모든 세션이 종료됩니다.",
+      "cancel": "취소",
+      "issue": "임시 비밀번호 발급",
+      "failed": "임시 비밀번호를 발급하지 못했습니다.",
+      "copied": "비밀번호를 복사했습니다",
+      "copyFailed": "복사하지 못했습니다. 비밀번호를 선택해 직접 복사하세요."
     }
   }
 }

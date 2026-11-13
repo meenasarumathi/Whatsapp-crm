@@ -1,17 +1,16 @@
 import { NextResponse } from "next/server";
-import { getSessionUserId, startSession } from "@/lib/auth/session";
-import { AuthError, changePassword } from "@/lib/auth/service";
-import { authRateLimited, errorResponse, readJson } from "@/lib/auth/http";
+import { requireSession } from "@/lib/auth/session";
+import { changePasswordSecure } from "@/lib/auth/security-service";
+import { authRateLimited, errorResponse, readJson, requestMeta } from "@/lib/auth/http";
 
+/** Body { current, next }. Allowed while a temporary password must be changed. Ends the user's other sessions. */
 export async function POST(request: Request) {
   const limited = authRateLimited(request, "change-password");
   if (limited) return limited;
   try {
-    const userId = await getSessionUserId();
-    if (!userId) throw new AuthError("Not authenticated", 401);
+    const s = await requireSession({ allow: ["password_change", "mfa_enrollment"] });
     const b = await readJson(request);
-    const u = await changePassword(userId, b.current, b.next);
-    await startSession(u.id, u.session_version);
+    await changePasswordSecure({ userId: s.user.id, sessionId: s.sessionId, current: b.current, next: b.next, meta: requestMeta(request) });
     return NextResponse.json({ ok: true });
   } catch (e) {
     return errorResponse(e);

@@ -112,10 +112,12 @@ const navItems: NavItem[] = [
   { href: "/guide", tab: "guide", labelKey: "guide", icon: BookOpen },
 ];
 
-const bottomNavItems = [
+const bottomNavItems: { href: string; labelKey: string; icon: typeof LayoutDashboard; adminOnly?: boolean }[] = [
   // Always visible (like Settings): owners must be able to recharge even
   // when their plan hides other tabs.
   { href: "/wallet", labelKey: "wallet", icon: Coins },
+  // User management — Super admin / Admin 1 / Admin 2 only (the API enforces it too).
+  { href: "/users", labelKey: "users", icon: UserCog, adminOnly: true },
   { href: "/settings", labelKey: "settings", icon: Settings },
 ];
 
@@ -135,7 +137,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
   const totalUnread = useTotalUnread();
   const unreadNotifications = useUnreadNotifications();
   // Tabs switched off for this user in Settings → Subscription users.
-  const { canSeeTab } = usePlatform();
+  const { canSeeTab, isPlatformAdmin } = usePlatform();
   const visibleNavItems = navItems.filter((item) => canSeeTab(item.tab));
   // Only surface the account-name strip when it actually carries
   // information. A solo user's personal account is named after them
@@ -287,7 +289,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
           <div className="my-4 border-t border-border" />
 
           <ul className="flex flex-col gap-1">
-            {bottomNavItems.map((item) => {
+            {bottomNavItems.filter((item) => !item.adminOnly || isPlatformAdmin).map((item) => {
               const isActive = pathname.startsWith(item.href);
               return (
                 <li key={item.href}>

@@ -43,7 +43,8 @@
     "menuSignOut": "Sair",
     "trainAi": "Treinar IA",
     "demo": "Demo",
-    "wallet": "Carteira"
+    "wallet": "Carteira",
+    "users": "Usuários"
   },
   "Header": {
     "dashboard": "Painel",
@@ -66,7 +67,8 @@
     "agents": "Agentes de IA",
     "trainAi": "Treinar IA",
     "demo": "Demo",
-    "wallet": "Carteira"
+    "wallet": "Carteira",
+    "users": "Usuários"
   },
   "ModeToggle": {
     "switchMode": "Mudar para o modo {mode}"
@@ -3268,6 +3270,91 @@
       "localWarning": "Este endereço não é HTTPS público, então a Meta não consegue acessá-lo e a verificação falhará. Abra o CRM no seu domínio HTTPS (ou um túnel) para copiar a URL certa.",
       "fields": "Campos do webhook para assinar",
       "setupTitle": "Passos de configuração"
+    }
+  },
+  "AccountSecurity": {
+    "signOut": "Sair",
+    "login": {
+      "codeLabel": "Código do autenticador",
+      "recoveryLabel": "Código de recuperação",
+      "codeHint": "Abra o seu app autenticador e digite o código de 6 dígitos.",
+      "recoveryHint": "Cada código de recuperação funciona uma única vez.",
+      "useApp": "Usar o app autenticador",
+      "useRecovery": "Usar um código de recuperação"
+    },
+    "password": {
+      "title": "Escolha uma nova senha",
+      "description": "Você entrou com uma senha temporária. Defina sua própria senha para continuar.",
+      "current": "Senha temporária",
+      "new": "Nova senha",
+      "confirm": "Repita a nova senha",
+      "submit": "Salvar senha",
+      "mismatch": "As novas senhas não coincidem.",
+      "failed": "Não foi possível alterar a senha."
+    },
+    "mfa": {
+      "title": "Configure a verificação em duas etapas",
+      "mandatoryDescription": "Administradores precisam usar um app autenticador ao entrar.",
+      "startIntro": "Você vai precisar de um app autenticador como Google Authenticator, Microsoft Authenticator ou 1Password.",
+      "startButton": "Começar",
+      "stepApp": "Abra o seu app autenticador e adicione uma conta.",
+      "stepKey": "Digite a chave de configuração abaixo (ou abra o link no celular).",
+      "stepCode": "Digite o código de 6 dígitos mostrado no app.",
+      "keyLabel": "Chave de configuração",
+      "openInApp": "Abrir no app autenticador",
+      "codeLabel": "Código de 6 dígitos",
+      "verifyButton": "Verificar e ativar",
+      "enabled": "A verificação em duas etapas está ativada.",
+      "savedContinue": "Já salvei meus códigos de recuperação",
+      "cardTitle": "Verificação em duas etapas",
+      "cardMandatory": "Obrigatória para o seu perfil. Você entra com sua senha e um código do app autenticador.",
+      "cardOptional": "Adicione um código de um app autenticador ao seu login para mais proteção.",
+      "turnOn": "Ativar",
+      "statusOn": "Ativada.",
+      "codesLeft": "{count, plural, one {Resta # código de recuperação} other {Restam # códigos de recuperação}}",
+      "newCodes": "Novos códigos de recuperação",
+      "turnOff": "Desativar",
+      "passwordLabel": "Senha atual",
+      "cancel": "Cancelar",
+      "failed": "Não funcionou. Confira o código e tente de novo.",
+      "disabled": "A verificação em duas etapas está desativada."
+    },
+    "recovery": {
+      "intro": "Guarde estes códigos em um lugar seguro. Cada um permite entrar uma vez se você perder o celular. Eles não serão mostrados novamente.",
+      "copy": "Copiar",
+      "download": "Baixar",
+      "copied": "Códigos copiados",
+      "copyFailed": "Não foi possível copiar. Selecione os códigos e copie manualmente.",
+      "fileHeader": "Códigos de recuperação. Cada código funciona uma vez."
+    },
+    "sessions": {
+      "title": "Dispositivos conectados",
+      "description": "Cada navegador ou dispositivo conectado à sua conta. Desconecte os que você não reconhece.",
+      "unknownDevice": "Dispositivo desconhecido",
+      "thisDevice": "Este dispositivo",
+      "lastActive": "Última atividade {when}",
+      "signOut": "Sair",
+      "signOutAll": "Sair de todos os dispositivos",
+      "revoked": "Dispositivo desconectado",
+      "revokeFailed": "Não foi possível desconectar esse dispositivo.",
+      "confirmTitle": "Sair de todos os dispositivos?",
+      "confirmDescription": "Todas as sessões terminam, inclusive esta. Você precisará entrar de novo.",
+      "reasonLabel": "Motivo",
+      "reasonPlaceholder": "Por exemplo: perdi meu notebook",
+      "cancel": "Cancelar",
+      "confirmButton": "Sair de todos os dispositivos"
+    },
+    "tempPassword": {
+      "label": "Senha temporária",
+      "shownOnce": "Entregue esta senha para {email}. Ela é mostrada apenas uma vez.",
+      "expires": "Válida até {when}. O usuário precisa alterá-la ao entrar.",
+      "done": "Concluído",
+      "confirm": "A senha atual deixa de funcionar e todas as sessões são encerradas.",
+      "cancel": "Cancelar",
+      "issue": "Gerar senha temporária",
+      "failed": "Não foi possível gerar a senha temporária.",
+      "copied": "Senha copiada",
+      "copyFailed": "Não foi possível copiar. Selecione a senha e copie manualmente."
     }
   }
 }

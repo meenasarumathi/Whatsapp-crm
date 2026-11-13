@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { NextRequest } from "next/server";
+import { SignJWT } from "jose";
 
 process.env.AUTH_SECRET = "0123456789abcdef0123456789abcdef";
 
@@ -8,13 +9,31 @@ const { SESSION_COOKIE, signSessionToken } = await import("@/lib/auth/session-to
 
 let signedIn: string;
 beforeAll(async () => {
-  signedIn = `${SESSION_COOKIE}=${await signSessionToken("user-1", 1)}`;
+  signedIn = `${SESSION_COOKIE}=${await signSessionToken("user-1", 1, "11111111-2222-4333-8444-555555555555")}`;
 });
 
 const req = (path: string, cookie?: string) =>
   new NextRequest(`https://app.test${path}`, { headers: cookie ? { cookie } : {} });
 
 describe("middleware", () => {
+  it("treats a cookie issued before per-session tracking (no sid) as signed out", async () => {
+    const legacy = await new SignJWT({ sv: 1 })
+      .setProtectedHeader({ alg: "HS256" })
+      .setSubject("user-1")
+      .setExpirationTime("1h")
+      .sign(new TextEncoder().encode(process.env.AUTH_SECRET!));
+    const res = await middleware(req("/dashboard", `${SESSION_COOKIE}=${legacy}`));
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toContain("/login");
+  });
+
+  it("protects /account-security (anonymous → /login, signed in → allowed)", async () => {
+    const anon = await middleware(req("/account-security"));
+    expect(anon.headers.get("location")).toContain("/login");
+    const ok = await middleware(req("/account-security", signedIn));
+    expect(ok.headers.get("location")).toBeNull();
+  });
+
   it("redirects a signed-in user off /login to the dashboard", async () => {
     const res = await middleware(req("/login", signedIn));
     expect(res.status).toBe(307);

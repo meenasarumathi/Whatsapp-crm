@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { AuthShell } from "@/components/brand/auth-shell";
 import { createBrowserDb } from "@/lib/db/browser";
+import { ACCOUNT_SECURITY_PATH } from "@/lib/auth/browser";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,11 +39,16 @@ function LoginPageInner() {
   // page to accept rather than to /dashboard.
   const inviteToken = searchParams.get("invite");
   const t = useTranslations("LoginPage");
+  const tm = useTranslations("AccountSecurity.login");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // Second step for users with two-step verification on.
+  const [mfaStep, setMfaStep] = useState(false);
+  const [useRecovery, setUseRecovery] = useState(false);
+  const [code, setCode] = useState("");
   const db = createBrowserDb();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -50,14 +56,28 @@ function LoginPageInner() {
     setError(null);
     setLoading(true);
 
-    const { error } = await db.auth.signInWithPassword({
+    const { error, restrictions } = await db.auth.signInWithPassword({
       email,
       password,
+      ...(mfaStep ? (useRecovery ? { recoveryCode: code } : { code }) : {}),
     });
 
     if (error) {
-      setError(error.message);
+      if (error.code === "mfa_required") {
+        // Password accepted; ask for the authenticator code (no session yet).
+        setMfaStep(true);
+        setError(null);
+      } else {
+        setError(error.message);
+        if (error.code === "locked") setMfaStep(false);
+      }
       setLoading(false);
+      return;
+    }
+
+    if (restrictions.length) {
+      // Temporary password to change, or MFA set-up required for admins.
+      window.location.href = ACCOUNT_SECURITY_PATH;
       return;
     }
 
@@ -140,6 +160,38 @@ function LoginPageInner() {
                 className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
               />
             </div>
+
+            {mfaStep && (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="mfa-code" className="text-muted-foreground">
+                  {useRecovery ? tm("recoveryLabel") : tm("codeLabel")}
+                </Label>
+                <Input
+                  id="mfa-code"
+                  autoFocus
+                  inputMode={useRecovery ? "text" : "numeric"}
+                  autoComplete="one-time-code"
+                  placeholder={useRecovery ? "xxxxx-xxxxx" : "123456"}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  required
+                  className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {useRecovery ? tm("recoveryHint") : tm("codeHint")}{" "}
+                  <button
+                    type="button"
+                    className="text-primary hover:text-primary/80"
+                    onClick={() => {
+                      setUseRecovery(!useRecovery);
+                      setCode("");
+                    }}
+                  >
+                    {useRecovery ? tm("useApp") : tm("useRecovery")}
+                  </button>
+                </p>
+              </div>
+            )}
 
             <Button
               type="submit"

@@ -1,14 +1,24 @@
 import { NextResponse } from "next/server";
-import { endSession, getSessionUserId } from "@/lib/auth/session";
-import { revokeAllSessions } from "@/lib/auth/service";
-import { errorResponse, readJson } from "@/lib/auth/http";
+import { endSession, getSessionState } from "@/lib/auth/session";
+import { logoutSession, revokeAllSessions } from "@/lib/auth/security-service";
+import { errorResponse, readJson, requestMeta } from "@/lib/auth/http";
 
-/** Body { scope: "global" } also invalidates the user's other sessions. */
+/**
+ * Ends this session. Body { scope: "global", reason? } ends every session of
+ * the user instead (same as POST /api/auth/sessions/revoke-all).
+ */
 export async function POST(request: Request) {
   try {
     const b = await readJson(request);
-    const userId = await getSessionUserId();
-    if (userId && b.scope === "global") await revokeAllSessions(userId);
+    const state = await getSessionState();
+    if (state) {
+      if (b.scope === "global") {
+        const reason = typeof b.reason === "string" && b.reason.trim() ? b.reason : "Signed out of all devices";
+        await revokeAllSessions({ actorId: state.user.id, userId: state.user.id, reason, meta: requestMeta(request) });
+      } else {
+        await logoutSession(state.user.id, state.sessionId);
+      }
+    }
     await endSession();
     return NextResponse.json({ ok: true });
   } catch (e) {

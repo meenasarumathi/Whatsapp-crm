@@ -43,7 +43,8 @@
     "menuSignOut": "Sign out",
     "trainAi": "Train AI",
     "demo": "Demo",
-    "wallet": "Wallet"
+    "wallet": "Wallet",
+    "users": "Users"
   },
   "Header": {
     "dashboard": "Dashboard",
@@ -66,7 +67,8 @@
     "agents": "AI Agents",
     "trainAi": "Train AI",
     "demo": "Demo",
-    "wallet": "Wallet"
+    "wallet": "Wallet",
+    "users": "Users"
   },
   "ModeToggle": {
     "switchMode": "Switch to {mode} mode"
@@ -3268,6 +3270,91 @@
       "localWarning": "This address is not public HTTPS, so Meta cannot reach it and verification will fail. Open the CRM on your live HTTPS domain (or a tunnel) to copy the right URL.",
       "fields": "Webhook fields to subscribe",
       "setupTitle": "Setup steps"
+    }
+  },
+  "AccountSecurity": {
+    "signOut": "Sign out",
+    "login": {
+      "codeLabel": "Authenticator code",
+      "recoveryLabel": "Recovery code",
+      "codeHint": "Open your authenticator app and enter the 6-digit code.",
+      "recoveryHint": "Each recovery code works once.",
+      "useApp": "Use the authenticator app",
+      "useRecovery": "Use a recovery code"
+    },
+    "password": {
+      "title": "Choose a new password",
+      "description": "You signed in with a temporary password. Set your own password to continue.",
+      "current": "Temporary password",
+      "new": "New password",
+      "confirm": "Repeat new password",
+      "submit": "Save password",
+      "mismatch": "The new passwords do not match.",
+      "failed": "Could not change the password."
+    },
+    "mfa": {
+      "title": "Set up two-step verification",
+      "mandatoryDescription": "Administrators must use an authenticator app when they sign in.",
+      "startIntro": "You will need an authenticator app such as Google Authenticator, Microsoft Authenticator or 1Password.",
+      "startButton": "Start set-up",
+      "stepApp": "Open your authenticator app and add an account.",
+      "stepKey": "Enter the set-up key below (or open the link on your phone).",
+      "stepCode": "Type the 6-digit code the app shows.",
+      "keyLabel": "Set-up key",
+      "openInApp": "Open in authenticator app",
+      "codeLabel": "6-digit code",
+      "verifyButton": "Verify and turn on",
+      "enabled": "Two-step verification is on.",
+      "savedContinue": "I have saved my recovery codes",
+      "cardTitle": "Two-step verification",
+      "cardMandatory": "Required for your role. You sign in with your password and a code from your authenticator app.",
+      "cardOptional": "Add a code from an authenticator app to your sign-in for extra protection.",
+      "turnOn": "Turn on",
+      "statusOn": "On.",
+      "codesLeft": "{count, plural, one {# recovery code left} other {# recovery codes left}}",
+      "newCodes": "New recovery codes",
+      "turnOff": "Turn off",
+      "passwordLabel": "Current password",
+      "cancel": "Cancel",
+      "failed": "That did not work. Check the code and try again.",
+      "disabled": "Two-step verification is off."
+    },
+    "recovery": {
+      "intro": "Save these recovery codes somewhere safe. Each one signs you in once if you lose your phone. They will not be shown again.",
+      "copy": "Copy",
+      "download": "Download",
+      "copied": "Recovery codes copied",
+      "copyFailed": "Could not copy. Select the codes and copy them by hand.",
+      "fileHeader": "Recovery codes. Each code works once."
+    },
+    "sessions": {
+      "title": "Signed-in devices",
+      "description": "Every browser or device signed in to your account. Sign out any you do not recognise.",
+      "unknownDevice": "Unknown device",
+      "thisDevice": "This device",
+      "lastActive": "Last active {when}",
+      "signOut": "Sign out",
+      "signOutAll": "Sign out everywhere",
+      "revoked": "Device signed out",
+      "revokeFailed": "Could not sign out that device.",
+      "confirmTitle": "Sign out of every device?",
+      "confirmDescription": "Every session ends, including this one. You will need to sign in again.",
+      "reasonLabel": "Reason",
+      "reasonPlaceholder": "For example: lost my laptop",
+      "cancel": "Cancel",
+      "confirmButton": "Sign out everywhere"
+    },
+    "tempPassword": {
+      "label": "Temporary password",
+      "shownOnce": "Give this password to {email}. It is shown only once.",
+      "expires": "Valid until {when}. The user must change it when they sign in.",
+      "done": "Done",
+      "confirm": "Their current password stops working and they are signed out everywhere.",
+      "cancel": "Cancel",
+      "issue": "Issue temporary password",
+      "failed": "Could not issue a temporary password.",
+      "copied": "Password copied",
+      "copyFailed": "Could not copy. Select the password and copy it by hand."
     }
   }
 }

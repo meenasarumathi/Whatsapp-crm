@@ -2783,6 +2783,18 @@
     "notnull": true,
     "default": "now()",
     "generated": false
+   },
+   "issued_by": {
+    "type": "uuid",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "requested_ip": {
+    "type": "inet",
+    "notnull": false,
+    "default": null,
+    "generated": false
    }
   },
   "pipeline_stages": {
@@ -3572,6 +3584,1074 @@
     "type": "boolean",
     "notnull": true,
     "default": "true",
+    "generated": false
+   }
+  },
+  "crm_access_grants": {
+   "id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": "gen_random_uuid()",
+    "generated": false
+   },
+   "user_id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "module": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "level": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "reason": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "granted_by": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "granted_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   },
+   "starts_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   },
+   "expires_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "revoked_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "revoked_by": {
+    "type": "uuid",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "revoke_reason": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "replaces_grant_id": {
+    "type": "uuid",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "review_due_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   }
+  },
+  "crm_auth_login_attempts": {
+   "id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": "gen_random_uuid()",
+    "generated": false
+   },
+   "user_id": {
+    "type": "uuid",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "attempted_email": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "outcome": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "session_id": {
+    "type": "uuid",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "ip_address": {
+    "type": "inet",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "user_agent": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "occurred_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   }
+  },
+  "crm_auth_sessions": {
+   "id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": "gen_random_uuid()",
+    "generated": false
+   },
+   "user_id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "created_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   },
+   "last_seen_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   },
+   "expires_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "mfa_verified_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "ip_address": {
+    "type": "inet",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "user_agent": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "ended_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "end_reason": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "revoked_by": {
+    "type": "uuid",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   }
+  },
+  "crm_jobs": {
+   "id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": "gen_random_uuid()",
+    "generated": false
+   },
+   "kind": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "payload": {
+    "type": "jsonb",
+    "notnull": true,
+    "default": "'{}'::jsonb",
+    "generated": false
+   },
+   "status": {
+    "type": "text",
+    "notnull": true,
+    "default": "'queued'::text",
+    "generated": false
+   },
+   "dedupe_key": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "run_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   },
+   "attempts": {
+    "type": "integer",
+    "notnull": true,
+    "default": "0",
+    "generated": false
+   },
+   "max_attempts": {
+    "type": "integer",
+    "notnull": true,
+    "default": "5",
+    "generated": false
+   },
+   "locked_by": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "locked_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "last_error": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "result": {
+    "type": "jsonb",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "created_by": {
+    "type": "uuid",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "created_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   },
+   "finished_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   }
+  },
+  "crm_mfa_recovery_codes": {
+   "id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": "gen_random_uuid()",
+    "generated": false
+   },
+   "user_id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "batch_id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "code_hash": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "created_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   },
+   "used_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "revoked_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   }
+  },
+  "crm_notification_deliveries": {
+   "id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": "gen_random_uuid()",
+    "generated": false
+   },
+   "recipient_id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "kind": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "channel": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "grant_id": {
+    "type": "uuid",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "job_id": {
+    "type": "uuid",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "dedupe_key": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "status": {
+    "type": "text",
+    "notnull": true,
+    "default": "'pending'::text",
+    "generated": false
+   },
+   "attempts": {
+    "type": "integer",
+    "notnull": true,
+    "default": "0",
+    "generated": false
+   },
+   "last_error": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "scheduled_for": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   },
+   "sent_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "created_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   }
+  },
+  "crm_revenue_attributions": {
+   "id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": "gen_random_uuid()",
+    "generated": false
+   },
+   "user_id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "payment_provider": {
+    "type": "text",
+    "notnull": true,
+    "default": "'razorpay'::text",
+    "generated": false
+   },
+   "payment_ref": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "currency": {
+    "type": "text",
+    "notnull": true,
+    "default": "'INR'::text",
+    "generated": false
+   },
+   "gross_amount_paise": {
+    "type": "bigint",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "attribution_role": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "share_bp": {
+    "type": "integer",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "attributed_paise": {
+    "type": "bigint",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "payment_status": {
+    "type": "text",
+    "notnull": true,
+    "default": "'captured'::text",
+    "generated": false
+   },
+   "refunded_paise": {
+    "type": "bigint",
+    "notnull": true,
+    "default": "0",
+    "generated": false
+   },
+   "paid_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "refunded_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "cancelled_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "cancel_reason": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "created_by": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "created_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   },
+   "updated_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   }
+  },
+  "crm_user_auth_security": {
+   "user_id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "mfa_enabled": {
+    "type": "boolean",
+    "notnull": true,
+    "default": "false",
+    "generated": false
+   },
+   "mfa_secret_enc": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "mfa_enrolled_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "failed_login_count": {
+    "type": "integer",
+    "notnull": true,
+    "default": "0",
+    "generated": false
+   },
+   "locked_until": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "must_change_password": {
+    "type": "boolean",
+    "notnull": true,
+    "default": "false",
+    "generated": false
+   },
+   "temp_password_expires_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "password_changed_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "updated_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   }
+  },
+  "crm_user_events": {
+   "id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": "gen_random_uuid()",
+    "generated": false
+   },
+   "subject_user_id": {
+    "type": "uuid",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "actor_id": {
+    "type": "uuid",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "event_type": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "reason": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "details": {
+    "type": "jsonb",
+    "notnull": true,
+    "default": "'{}'::jsonb",
+    "generated": false
+   },
+   "ref_table": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "ref_id": {
+    "type": "uuid",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "ip_address": {
+    "type": "inet",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "occurred_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   }
+  },
+  "crm_user_import_rows": {
+   "import_id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "row_number": {
+    "type": "integer",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "raw": {
+    "type": "jsonb",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "status": {
+    "type": "text",
+    "notnull": true,
+    "default": "'pending'::text",
+    "generated": false
+   },
+   "error": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "created_user_id": {
+    "type": "uuid",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   }
+  },
+  "crm_user_imports": {
+   "id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": "gen_random_uuid()",
+    "generated": false
+   },
+   "created_by": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "file_name": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "status": {
+    "type": "text",
+    "notnull": true,
+    "default": "'validating'::text",
+    "generated": false
+   },
+   "dry_run": {
+    "type": "boolean",
+    "notnull": true,
+    "default": "true",
+    "generated": false
+   },
+   "total_rows": {
+    "type": "integer",
+    "notnull": true,
+    "default": "0",
+    "generated": false
+   },
+   "ok_rows": {
+    "type": "integer",
+    "notnull": true,
+    "default": "0",
+    "generated": false
+   },
+   "failed_rows": {
+    "type": "integer",
+    "notnull": true,
+    "default": "0",
+    "generated": false
+   },
+   "job_id": {
+    "type": "uuid",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "created_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   },
+   "finished_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   }
+  },
+  "crm_user_ledger": {
+   "id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": "gen_random_uuid()",
+    "generated": false
+   },
+   "user_id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "entry_type": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "amount_paise": {
+    "type": "bigint",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "reversal_of": {
+    "type": "uuid",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "attribution_id": {
+    "type": "uuid",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "reference": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "reason": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "created_by": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "created_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   },
+   "idempotency_key": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "allow_overdraw": {
+    "type": "boolean",
+    "notnull": true,
+    "default": "false",
+    "generated": false
+   },
+   "split_id": {
+    "type": "uuid",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   }
+  },
+  "crm_user_profiles": {
+   "user_id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "job_role": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "department": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "phone": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "lifecycle_status": {
+    "type": "text",
+    "notnull": true,
+    "default": "'active'::text",
+    "generated": false
+   },
+   "joined_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   },
+   "left_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "created_by": {
+    "type": "uuid",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "updated_by": {
+    "type": "uuid",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "created_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   },
+   "updated_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   }
+  },
+  "crm_revenue_payments": {
+   "id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": "gen_random_uuid()",
+    "generated": false
+   },
+   "external_ref": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "source": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "payment_date": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "amount_paise": {
+    "type": "bigint",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "currency": {
+    "type": "text",
+    "notnull": true,
+    "default": "'INR'::text",
+    "generated": false
+   },
+   "customer_name": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "description": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "status": {
+    "type": "text",
+    "notnull": true,
+    "default": "'captured'::text",
+    "generated": false
+   },
+   "refunded_paise": {
+    "type": "bigint",
+    "notnull": true,
+    "default": "0",
+    "generated": false
+   },
+   "refunded_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "cancelled_at": {
+    "type": "timestamp with time zone",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "cancel_reason": {
+    "type": "text",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "import_id": {
+    "type": "uuid",
+    "notnull": false,
+    "default": null,
+    "generated": false
+   },
+   "recorded_by": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "created_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   },
+   "updated_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
+    "generated": false
+   }
+  },
+  "crm_revenue_splits": {
+   "id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": "gen_random_uuid()",
+    "generated": false
+   },
+   "payment_id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "user_id": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "source": {
+    "type": "text",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "share_bp": {
+    "type": "integer",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "amount_paise": {
+    "type": "bigint",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "refunded_paise": {
+    "type": "bigint",
+    "notnull": true,
+    "default": "0",
+    "generated": false
+   },
+   "recorded_by": {
+    "type": "uuid",
+    "notnull": true,
+    "default": null,
+    "generated": false
+   },
+   "created_at": {
+    "type": "timestamp with time zone",
+    "notnull": true,
+    "default": "now()",
     "generated": false
    }
   }
@@ -5522,6 +6602,1007 @@
    "kind": "f",
    "def": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
    "refschema": "public"
+  },
+  "password_reset_tokens.password_reset_tokens_issued_by_fkey": {
+   "table": "password_reset_tokens",
+   "name": "password_reset_tokens_issued_by_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (issued_by) REFERENCES users(id) ON DELETE SET NULL",
+   "refschema": "public"
+  },
+  "crm_user_profiles.crm_user_profiles_created_by_fkey": {
+   "table": "crm_user_profiles",
+   "name": "crm_user_profiles_created_by_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_user_profiles.crm_user_profiles_department_check": {
+   "table": "crm_user_profiles",
+   "name": "crm_user_profiles_department_check",
+   "kind": "c",
+   "def": "CHECK (((department IS NULL) OR (length(department) <= 100)))",
+   "refschema": null
+  },
+  "crm_user_profiles.crm_user_profiles_job_role_check": {
+   "table": "crm_user_profiles",
+   "name": "crm_user_profiles_job_role_check",
+   "kind": "c",
+   "def": "CHECK (((job_role IS NULL) OR (job_role = ANY (ARRAY['marketing'::text, 'sales'::text, 'it'::text, 'content'::text, 'video'::text, 'admin_finance'::text, 'learner_success'::text, 'viewer'::text]))))",
+   "refschema": null
+  },
+  "crm_user_profiles.crm_user_profiles_left_after_join": {
+   "table": "crm_user_profiles",
+   "name": "crm_user_profiles_left_after_join",
+   "kind": "c",
+   "def": "CHECK (((left_at IS NULL) OR (left_at >= joined_at)))",
+   "refschema": null
+  },
+  "crm_user_profiles.crm_user_profiles_left_at_matches_status": {
+   "table": "crm_user_profiles",
+   "name": "crm_user_profiles_left_at_matches_status",
+   "kind": "c",
+   "def": "CHECK (((lifecycle_status = 'left'::text) = (left_at IS NOT NULL)))",
+   "refschema": null
+  },
+  "crm_user_profiles.crm_user_profiles_lifecycle_status_check": {
+   "table": "crm_user_profiles",
+   "name": "crm_user_profiles_lifecycle_status_check",
+   "kind": "c",
+   "def": "CHECK ((lifecycle_status = ANY (ARRAY['active'::text, 'suspended'::text, 'disabled'::text, 'left'::text])))",
+   "refschema": null
+  },
+  "crm_user_profiles.crm_user_profiles_phone_check": {
+   "table": "crm_user_profiles",
+   "name": "crm_user_profiles_phone_check",
+   "kind": "c",
+   "def": "CHECK (((phone IS NULL) OR (phone ~ '^\\+?[0-9 ()-]{6,20}$'::text)))",
+   "refschema": null
+  },
+  "crm_user_profiles.crm_user_profiles_pkey": {
+   "table": "crm_user_profiles",
+   "name": "crm_user_profiles_pkey",
+   "kind": "p",
+   "def": "PRIMARY KEY (user_id)",
+   "refschema": null
+  },
+  "crm_user_profiles.crm_user_profiles_updated_by_fkey": {
+   "table": "crm_user_profiles",
+   "name": "crm_user_profiles_updated_by_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_user_profiles.crm_user_profiles_user_id_fkey": {
+   "table": "crm_user_profiles",
+   "name": "crm_user_profiles_user_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_user_auth_security.crm_user_auth_security_failed_login_count_check": {
+   "table": "crm_user_auth_security",
+   "name": "crm_user_auth_security_failed_login_count_check",
+   "kind": "c",
+   "def": "CHECK ((failed_login_count >= 0))",
+   "refschema": null
+  },
+  "crm_user_auth_security.crm_user_auth_security_mfa_secret": {
+   "table": "crm_user_auth_security",
+   "name": "crm_user_auth_security_mfa_secret",
+   "kind": "c",
+   "def": "CHECK (((NOT mfa_enabled) OR ((mfa_secret_enc IS NOT NULL) AND (mfa_enrolled_at IS NOT NULL))))",
+   "refschema": null
+  },
+  "crm_user_auth_security.crm_user_auth_security_pkey": {
+   "table": "crm_user_auth_security",
+   "name": "crm_user_auth_security_pkey",
+   "kind": "p",
+   "def": "PRIMARY KEY (user_id)",
+   "refschema": null
+  },
+  "crm_user_auth_security.crm_user_auth_security_temp_pw": {
+   "table": "crm_user_auth_security",
+   "name": "crm_user_auth_security_temp_pw",
+   "kind": "c",
+   "def": "CHECK (((temp_password_expires_at IS NULL) OR must_change_password))",
+   "refschema": null
+  },
+  "crm_user_auth_security.crm_user_auth_security_user_id_fkey": {
+   "table": "crm_user_auth_security",
+   "name": "crm_user_auth_security_user_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
+   "refschema": "public"
+  },
+  "crm_mfa_recovery_codes.crm_mfa_recovery_codes_code_hash_key": {
+   "table": "crm_mfa_recovery_codes",
+   "name": "crm_mfa_recovery_codes_code_hash_key",
+   "kind": "u",
+   "def": "UNIQUE (code_hash)",
+   "refschema": null
+  },
+  "crm_mfa_recovery_codes.crm_mfa_recovery_codes_pkey": {
+   "table": "crm_mfa_recovery_codes",
+   "name": "crm_mfa_recovery_codes_pkey",
+   "kind": "p",
+   "def": "PRIMARY KEY (id)",
+   "refschema": null
+  },
+  "crm_mfa_recovery_codes.crm_mfa_recovery_codes_user_id_fkey": {
+   "table": "crm_mfa_recovery_codes",
+   "name": "crm_mfa_recovery_codes_user_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
+   "refschema": "public"
+  },
+  "crm_auth_sessions.crm_auth_sessions_end_pair": {
+   "table": "crm_auth_sessions",
+   "name": "crm_auth_sessions_end_pair",
+   "kind": "c",
+   "def": "CHECK (((ended_at IS NULL) = (end_reason IS NULL)))",
+   "refschema": null
+  },
+  "crm_auth_sessions.crm_auth_sessions_end_reason_check": {
+   "table": "crm_auth_sessions",
+   "name": "crm_auth_sessions_end_reason_check",
+   "kind": "c",
+   "def": "CHECK (((end_reason IS NULL) OR (end_reason = ANY (ARRAY['logout'::text, 'timeout'::text, 'revoked'::text, 'revoked_all'::text, 'password_changed'::text, 'user_suspended'::text, 'user_disabled'::text, 'user_left'::text]))))",
+   "refschema": null
+  },
+  "crm_auth_sessions.crm_auth_sessions_expiry": {
+   "table": "crm_auth_sessions",
+   "name": "crm_auth_sessions_expiry",
+   "kind": "c",
+   "def": "CHECK ((expires_at > created_at))",
+   "refschema": null
+  },
+  "crm_auth_sessions.crm_auth_sessions_pkey": {
+   "table": "crm_auth_sessions",
+   "name": "crm_auth_sessions_pkey",
+   "kind": "p",
+   "def": "PRIMARY KEY (id)",
+   "refschema": null
+  },
+  "crm_auth_sessions.crm_auth_sessions_revoked_by_fkey": {
+   "table": "crm_auth_sessions",
+   "name": "crm_auth_sessions_revoked_by_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (revoked_by) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_auth_sessions.crm_auth_sessions_user_agent_check": {
+   "table": "crm_auth_sessions",
+   "name": "crm_auth_sessions_user_agent_check",
+   "kind": "c",
+   "def": "CHECK (((user_agent IS NULL) OR (length(user_agent) <= 500)))",
+   "refschema": null
+  },
+  "crm_auth_sessions.crm_auth_sessions_user_id_fkey": {
+   "table": "crm_auth_sessions",
+   "name": "crm_auth_sessions_user_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_auth_login_attempts.crm_auth_login_attempts_attempted_email_check": {
+   "table": "crm_auth_login_attempts",
+   "name": "crm_auth_login_attempts_attempted_email_check",
+   "kind": "c",
+   "def": "CHECK ((length(attempted_email) <= 320))",
+   "refschema": null
+  },
+  "crm_auth_login_attempts.crm_auth_login_attempts_outcome_check": {
+   "table": "crm_auth_login_attempts",
+   "name": "crm_auth_login_attempts_outcome_check",
+   "kind": "c",
+   "def": "CHECK ((outcome = ANY (ARRAY['success'::text, 'bad_password'::text, 'unknown_user'::text, 'locked'::text, 'suspended'::text, 'disabled'::text, 'left'::text, 'mfa_required'::text, 'mfa_failed'::text, 'mfa_recovery_code_used'::text, 'temp_password_expired'::text, 'rate_limited'::text])))",
+   "refschema": null
+  },
+  "crm_auth_login_attempts.crm_auth_login_attempts_pkey": {
+   "table": "crm_auth_login_attempts",
+   "name": "crm_auth_login_attempts_pkey",
+   "kind": "p",
+   "def": "PRIMARY KEY (id)",
+   "refschema": null
+  },
+  "crm_auth_login_attempts.crm_auth_login_attempts_session_id_fkey": {
+   "table": "crm_auth_login_attempts",
+   "name": "crm_auth_login_attempts_session_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (session_id) REFERENCES crm_auth_sessions(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_auth_login_attempts.crm_auth_login_attempts_session_on_success": {
+   "table": "crm_auth_login_attempts",
+   "name": "crm_auth_login_attempts_session_on_success",
+   "kind": "c",
+   "def": "CHECK (((outcome = ANY (ARRAY['success'::text, 'mfa_recovery_code_used'::text])) = (session_id IS NOT NULL)))",
+   "refschema": null
+  },
+  "crm_auth_login_attempts.crm_auth_login_attempts_user_agent_check": {
+   "table": "crm_auth_login_attempts",
+   "name": "crm_auth_login_attempts_user_agent_check",
+   "kind": "c",
+   "def": "CHECK (((user_agent IS NULL) OR (length(user_agent) <= 500)))",
+   "refschema": null
+  },
+  "crm_auth_login_attempts.crm_auth_login_attempts_user_id_fkey": {
+   "table": "crm_auth_login_attempts",
+   "name": "crm_auth_login_attempts_user_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_access_grants.crm_access_grants_expiry": {
+   "table": "crm_access_grants",
+   "name": "crm_access_grants_expiry",
+   "kind": "c",
+   "def": "CHECK (((expires_at IS NULL) OR (expires_at > starts_at)))",
+   "refschema": null
+  },
+  "crm_access_grants.crm_access_grants_granted_by_fkey": {
+   "table": "crm_access_grants",
+   "name": "crm_access_grants_granted_by_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (granted_by) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_access_grants.crm_access_grants_level_check": {
+   "table": "crm_access_grants",
+   "name": "crm_access_grants_level_check",
+   "kind": "c",
+   "def": "CHECK ((level = ANY (ARRAY['read'::text, 'write'::text, 'manage'::text])))",
+   "refschema": null
+  },
+  "crm_access_grants.crm_access_grants_module_check": {
+   "table": "crm_access_grants",
+   "name": "crm_access_grants_module_check",
+   "kind": "c",
+   "def": "CHECK ((module ~ '^[a-z][a-z0-9_]{1,39}$'::text))",
+   "refschema": null
+  },
+  "crm_access_grants.crm_access_grants_no_overlap": {
+   "table": "crm_access_grants",
+   "name": "crm_access_grants_no_overlap",
+   "kind": "x",
+   "def": "EXCLUDE USING gist (user_id WITH =, module WITH =, crm_grant_period(starts_at, expires_at, revoked_at) WITH &&)",
+   "refschema": null
+  },
+  "crm_access_grants.crm_access_grants_pkey": {
+   "table": "crm_access_grants",
+   "name": "crm_access_grants_pkey",
+   "kind": "p",
+   "def": "PRIMARY KEY (id)",
+   "refschema": null
+  },
+  "crm_access_grants.crm_access_grants_reason_check": {
+   "table": "crm_access_grants",
+   "name": "crm_access_grants_reason_check",
+   "kind": "c",
+   "def": "CHECK (((length(btrim(reason)) >= 3) AND (length(btrim(reason)) <= 1000)))",
+   "refschema": null
+  },
+  "crm_access_grants.crm_access_grants_replaces_grant_id_fkey": {
+   "table": "crm_access_grants",
+   "name": "crm_access_grants_replaces_grant_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (replaces_grant_id) REFERENCES crm_access_grants(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_access_grants.crm_access_grants_revoke_pair": {
+   "table": "crm_access_grants",
+   "name": "crm_access_grants_revoke_pair",
+   "kind": "c",
+   "def": "CHECK ((((revoked_at IS NULL) = (revoked_by IS NULL)) AND ((revoked_at IS NULL) = (revoke_reason IS NULL))))",
+   "refschema": null
+  },
+  "crm_access_grants.crm_access_grants_revoke_reason_check": {
+   "table": "crm_access_grants",
+   "name": "crm_access_grants_revoke_reason_check",
+   "kind": "c",
+   "def": "CHECK (((revoke_reason IS NULL) OR ((length(btrim(revoke_reason)) >= 3) AND (length(btrim(revoke_reason)) <= 1000))))",
+   "refschema": null
+  },
+  "crm_access_grants.crm_access_grants_revoked_by_fkey": {
+   "table": "crm_access_grants",
+   "name": "crm_access_grants_revoked_by_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (revoked_by) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_access_grants.crm_access_grants_user_id_fkey": {
+   "table": "crm_access_grants",
+   "name": "crm_access_grants_user_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_user_events.crm_user_events_actor_id_fkey": {
+   "table": "crm_user_events",
+   "name": "crm_user_events_actor_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_user_events.crm_user_events_details_check": {
+   "table": "crm_user_events",
+   "name": "crm_user_events_details_check",
+   "kind": "c",
+   "def": "CHECK ((jsonb_typeof(details) = 'object'::text))",
+   "refschema": null
+  },
+  "crm_user_events.crm_user_events_event_type_check": {
+   "table": "crm_user_events",
+   "name": "crm_user_events_event_type_check",
+   "kind": "c",
+   "def": "CHECK ((event_type = ANY (ARRAY['joined'::text, 'profile_edited'::text, 'platform_role_changed'::text, 'job_role_changed'::text, 'suspended'::text, 'reinstated'::text, 'disabled'::text, 'left'::text, 'rejoined'::text, 'access_granted'::text, 'access_revoked'::text, 'access_expired'::text, 'access_expiry_reminder_sent'::text, 'mfa_enrolled'::text, 'mfa_disabled'::text, 'mfa_reset_by_admin'::text, 'mfa_recovery_codes_regenerated'::text, 'mfa_recovery_code_used'::text, 'password_changed'::text, 'password_reset_requested'::text, 'password_reset_completed'::text, 'temp_password_issued'::text, 'account_locked'::text, 'account_unlocked'::text, 'session_revoked'::text, 'all_sessions_revoked'::text, 'revenue_attributed'::text, 'revenue_refund_recorded'::text, 'revenue_cancelled'::text, 'ledger_commission_added'::text, 'ledger_payout_recorded'::text, 'ledger_adjustment_added'::text, 'ledger_entry_reversed'::text, 'export_requested'::text, 'export_downloaded'::text, 'analyst_viewed'::text, 'balance_viewed'::text, 'monthly_report_viewed'::text, 'bulk_import_started'::text, 'bulk_import_completed'::text])))",
+   "refschema": null
+  },
+  "crm_user_events.crm_user_events_pkey": {
+   "table": "crm_user_events",
+   "name": "crm_user_events_pkey",
+   "kind": "p",
+   "def": "PRIMARY KEY (id)",
+   "refschema": null
+  },
+  "crm_user_events.crm_user_events_reason_check": {
+   "table": "crm_user_events",
+   "name": "crm_user_events_reason_check",
+   "kind": "c",
+   "def": "CHECK (((reason IS NULL) OR (length(reason) <= 1000)))",
+   "refschema": null
+  },
+  "crm_user_events.crm_user_events_reason_required": {
+   "table": "crm_user_events",
+   "name": "crm_user_events_reason_required",
+   "kind": "c",
+   "def": "CHECK (((event_type <> ALL (ARRAY['platform_role_changed'::text, 'job_role_changed'::text, 'suspended'::text, 'reinstated'::text, 'disabled'::text, 'left'::text, 'rejoined'::text, 'access_granted'::text, 'access_revoked'::text, 'mfa_reset_by_admin'::text, 'account_unlocked'::text, 'all_sessions_revoked'::text, 'ledger_adjustment_added'::text, 'ledger_entry_reversed'::text, 'revenue_cancelled'::text])) OR ((reason IS NOT NULL) AND (length(btrim(reason)) >= 3))))",
+   "refschema": null
+  },
+  "crm_user_events.crm_user_events_ref_pair": {
+   "table": "crm_user_events",
+   "name": "crm_user_events_ref_pair",
+   "kind": "c",
+   "def": "CHECK (((ref_table IS NULL) = (ref_id IS NULL)))",
+   "refschema": null
+  },
+  "crm_user_events.crm_user_events_ref_table_check": {
+   "table": "crm_user_events",
+   "name": "crm_user_events_ref_table_check",
+   "kind": "c",
+   "def": "CHECK (((ref_table IS NULL) OR (ref_table ~ '^[a-z_]{1,63}$'::text)))",
+   "refschema": null
+  },
+  "crm_user_events.crm_user_events_subject_required": {
+   "table": "crm_user_events",
+   "name": "crm_user_events_subject_required",
+   "kind": "c",
+   "def": "CHECK (((event_type = ANY (ARRAY['export_requested'::text, 'export_downloaded'::text, 'analyst_viewed'::text, 'monthly_report_viewed'::text, 'bulk_import_started'::text, 'bulk_import_completed'::text])) OR (subject_user_id IS NOT NULL)))",
+   "refschema": null
+  },
+  "crm_user_events.crm_user_events_subject_user_id_fkey": {
+   "table": "crm_user_events",
+   "name": "crm_user_events_subject_user_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (subject_user_id) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_revenue_attributions.crm_rev_attr_refund_le_share": {
+   "table": "crm_revenue_attributions",
+   "name": "crm_rev_attr_refund_le_share",
+   "kind": "c",
+   "def": "CHECK ((refunded_paise <= attributed_paise))",
+   "refschema": null
+  },
+  "crm_revenue_attributions.crm_rev_attr_share_le_gross": {
+   "table": "crm_revenue_attributions",
+   "name": "crm_rev_attr_share_le_gross",
+   "kind": "c",
+   "def": "CHECK ((attributed_paise <= gross_amount_paise))",
+   "refschema": null
+  },
+  "crm_revenue_attributions.crm_rev_attr_status_consistency": {
+   "table": "crm_revenue_attributions",
+   "name": "crm_rev_attr_status_consistency",
+   "kind": "c",
+   "def": "CHECK ((((payment_status = 'captured'::text) AND (refunded_paise = 0) AND (cancelled_at IS NULL)) OR ((payment_status = 'partially_refunded'::text) AND (refunded_paise > 0) AND (refunded_paise < attributed_paise) AND (refunded_at IS NOT NULL) AND (cancelled_at IS NULL)) OR ((payment_status = 'refunded'::text) AND (refunded_paise = attributed_paise) AND (refunded_at IS NOT NULL) AND (cancelled_at IS NULL)) OR ((payment_status = 'cancelled'::text) AND (cancelled_at IS NOT NULL) AND (cancel_reason IS NOT NULL) AND (length(btrim(cancel_reason)) >= 3))))",
+   "refschema": null
+  },
+  "crm_revenue_attributions.crm_rev_attr_unique": {
+   "table": "crm_revenue_attributions",
+   "name": "crm_rev_attr_unique",
+   "kind": "u",
+   "def": "UNIQUE (payment_provider, payment_ref, user_id, attribution_role)",
+   "refschema": null
+  },
+  "crm_revenue_attributions.crm_revenue_attributions_attributed_paise_check": {
+   "table": "crm_revenue_attributions",
+   "name": "crm_revenue_attributions_attributed_paise_check",
+   "kind": "c",
+   "def": "CHECK ((attributed_paise >= 0))",
+   "refschema": null
+  },
+  "crm_revenue_attributions.crm_revenue_attributions_attribution_role_check": {
+   "table": "crm_revenue_attributions",
+   "name": "crm_revenue_attributions_attribution_role_check",
+   "kind": "c",
+   "def": "CHECK ((attribution_role = ANY (ARRAY['lead_owner'::text, 'closer'::text, 'manual'::text])))",
+   "refschema": null
+  },
+  "crm_revenue_attributions.crm_revenue_attributions_created_by_fkey": {
+   "table": "crm_revenue_attributions",
+   "name": "crm_revenue_attributions_created_by_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_revenue_attributions.crm_revenue_attributions_currency_check": {
+   "table": "crm_revenue_attributions",
+   "name": "crm_revenue_attributions_currency_check",
+   "kind": "c",
+   "def": "CHECK ((currency = 'INR'::text))",
+   "refschema": null
+  },
+  "crm_revenue_attributions.crm_revenue_attributions_gross_amount_paise_check": {
+   "table": "crm_revenue_attributions",
+   "name": "crm_revenue_attributions_gross_amount_paise_check",
+   "kind": "c",
+   "def": "CHECK ((gross_amount_paise > 0))",
+   "refschema": null
+  },
+  "crm_revenue_attributions.crm_revenue_attributions_payment_provider_check": {
+   "table": "crm_revenue_attributions",
+   "name": "crm_revenue_attributions_payment_provider_check",
+   "kind": "c",
+   "def": "CHECK ((payment_provider = ANY (ARRAY['razorpay'::text, 'manual'::text])))",
+   "refschema": null
+  },
+  "crm_revenue_attributions.crm_revenue_attributions_payment_ref_check": {
+   "table": "crm_revenue_attributions",
+   "name": "crm_revenue_attributions_payment_ref_check",
+   "kind": "c",
+   "def": "CHECK (((length(payment_ref) >= 1) AND (length(payment_ref) <= 100)))",
+   "refschema": null
+  },
+  "crm_revenue_attributions.crm_revenue_attributions_payment_status_check": {
+   "table": "crm_revenue_attributions",
+   "name": "crm_revenue_attributions_payment_status_check",
+   "kind": "c",
+   "def": "CHECK ((payment_status = ANY (ARRAY['captured'::text, 'partially_refunded'::text, 'refunded'::text, 'cancelled'::text])))",
+   "refschema": null
+  },
+  "crm_revenue_attributions.crm_revenue_attributions_pkey": {
+   "table": "crm_revenue_attributions",
+   "name": "crm_revenue_attributions_pkey",
+   "kind": "p",
+   "def": "PRIMARY KEY (id)",
+   "refschema": null
+  },
+  "crm_revenue_attributions.crm_revenue_attributions_refunded_paise_check": {
+   "table": "crm_revenue_attributions",
+   "name": "crm_revenue_attributions_refunded_paise_check",
+   "kind": "c",
+   "def": "CHECK ((refunded_paise >= 0))",
+   "refschema": null
+  },
+  "crm_revenue_attributions.crm_revenue_attributions_share_bp_check": {
+   "table": "crm_revenue_attributions",
+   "name": "crm_revenue_attributions_share_bp_check",
+   "kind": "c",
+   "def": "CHECK (((share_bp >= 1) AND (share_bp <= 10000)))",
+   "refschema": null
+  },
+  "crm_revenue_attributions.crm_revenue_attributions_user_id_fkey": {
+   "table": "crm_revenue_attributions",
+   "name": "crm_revenue_attributions_user_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_user_ledger.crm_user_ledger_amount_paise_check": {
+   "table": "crm_user_ledger",
+   "name": "crm_user_ledger_amount_paise_check",
+   "kind": "c",
+   "def": "CHECK ((amount_paise <> 0))",
+   "refschema": null
+  },
+  "crm_user_ledger.crm_user_ledger_attribution_id_fkey": {
+   "table": "crm_user_ledger",
+   "name": "crm_user_ledger_attribution_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (attribution_id) REFERENCES crm_revenue_attributions(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_user_ledger.crm_user_ledger_created_by_fkey": {
+   "table": "crm_user_ledger",
+   "name": "crm_user_ledger_created_by_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_user_ledger.crm_user_ledger_entry_type_check": {
+   "table": "crm_user_ledger",
+   "name": "crm_user_ledger_entry_type_check",
+   "kind": "c",
+   "def": "CHECK ((entry_type = ANY (ARRAY['commission'::text, 'payout'::text, 'adjustment'::text, 'reversal'::text])))",
+   "refschema": null
+  },
+  "crm_user_ledger.crm_user_ledger_pkey": {
+   "table": "crm_user_ledger",
+   "name": "crm_user_ledger_pkey",
+   "kind": "p",
+   "def": "PRIMARY KEY (id)",
+   "refschema": null
+  },
+  "crm_user_ledger.crm_user_ledger_reason_check": {
+   "table": "crm_user_ledger",
+   "name": "crm_user_ledger_reason_check",
+   "kind": "c",
+   "def": "CHECK (((reason IS NULL) OR (length(reason) <= 1000)))",
+   "refschema": null
+  },
+  "crm_user_ledger.crm_user_ledger_reason_required": {
+   "table": "crm_user_ledger",
+   "name": "crm_user_ledger_reason_required",
+   "kind": "c",
+   "def": "CHECK (((entry_type <> ALL (ARRAY['adjustment'::text, 'reversal'::text])) OR ((reason IS NOT NULL) AND (length(btrim(reason)) >= 3))))",
+   "refschema": null
+  },
+  "crm_user_ledger.crm_user_ledger_reference_check": {
+   "table": "crm_user_ledger",
+   "name": "crm_user_ledger_reference_check",
+   "kind": "c",
+   "def": "CHECK (((reference IS NULL) OR (length(reference) <= 200)))",
+   "refschema": null
+  },
+  "crm_user_ledger.crm_user_ledger_reversal_link": {
+   "table": "crm_user_ledger",
+   "name": "crm_user_ledger_reversal_link",
+   "kind": "c",
+   "def": "CHECK (((entry_type = 'reversal'::text) = (reversal_of IS NOT NULL)))",
+   "refschema": null
+  },
+  "crm_user_ledger.crm_user_ledger_reversal_of_fkey": {
+   "table": "crm_user_ledger",
+   "name": "crm_user_ledger_reversal_of_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (reversal_of) REFERENCES crm_user_ledger(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_user_ledger.crm_user_ledger_reversal_of_key": {
+   "table": "crm_user_ledger",
+   "name": "crm_user_ledger_reversal_of_key",
+   "kind": "u",
+   "def": "UNIQUE (reversal_of)",
+   "refschema": null
+  },
+  "crm_user_ledger.crm_user_ledger_sign": {
+   "table": "crm_user_ledger",
+   "name": "crm_user_ledger_sign",
+   "kind": "c",
+   "def": "CHECK ((((entry_type = 'commission'::text) AND (amount_paise > 0)) OR ((entry_type = 'payout'::text) AND (amount_paise < 0)) OR (entry_type = ANY (ARRAY['adjustment'::text, 'reversal'::text]))))",
+   "refschema": null
+  },
+  "crm_user_ledger.crm_user_ledger_user_id_fkey": {
+   "table": "crm_user_ledger",
+   "name": "crm_user_ledger_user_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_jobs.crm_jobs_attempts_check": {
+   "table": "crm_jobs",
+   "name": "crm_jobs_attempts_check",
+   "kind": "c",
+   "def": "CHECK ((attempts >= 0))",
+   "refschema": null
+  },
+  "crm_jobs.crm_jobs_created_by_fkey": {
+   "table": "crm_jobs",
+   "name": "crm_jobs_created_by_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_jobs.crm_jobs_finished": {
+   "table": "crm_jobs",
+   "name": "crm_jobs_finished",
+   "kind": "c",
+   "def": "CHECK (((status = ANY (ARRAY['succeeded'::text, 'failed'::text, 'cancelled'::text])) = (finished_at IS NOT NULL)))",
+   "refschema": null
+  },
+  "crm_jobs.crm_jobs_kind_check": {
+   "table": "crm_jobs",
+   "name": "crm_jobs_kind_check",
+   "kind": "c",
+   "def": "CHECK ((kind = ANY (ARRAY['expire_grants'::text, 'send_expiry_reminders'::text, 'export_users'::text, 'export_events'::text, 'export_revenue'::text, 'export_ledger'::text, 'bulk_import_users'::text, 'expire_temp_passwords'::text])))",
+   "refschema": null
+  },
+  "crm_jobs.crm_jobs_max_attempts_check": {
+   "table": "crm_jobs",
+   "name": "crm_jobs_max_attempts_check",
+   "kind": "c",
+   "def": "CHECK (((max_attempts >= 1) AND (max_attempts <= 50)))",
+   "refschema": null
+  },
+  "crm_jobs.crm_jobs_pkey": {
+   "table": "crm_jobs",
+   "name": "crm_jobs_pkey",
+   "kind": "p",
+   "def": "PRIMARY KEY (id)",
+   "refschema": null
+  },
+  "crm_jobs.crm_jobs_status_check": {
+   "table": "crm_jobs",
+   "name": "crm_jobs_status_check",
+   "kind": "c",
+   "def": "CHECK ((status = ANY (ARRAY['queued'::text, 'running'::text, 'succeeded'::text, 'failed'::text, 'cancelled'::text])))",
+   "refschema": null
+  },
+  "crm_notification_deliveries.crm_notif_sent_at": {
+   "table": "crm_notification_deliveries",
+   "name": "crm_notif_sent_at",
+   "kind": "c",
+   "def": "CHECK (((status = 'sent'::text) = (sent_at IS NOT NULL)))",
+   "refschema": null
+  },
+  "crm_notification_deliveries.crm_notification_deliveries_attempts_check": {
+   "table": "crm_notification_deliveries",
+   "name": "crm_notification_deliveries_attempts_check",
+   "kind": "c",
+   "def": "CHECK ((attempts >= 0))",
+   "refschema": null
+  },
+  "crm_notification_deliveries.crm_notification_deliveries_channel_check": {
+   "table": "crm_notification_deliveries",
+   "name": "crm_notification_deliveries_channel_check",
+   "kind": "c",
+   "def": "CHECK ((channel = ANY (ARRAY['email'::text, 'in_app'::text])))",
+   "refschema": null
+  },
+  "crm_notification_deliveries.crm_notification_deliveries_dedupe_key_key": {
+   "table": "crm_notification_deliveries",
+   "name": "crm_notification_deliveries_dedupe_key_key",
+   "kind": "u",
+   "def": "UNIQUE (dedupe_key)",
+   "refschema": null
+  },
+  "crm_notification_deliveries.crm_notification_deliveries_grant_id_fkey": {
+   "table": "crm_notification_deliveries",
+   "name": "crm_notification_deliveries_grant_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (grant_id) REFERENCES crm_access_grants(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_notification_deliveries.crm_notification_deliveries_job_id_fkey": {
+   "table": "crm_notification_deliveries",
+   "name": "crm_notification_deliveries_job_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (job_id) REFERENCES crm_jobs(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_notification_deliveries.crm_notification_deliveries_kind_check": {
+   "table": "crm_notification_deliveries",
+   "name": "crm_notification_deliveries_kind_check",
+   "kind": "c",
+   "def": "CHECK ((kind = ANY (ARRAY['grant_expiry_reminder'::text, 'grant_expired'::text, 'temp_password_issued'::text, 'password_reset'::text, 'mfa_changed'::text, 'export_ready'::text])))",
+   "refschema": null
+  },
+  "crm_notification_deliveries.crm_notification_deliveries_pkey": {
+   "table": "crm_notification_deliveries",
+   "name": "crm_notification_deliveries_pkey",
+   "kind": "p",
+   "def": "PRIMARY KEY (id)",
+   "refschema": null
+  },
+  "crm_notification_deliveries.crm_notification_deliveries_recipient_id_fkey": {
+   "table": "crm_notification_deliveries",
+   "name": "crm_notification_deliveries_recipient_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_notification_deliveries.crm_notification_deliveries_status_check": {
+   "table": "crm_notification_deliveries",
+   "name": "crm_notification_deliveries_status_check",
+   "kind": "c",
+   "def": "CHECK ((status = ANY (ARRAY['pending'::text, 'sent'::text, 'failed'::text, 'skipped'::text])))",
+   "refschema": null
+  },
+  "crm_user_imports.crm_user_imports_counts": {
+   "table": "crm_user_imports",
+   "name": "crm_user_imports_counts",
+   "kind": "c",
+   "def": "CHECK (((ok_rows + failed_rows) <= total_rows))",
+   "refschema": null
+  },
+  "crm_user_imports.crm_user_imports_created_by_fkey": {
+   "table": "crm_user_imports",
+   "name": "crm_user_imports_created_by_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_user_imports.crm_user_imports_failed_rows_check": {
+   "table": "crm_user_imports",
+   "name": "crm_user_imports_failed_rows_check",
+   "kind": "c",
+   "def": "CHECK ((failed_rows >= 0))",
+   "refschema": null
+  },
+  "crm_user_imports.crm_user_imports_file_name_check": {
+   "table": "crm_user_imports",
+   "name": "crm_user_imports_file_name_check",
+   "kind": "c",
+   "def": "CHECK ((length(file_name) <= 255))",
+   "refschema": null
+  },
+  "crm_user_imports.crm_user_imports_job_id_fkey": {
+   "table": "crm_user_imports",
+   "name": "crm_user_imports_job_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (job_id) REFERENCES crm_jobs(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_user_imports.crm_user_imports_ok_rows_check": {
+   "table": "crm_user_imports",
+   "name": "crm_user_imports_ok_rows_check",
+   "kind": "c",
+   "def": "CHECK ((ok_rows >= 0))",
+   "refschema": null
+  },
+  "crm_user_imports.crm_user_imports_pkey": {
+   "table": "crm_user_imports",
+   "name": "crm_user_imports_pkey",
+   "kind": "p",
+   "def": "PRIMARY KEY (id)",
+   "refschema": null
+  },
+  "crm_user_imports.crm_user_imports_status_check": {
+   "table": "crm_user_imports",
+   "name": "crm_user_imports_status_check",
+   "kind": "c",
+   "def": "CHECK ((status = ANY (ARRAY['validating'::text, 'ready'::text, 'importing'::text, 'completed'::text, 'failed'::text, 'cancelled'::text])))",
+   "refschema": null
+  },
+  "crm_user_imports.crm_user_imports_total_rows_check": {
+   "table": "crm_user_imports",
+   "name": "crm_user_imports_total_rows_check",
+   "kind": "c",
+   "def": "CHECK ((total_rows >= 0))",
+   "refschema": null
+  },
+  "crm_user_import_rows.crm_user_import_rows_created_user_id_fkey": {
+   "table": "crm_user_import_rows",
+   "name": "crm_user_import_rows_created_user_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (created_user_id) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_user_import_rows.crm_user_import_rows_import_id_fkey": {
+   "table": "crm_user_import_rows",
+   "name": "crm_user_import_rows_import_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (import_id) REFERENCES crm_user_imports(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_user_import_rows.crm_user_import_rows_pkey": {
+   "table": "crm_user_import_rows",
+   "name": "crm_user_import_rows_pkey",
+   "kind": "p",
+   "def": "PRIMARY KEY (import_id, row_number)",
+   "refschema": null
+  },
+  "crm_user_import_rows.crm_user_import_rows_row_number_check": {
+   "table": "crm_user_import_rows",
+   "name": "crm_user_import_rows_row_number_check",
+   "kind": "c",
+   "def": "CHECK ((row_number >= 1))",
+   "refschema": null
+  },
+  "crm_user_import_rows.crm_user_import_rows_status_check": {
+   "table": "crm_user_import_rows",
+   "name": "crm_user_import_rows_status_check",
+   "kind": "c",
+   "def": "CHECK ((status = ANY (ARRAY['pending'::text, 'valid'::text, 'invalid'::text, 'created'::text, 'skipped_duplicate'::text, 'failed'::text])))",
+   "refschema": null
+  },
+  "crm_access_grants.crm_access_grants_open_needs_review": {
+   "table": "crm_access_grants",
+   "name": "crm_access_grants_open_needs_review",
+   "kind": "c",
+   "def": "CHECK (((expires_at IS NOT NULL) OR (review_due_at IS NOT NULL)))",
+   "refschema": null
+  },
+  "crm_access_grants.crm_access_grants_review_after_start": {
+   "table": "crm_access_grants",
+   "name": "crm_access_grants_review_after_start",
+   "kind": "c",
+   "def": "CHECK (((review_due_at IS NULL) OR (review_due_at > starts_at)))",
+   "refschema": null
+  },
+  "crm_user_ledger.crm_user_ledger_idempotency_key_format": {
+   "table": "crm_user_ledger",
+   "name": "crm_user_ledger_idempotency_key_format",
+   "kind": "c",
+   "def": "CHECK (((length(idempotency_key) >= 1) AND (length(idempotency_key) <= 200)))",
+   "refschema": null
+  },
+  "crm_user_ledger.crm_user_ledger_idempotency_key_key": {
+   "table": "crm_user_ledger",
+   "name": "crm_user_ledger_idempotency_key_key",
+   "kind": "u",
+   "def": "UNIQUE (idempotency_key)",
+   "refschema": null
+  },
+  "crm_user_ledger.crm_user_ledger_overdraw_needs_reason": {
+   "table": "crm_user_ledger",
+   "name": "crm_user_ledger_overdraw_needs_reason",
+   "kind": "c",
+   "def": "CHECK (((NOT allow_overdraw) OR ((entry_type = 'payout'::text) AND (reason IS NOT NULL) AND (length(btrim(reason)) >= 3))))",
+   "refschema": null
+  },
+  "crm_user_ledger.crm_user_ledger_split_id_fkey": {
+   "table": "crm_user_ledger",
+   "name": "crm_user_ledger_split_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (split_id) REFERENCES crm_revenue_splits(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_revenue_payments.crm_revenue_payments_amount_paise_check": {
+   "table": "crm_revenue_payments",
+   "name": "crm_revenue_payments_amount_paise_check",
+   "kind": "c",
+   "def": "CHECK ((amount_paise > 0))",
+   "refschema": null
+  },
+  "crm_revenue_payments.crm_revenue_payments_currency_check": {
+   "table": "crm_revenue_payments",
+   "name": "crm_revenue_payments_currency_check",
+   "kind": "c",
+   "def": "CHECK ((currency = 'INR'::text))",
+   "refschema": null
+  },
+  "crm_revenue_payments.crm_revenue_payments_customer_name_check": {
+   "table": "crm_revenue_payments",
+   "name": "crm_revenue_payments_customer_name_check",
+   "kind": "c",
+   "def": "CHECK (((customer_name IS NULL) OR (length(customer_name) <= 200)))",
+   "refschema": null
+  },
+  "crm_revenue_payments.crm_revenue_payments_description_check": {
+   "table": "crm_revenue_payments",
+   "name": "crm_revenue_payments_description_check",
+   "kind": "c",
+   "def": "CHECK (((description IS NULL) OR (length(description) <= 500)))",
+   "refschema": null
+  },
+  "crm_revenue_payments.crm_revenue_payments_external_ref_check": {
+   "table": "crm_revenue_payments",
+   "name": "crm_revenue_payments_external_ref_check",
+   "kind": "c",
+   "def": "CHECK (((length(btrim(external_ref)) >= 1) AND (length(btrim(external_ref)) <= 100)))",
+   "refschema": null
+  },
+  "crm_revenue_payments.crm_revenue_payments_pkey": {
+   "table": "crm_revenue_payments",
+   "name": "crm_revenue_payments_pkey",
+   "kind": "p",
+   "def": "PRIMARY KEY (id)",
+   "refschema": null
+  },
+  "crm_revenue_payments.crm_revenue_payments_recorded_by_fkey": {
+   "table": "crm_revenue_payments",
+   "name": "crm_revenue_payments_recorded_by_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (recorded_by) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_revenue_payments.crm_revenue_payments_refund_le_amount": {
+   "table": "crm_revenue_payments",
+   "name": "crm_revenue_payments_refund_le_amount",
+   "kind": "c",
+   "def": "CHECK ((refunded_paise <= amount_paise))",
+   "refschema": null
+  },
+  "crm_revenue_payments.crm_revenue_payments_refunded_paise_check": {
+   "table": "crm_revenue_payments",
+   "name": "crm_revenue_payments_refunded_paise_check",
+   "kind": "c",
+   "def": "CHECK ((refunded_paise >= 0))",
+   "refschema": null
+  },
+  "crm_revenue_payments.crm_revenue_payments_source_check": {
+   "table": "crm_revenue_payments",
+   "name": "crm_revenue_payments_source_check",
+   "kind": "c",
+   "def": "CHECK ((source = ANY (ARRAY['manual'::text, 'csv_import'::text])))",
+   "refschema": null
+  },
+  "crm_revenue_payments.crm_revenue_payments_status_check": {
+   "table": "crm_revenue_payments",
+   "name": "crm_revenue_payments_status_check",
+   "kind": "c",
+   "def": "CHECK ((status = ANY (ARRAY['captured'::text, 'partially_refunded'::text, 'refunded'::text, 'cancelled'::text])))",
+   "refschema": null
+  },
+  "crm_revenue_payments.crm_revenue_payments_status_consistency": {
+   "table": "crm_revenue_payments",
+   "name": "crm_revenue_payments_status_consistency",
+   "kind": "c",
+   "def": "CHECK ((((status = 'captured'::text) AND (refunded_paise = 0) AND (cancelled_at IS NULL)) OR ((status = 'partially_refunded'::text) AND (refunded_paise > 0) AND (refunded_paise < amount_paise) AND (refunded_at IS NOT NULL) AND (cancelled_at IS NULL)) OR ((status = 'refunded'::text) AND (refunded_paise = amount_paise) AND (refunded_at IS NOT NULL) AND (cancelled_at IS NULL)) OR ((status = 'cancelled'::text) AND (cancelled_at IS NOT NULL) AND (cancel_reason IS NOT NULL) AND (length(btrim(cancel_reason)) >= 3))))",
+   "refschema": null
+  },
+  "crm_revenue_splits.crm_revenue_splits_amount_paise_check": {
+   "table": "crm_revenue_splits",
+   "name": "crm_revenue_splits_amount_paise_check",
+   "kind": "c",
+   "def": "CHECK ((amount_paise >= 0))",
+   "refschema": null
+  },
+  "crm_revenue_splits.crm_revenue_splits_payment_id_fkey": {
+   "table": "crm_revenue_splits",
+   "name": "crm_revenue_splits_payment_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (payment_id) REFERENCES crm_revenue_payments(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_revenue_splits.crm_revenue_splits_pkey": {
+   "table": "crm_revenue_splits",
+   "name": "crm_revenue_splits_pkey",
+   "kind": "p",
+   "def": "PRIMARY KEY (id)",
+   "refschema": null
+  },
+  "crm_revenue_splits.crm_revenue_splits_recorded_by_fkey": {
+   "table": "crm_revenue_splits",
+   "name": "crm_revenue_splits_recorded_by_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (recorded_by) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
+  },
+  "crm_revenue_splits.crm_revenue_splits_refund_le_amount": {
+   "table": "crm_revenue_splits",
+   "name": "crm_revenue_splits_refund_le_amount",
+   "kind": "c",
+   "def": "CHECK ((refunded_paise <= amount_paise))",
+   "refschema": null
+  },
+  "crm_revenue_splits.crm_revenue_splits_refunded_paise_check": {
+   "table": "crm_revenue_splits",
+   "name": "crm_revenue_splits_refunded_paise_check",
+   "kind": "c",
+   "def": "CHECK ((refunded_paise >= 0))",
+   "refschema": null
+  },
+  "crm_revenue_splits.crm_revenue_splits_share_bp_check": {
+   "table": "crm_revenue_splits",
+   "name": "crm_revenue_splits_share_bp_check",
+   "kind": "c",
+   "def": "CHECK (((share_bp >= 1) AND (share_bp <= 10000)))",
+   "refschema": null
+  },
+  "crm_revenue_splits.crm_revenue_splits_source_check": {
+   "table": "crm_revenue_splits",
+   "name": "crm_revenue_splits_source_check",
+   "kind": "c",
+   "def": "CHECK ((source = ANY (ARRAY['lead_owner'::text, 'closer'::text, 'manual'::text])))",
+   "refschema": null
+  },
+  "crm_revenue_splits.crm_revenue_splits_unique": {
+   "table": "crm_revenue_splits",
+   "name": "crm_revenue_splits_unique",
+   "kind": "u",
+   "def": "UNIQUE (payment_id, user_id, source)",
+   "refschema": null
+  },
+  "crm_revenue_splits.crm_revenue_splits_user_id_fkey": {
+   "table": "crm_revenue_splits",
+   "name": "crm_revenue_splits_user_id_fkey",
+   "kind": "f",
+   "def": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT",
+   "refschema": "public"
   }
  },
  "indexes": {
@@ -5976,6 +8057,82 @@
   "idx_contact_tags_contact": {
    "table": "contact_tags",
    "def": "CREATE INDEX idx_contact_tags_contact ON public.contact_tags USING btree (contact_id)"
+  },
+  "idx_crm_user_events_type_time": {
+   "table": "crm_user_events",
+   "def": "CREATE INDEX idx_crm_user_events_type_time ON public.crm_user_events USING btree (event_type, occurred_at)"
+  },
+  "idx_crm_access_grants_user_live": {
+   "table": "crm_access_grants",
+   "def": "CREATE INDEX idx_crm_access_grants_user_live ON public.crm_access_grants USING btree (user_id, module) WHERE (revoked_at IS NULL)"
+  },
+  "idx_crm_mfa_recovery_codes_user": {
+   "table": "crm_mfa_recovery_codes",
+   "def": "CREATE INDEX idx_crm_mfa_recovery_codes_user ON public.crm_mfa_recovery_codes USING btree (user_id) WHERE ((used_at IS NULL) AND (revoked_at IS NULL))"
+  },
+  "idx_crm_notif_pending": {
+   "table": "crm_notification_deliveries",
+   "def": "CREATE INDEX idx_crm_notif_pending ON public.crm_notification_deliveries USING btree (scheduled_for) WHERE (status = 'pending'::text)"
+  },
+  "idx_crm_rev_attr_user_paid": {
+   "table": "crm_revenue_attributions",
+   "def": "CREATE INDEX idx_crm_rev_attr_user_paid ON public.crm_revenue_attributions USING btree (user_id, paid_at)"
+  },
+  "idx_crm_user_events_ist_month": {
+   "table": "crm_user_events",
+   "def": "CREATE INDEX idx_crm_user_events_ist_month ON public.crm_user_events USING btree (crm_ist_month(occurred_at), event_type)"
+  },
+  "idx_crm_rev_attr_payment": {
+   "table": "crm_revenue_attributions",
+   "def": "CREATE INDEX idx_crm_rev_attr_payment ON public.crm_revenue_attributions USING btree (payment_provider, payment_ref)"
+  },
+  "idx_crm_auth_sessions_user_active": {
+   "table": "crm_auth_sessions",
+   "def": "CREATE INDEX idx_crm_auth_sessions_user_active ON public.crm_auth_sessions USING btree (user_id, last_seen_at DESC) WHERE (ended_at IS NULL)"
+  },
+  "idx_crm_user_ledger_user_time": {
+   "table": "crm_user_ledger",
+   "def": "CREATE INDEX idx_crm_user_ledger_user_time ON public.crm_user_ledger USING btree (user_id, created_at)"
+  },
+  "idx_crm_access_grants_expiring": {
+   "table": "crm_access_grants",
+   "def": "CREATE INDEX idx_crm_access_grants_expiring ON public.crm_access_grants USING btree (expires_at) WHERE ((revoked_at IS NULL) AND (expires_at IS NOT NULL))"
+  },
+  "idx_crm_auth_login_attempts_user": {
+   "table": "crm_auth_login_attempts",
+   "def": "CREATE INDEX idx_crm_auth_login_attempts_user ON public.crm_auth_login_attempts USING btree (user_id, occurred_at DESC)"
+  },
+  "idx_crm_auth_login_attempts_email": {
+   "table": "crm_auth_login_attempts",
+   "def": "CREATE INDEX idx_crm_auth_login_attempts_email ON public.crm_auth_login_attempts USING btree (lower(attempted_email), occurred_at DESC)"
+  },
+  "uq_crm_jobs_dedupe": {
+   "table": "crm_jobs",
+   "def": "CREATE UNIQUE INDEX uq_crm_jobs_dedupe ON public.crm_jobs USING btree (dedupe_key) WHERE (dedupe_key IS NOT NULL)"
+  },
+  "idx_crm_user_events_subject": {
+   "table": "crm_user_events",
+   "def": "CREATE INDEX idx_crm_user_events_subject ON public.crm_user_events USING btree (subject_user_id, occurred_at DESC)"
+  },
+  "idx_crm_jobs_ready": {
+   "table": "crm_jobs",
+   "def": "CREATE INDEX idx_crm_jobs_ready ON public.crm_jobs USING btree (run_at) WHERE (status = 'queued'::text)"
+  },
+  "idx_crm_revenue_splits_user": {
+   "table": "crm_revenue_splits",
+   "def": "CREATE INDEX idx_crm_revenue_splits_user ON public.crm_revenue_splits USING btree (user_id)"
+  },
+  "idx_crm_revenue_payments_date": {
+   "table": "crm_revenue_payments",
+   "def": "CREATE INDEX idx_crm_revenue_payments_date ON public.crm_revenue_payments USING btree (payment_date)"
+  },
+  "uq_crm_revenue_payments_ref": {
+   "table": "crm_revenue_payments",
+   "def": "CREATE UNIQUE INDEX uq_crm_revenue_payments_ref ON public.crm_revenue_payments USING btree (lower(btrim(external_ref)))"
+  },
+  "idx_crm_access_grants_review_due": {
+   "table": "crm_access_grants",
+   "def": "CREATE INDEX idx_crm_access_grants_review_due ON public.crm_access_grants USING btree (review_due_at) WHERE ((revoked_at IS NULL) AND (review_due_at IS NOT NULL))"
   }
  },
  "functions": {
@@ -6198,7 +8355,67 @@
   "deal_stage_after()": {
    "result": "trigger",
    "publicExec": true
+  },
+  "crm_append_only()": {
+   "result": "trigger",
+   "publicExec": true
+  },
+  "crm_touch_updated_at()": {
+   "result": "trigger",
+   "publicExec": true
+  },
+  "crm_ist_month(timestamp with time zone)": {
+   "result": "date",
+   "publicExec": true
+  },
+  "crm_auth_sessions_guard()": {
+   "result": "trigger",
+   "publicExec": true
+  },
+  "crm_grant_period(timestamp with time zone,timestamp with time zone,timestamp with time zone)": {
+   "result": "tstzrange",
+   "publicExec": true
+  },
+  "crm_access_grants_guard()": {
+   "result": "trigger",
+   "publicExec": true
+  },
+  "crm_rev_attr_check_totals()": {
+   "result": "trigger",
+   "publicExec": true
+  },
+  "crm_rev_attr_guard()": {
+   "result": "trigger",
+   "publicExec": true
+  },
+  "crm_user_ledger_check_reversal()": {
+   "result": "trigger",
+   "publicExec": true
+  },
+  "crm_active_super_admin_count(uuid)": {
+   "result": "bigint",
+   "publicExec": true
+  },
+  "crm_guard_last_super_admin()": {
+   "result": "trigger",
+   "publicExec": true
+  },
+  "crm_user_ledger_check_balance()": {
+   "result": "trigger",
+   "publicExec": true
+  },
+  "crm_revenue_check_split_totals()": {
+   "result": "trigger",
+   "publicExec": true
+  },
+  "crm_revenue_payments_guard()": {
+   "result": "trigger",
+   "publicExec": true
+  },
+  "crm_revenue_splits_guard()": {
+   "result": "trigger",
+   "publicExec": true
   }
  },
- "schemaChecksum": "f275bd0e0e946a06c5729ef1964e2c387bafc25e9343237126e0fc60930f16af"
+ "schemaChecksum": "c318271cfc07283067ab0eb949f945fec578e451fef62c40ddedba81e444d015"
 }
