@@ -20,6 +20,8 @@ Your first login: how to sign in, what your role allows, how the screen is laid 
 2. Enter your **Email** and **Password**, then click **Sign in**.
 3. Forgot it? Click **Forgot password?**, enter your email, click **Send reset link**, then follow the link in your inbox.
 
+If your administrator has turned on the local no-login switch, the CRM on `localhost` skips this page and opens the **Dashboard** directly.
+
 ### Creating an account
 
 - On the sign-in page click **Create account**.

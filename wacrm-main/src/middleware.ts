@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
+import { AUTO_LOGIN_PATH, authBypassUserId } from '@/lib/auth/auth-bypass'
 import { SESSION_COOKIE, verifySessionToken } from '@/lib/auth/session-token'
 
 export async function middleware(request: NextRequest) {
@@ -8,6 +9,20 @@ export async function middleware(request: NextRequest) {
   // components that load the user.
   const claims = await verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value)
   const user = claims ? { id: claims.sub } : null
+
+  // Local no-login switch (AUTH_BYPASS_USER_ID): pages never show the login
+  // screen. API routes are left alone so webhooks and crons keep their own checks.
+  const { pathname, search, searchParams } = request.nextUrl
+  if (!pathname.startsWith('/api/') && authBypassUserId(request.headers.get('host'))) {
+    const isAuthPage = pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password'
+    if (!user || (isAuthPage && !searchParams.has('invite'))) {
+      const url = request.nextUrl.clone()
+      url.pathname = AUTO_LOGIN_PATH
+      url.search = ''
+      url.searchParams.set('next', isAuthPage ? '/dashboard' : pathname + search)
+      return NextResponse.redirect(url)
+    }
+  }
 
   // Auth pages - redirect to dashboard if already logged in.
   // Exception: when an invite token is in the query string we
