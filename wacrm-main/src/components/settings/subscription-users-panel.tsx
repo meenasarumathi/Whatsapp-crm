@@ -46,6 +46,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { SettingsPanelHead } from './settings-panel-head';
+import { TempPasswordSection } from './temp-password-section';
+import { canIssueTempPassword } from '@/lib/auth/security-policy';
 import { usePlatform } from '@/hooks/use-platform';
 import { cn } from '@/lib/utils';
 import {
@@ -765,6 +767,11 @@ function UserRow({
                   </Button>
                 </div>
               </div>
+
+              {/* Temporary password (shown only when allowed; the API re-checks) */}
+              {!user.is_self && canIssueTempPassword(myRole, user.platform_role) && (
+                <TempPasswordSection userId={user.user_id} email={user.email} />
+              )}
             </>
           )}
         </div>

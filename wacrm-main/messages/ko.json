@@ -15,7 +15,7 @@
     "createAccount": "계정 만들기"
   },
   "Sidebar": {
-    "title": "WhatsApp용 CRM 템플릿",
+    "title": "Zyloop WACRM",
     "primaryNav": "기본 메뉴",
     "dashboard": "대시보드",
     "inbox": "인박스",
@@ -43,7 +43,9 @@
     "menuSignOut": "로그아웃",
     "trainAi": "AI 학습",
     "demo": "데모",
-    "wallet": "지갑"
+    "wallet": "지갑",
+    "users": "사용자",
+    "support": "지원"
   },
   "Header": {
     "dashboard": "대시보드",
@@ -66,7 +68,9 @@
     "agents": "AI 에이전트",
     "trainAi": "AI 학습",
     "demo": "데모",
-    "wallet": "지갑"
+    "wallet": "지갑",
+    "users": "사용자",
+    "support": "지원"
   },
   "ModeToggle": {
     "switchMode": "{mode} 모드로 전환"
@@ -583,16 +587,34 @@
       "toastFailedMoveDeal": "딜을 이동하지 못했습니다",
       "toastFailedCreatePipeline": "파이프라인을 만들지 못했습니다",
       "toastPipelineCreated": "파이프라인이 생성되었습니다",
-      "toastNotLinkedToAccount": "프로필이 계정에 연결되어 있지 않습니다."
+      "toastNotLinkedToAccount": "프로필이 계정에 연결되어 있지 않습니다.",
+      "filterAll": "전체 딜",
+      "filterMine": "내 딜",
+      "filterOverdue": "기한 초과 ({count})",
+      "template": "시작 템플릿",
+      "templates": {
+        "settlement": {
+          "name": "리드부터 결제 완료까지 (팀 인계)",
+          "stages": "신규 문의 → 검증 → 견적 발송 → 주문 확정 → 결제 완료 → 발송 → 완료 / 실패, SLA 포함"
+        },
+        "sales": {
+          "name": "영업 퍼널",
+          "stages": "신규 리드 → 검증 → 제안 발송 → 협상 → 성사"
+        }
+      }
     },
     "board": {
       "dropDealHere": "여기에 딜을 놓으세요",
-      "addDeal": "딜 추가"
+      "addDeal": "딜 추가",
+      "owner": "담당: {name}",
+      "sla": "SLA {hours}시간"
     },
     "card": {
       "noContact": "연락처 없음",
       "won": "성사",
-      "lost": "실패"
+      "lost": "실패",
+      "inStage": "현재 단계 체류 시간",
+      "overdue": "기한 초과 · {age}"
     },
     "form": {
       "editDeal": "딜 수정",
@@ -658,7 +680,14 @@
       "toastMoveOrDeleteDeals": "먼저 이 단계의 딜을 이동하거나 삭제하세요",
       "toastFailedDeleteStage": "단계를 삭제하지 못했습니다",
       "toastFailedDeletePipeline": "파이프라인을 삭제하지 못했습니다",
-      "toastDeleted": "파이프라인이 삭제되었습니다"
+      "toastDeleted": "파이프라인이 삭제되었습니다",
+      "owner": "단계 담당자",
+      "noOwner": "담당자 없음 (기존 담당 유지)",
+      "slaHours": "SLA 시간",
+      "outcome": "단계 결과",
+      "outcomeOpen": "진행 중",
+      "outcomeWon": "완료 (성사)",
+      "outcomeLost": "실패"
     },
     "analytics": {
       "totalDeals": "전체 딜",
@@ -780,7 +809,13 @@
         "subtitle": "브로드캐스트에 사용할 승인된 메시지 템플릿을 선택하세요.",
         "noTemplates": "사용 가능한 템플릿이 없습니다.",
         "createFirst": "먼저 설정에서 템플릿을 만드세요.",
-        "errorLoad": "템플릿을 불러오지 못했습니다"
+        "errorLoad": "템플릿을 불러오지 못했습니다",
+        "howTo": "브로드캐스트에는 Meta가 승인한 WhatsApp 템플릿만 사용할 수 있습니다. WhatsApp Manager에 이미 템플릿이 있다면 동기화하고, 없다면 새로 만드세요. 승인은 보통 몇 분에서 몇 시간 걸립니다.",
+        "sync": "Meta에서 동기화",
+        "create": "템플릿 만들기",
+        "synced": "Meta에서 템플릿 {count}개를 동기화했습니다",
+        "syncFailed": "Meta에서 템플릿을 동기화할 수 없습니다",
+        "waiting": "Meta 승인 대기 중"
       },
       "selectAudience": {
         "title": "대상 선택",
@@ -912,7 +947,8 @@
         "updateError": "업데이트하지 못했습니다",
         "duplicateError": "복제하지 못했습니다",
         "deleteError": "삭제하지 못했습니다"
-      }
+      },
+      "scheduledReplies": "예약 자동 응답"
     },
     "edit": {
       "loading": "불러오는 중...",
@@ -1017,7 +1053,14 @@
       "tags": {
         "select": "태그 선택…",
         "placeholder": "태그 id",
-        "unknown": "{id} (알 수 없는 태그)"
+        "unknown": "{id} (알 수 없는 태그)",
+        "new": "새 태그",
+        "newPlaceholder": "태그 이름 (예: 신규 리드)",
+        "create": "만들기",
+        "pickExisting": "기존 태그 선택",
+        "noneYet": "아직 태그가 없습니다. 이름을 입력해 첫 태그를 만드세요.",
+        "created": "태그 \"{name}\" 생성됨",
+        "createFailed": "태그를 만들 수 없습니다"
       },
       "fields": {
         "name": "이름",
@@ -1104,6 +1147,48 @@
         "matchWordHint": "키워드가 독립된 단어일 때만 일치하므로 \"k\"가 \"thanks\"에서 실행되지 않습니다. 공백으로 단어를 구분하는 언어의 짧은 키워드에 적합하며, 공백 없이 표기하는 언어에는 \"포함\"을 사용하세요.",
         "matchExact": "정확히 일치",
         "closeConversationHint": "대화 상태를 \"닫힘\"으로 설정합니다. 추가 설정이 필요 없습니다."
+      }
+    },
+    "library": {
+      "title": "워크플로 라이브러리",
+      "subtitle": "태그와 파이프라인에 연결된 기성 워크플로입니다. 초안으로 설치하고 문구를 수정한 뒤 켜세요.",
+      "install": "설치",
+      "open": "열기",
+      "statusOn": "설치됨 · 켜짐",
+      "statusDraft": "설치됨 · 초안",
+      "installed": "{name} 초안으로 설치됨 — 확인 후 켜세요",
+      "failed": "워크플로를 설치할 수 없습니다",
+      "items": {
+        "lead_capture": {
+          "name": "환영 & 리드 확보",
+          "desc": "모든 첫 메시지를 추적 가능한 리드로.",
+          "flow": "첫 메시지 → 메뉴(가격 보기 / 주문 조회 / 상담원 연결) → 신규 리드 태그 → 리드-정산 파이프라인 › 신규 문의에 딜 생성."
+        },
+        "price_enquiry": {
+          "name": "가격 & 카탈로그 문의",
+          "desc": "\"얼마예요?\"에 밤낮없이 즉시 답변.",
+          "flow": "키워드 가격, 비용, 요금, 카탈로그(또는 가격 보기 버튼) → 가격표 발송 → 가격 문의 태그."
+        },
+        "order_tracking": {
+          "name": "주문 조회",
+          "desc": "주문 번호를 받고 알맞은 팀원에게 연결.",
+          "flow": "키워드 조회, 배송, 주문 어디 → 주문 번호 요청 → 주문 지원 태그 → 가장 한가한 팀원에게 배정."
+        },
+        "human_handoff": {
+          "name": "상담원 연결 & 불만 처리",
+          "desc": "불만 고객이 봇 앞에서 기다리지 않게.",
+          "flow": "키워드 상담원, 불만, 환불, 파손, 불만족 → 사과 메시지 → 상담 필요 태그 → 팀원 배정."
+        },
+        "payment_reminder": {
+          "name": "결제 알림",
+          "desc": "직접 독촉하지 않고 더 빨리 결제받기.",
+          "flow": "연락처에 결제 대기 태그 → 결제 정보 발송 → 3시간 후에도 태그가 있으면 리마인더. 결제되면 태그 제거."
+        },
+        "delivery_feedback": {
+          "name": "배송 피드백 & 리뷰",
+          "desc": "만족한 고객에게 리뷰를, 문제는 일찍 발견.",
+          "flow": "배송 완료 태그 → 2시간 후 \"어떠셨나요?\"(좋았어요 ⭐ / 불만족) → 좋았어요: 감사·리뷰 링크·만족 고객 태그 · 불만족: 상담원 연결."
+        }
       }
     }
   },
@@ -1421,7 +1506,8 @@
       "fieldsCount": "커스텀 필드 {count}개",
       "appearance": "{mode} 모드 · {theme} 색상",
       "yourAccount": "내 계정",
-      "loading": "불러오는 중…"
+      "loading": "불러오는 중…",
+      "notReceiving": "연결됨 · 메시지 수신 안 됨"
     },
     "members": {
       "title": "팀원",
@@ -1472,7 +1558,7 @@
       "done": "완료",
       "dialogTitle": "팀원 초대",
       "networkError": "서버에 연결할 수 없습니다. 다시 시도할까요?",
-      "fallbackAccountName": "우리 wacrm 계정",
+      "fallbackAccountName": "우리 Zyloop 계정",
       "dialogDesc": "일회용 초대 링크를 생성합니다. WhatsApp, Slack 등 원하는 채널로 공유하세요 — 이메일 서비스가 필요하지 않습니다.",
       "roleLabel": "역할",
       "validForLabel": "링크 유효 기간",
@@ -1489,7 +1575,7 @@
       "labelTooLong": "라벨은 {max}자 이하여야 합니다",
       "copied": "초대 링크가 복사되었습니다",
       "clipboardBlocked": "클립보드 접근이 차단되었습니다 — 링크를 직접 복사하세요",
-      "whatsappMessage": "이 링크(유효 기간 {expiresInDays}일)로 wacrm의 {accountName}에 참여하세요: {url}"
+      "whatsappMessage": "이 링크(유효 기간 {expiresInDays}일)로 Zyloop의 {accountName}에 참여하세요: {url}"
     },
     "tagsAndFields": {
       "title": "필드 & 태그",
@@ -1608,8 +1694,8 @@
       "saveResubmit": "저장 & 재제출",
       "submitApproval": "승인 요청",
       "deleteDialogTitle": "템플릿을 삭제하시겠습니까?",
-      "deleteMetaDesc": "\"{name}\"이(가) Meta와 wacrm에서 삭제됩니다. 이 템플릿을 사용하는 활성 브로드캐스트는 다음 전송부터 실패하기 시작합니다. 되돌릴 수 없습니다.",
-      "deleteLocalDesc": "\"{name}\"이(가) wacrm에서 삭제됩니다. Meta에 제출된 적이 없으므로 별도의 원격 정리가 필요하지 않습니다.",
+      "deleteMetaDesc": "\"{name}\"이(가) Meta와 Zyloop에서 삭제됩니다. 이 템플릿을 사용하는 활성 브로드캐스트는 다음 전송부터 실패하기 시작합니다. 되돌릴 수 없습니다.",
+      "deleteLocalDesc": "\"{name}\"이(가) Zyloop에서 삭제됩니다. Meta에 제출된 적이 없으므로 별도의 원격 정리가 필요하지 않습니다.",
       "deleting": "삭제 중…",
       "delete": "삭제",
       "toastLoadFailed": "템플릿을 불러오지 못했습니다",
@@ -1652,7 +1738,7 @@
       "notConnected": "연결되지 않음",
       "connectedDesc": "액세스 토큰으로 Meta 인증이 완료되었습니다. 웹훅이 실제로 연결되었는지는 아래 등록 상태를 확인하세요.",
       "notConnectedDesc": "아래에서 Meta API 자격 증명을 설정해 WhatsApp 비즈니스 계정을 연결하세요.",
-      "registered": "등록됨 — Meta가 wacrm으로 이벤트를 전달합니다",
+      "registered": "등록됨 — Meta가 Zyloop으로 이벤트를 전달합니다",
       "notRegistered": "등록되지 않음 — Meta가 이벤트를 전달하지 않습니다",
       "verifyWithMeta": "Meta로 확인",
       "subscribedSince": "{date}부터 구독 중입니다. 이벤트가 더 이상 도착하지 않으면 Meta로 확인을 클릭하세요.",
@@ -1676,7 +1762,7 @@
       "twoStepPin": "2단계 인증 PIN",
       "optional": "(선택)",
       "pinPlaceholder": "Meta WhatsApp 관리자에서 발급받은 6자리 PIN",
-      "pinHint": "프로덕션 번호의 수신 메시지를 연결하려면 필요합니다. Meta 비즈니스 관리자 → WhatsApp 계정 → 전화번호 → 2단계 인증에서 설정한 뒤 여기에 붙여넣으면 wacrm이 해당 번호를 구독할 수 있습니다 — 그렇지 않으면 Meta는 마지막으로 이 번호를 등록한 앱으로 수신 이벤트를 보냅니다(공유 WABA 하의 두 번째 번호에서 흔히 발생하는 증상입니다). Meta 테스트 번호는 PIN이 없고 이미 등록되어 있으므로 이 필드를 비워두세요. 비워두면 기존 등록도 그대로 유지됩니다.",
+      "pinHint": "프로덕션 번호의 수신 메시지를 연결하려면 필요합니다. Meta 비즈니스 관리자 → WhatsApp 계정 → 전화번호 → 2단계 인증에서 설정한 뒤 여기에 붙여넣으면 Zyloop이 해당 번호를 구독할 수 있습니다 — 그렇지 않으면 Meta는 마지막으로 이 번호를 등록한 앱으로 수신 이벤트를 보냅니다(공유 WABA 하의 두 번째 번호에서 흔히 발생하는 증상입니다). Meta 테스트 번호는 PIN이 없고 이미 등록되어 있으므로 이 필드를 비워두세요. 비워두면 기존 등록도 그대로 유지됩니다.",
       "webhookTitle": "웹훅 설정",
       "webhookDesc": "Meta 앱 대시보드의 웹훅 콜백으로 이 URL을 사용하세요.",
       "webhookUrl": "웹훅 콜백 URL",
@@ -1760,7 +1846,8 @@
       "api": "API 키",
       "subscriptions": "구독 사용자",
       "backup": "백업",
-      "tokens": "Token admin"
+      "tokens": "Token admin",
+      "instagram": "인스타그램"
     },
     "groups": {
       "account": "계정",
@@ -1909,7 +1996,7 @@
     },
     "aiConfig": {
       "title": "에이전트 설정",
-      "description": "직접 발급받은 OpenAI 또는 Anthropic 키를 사용하세요. wacrm은 회원님의 키로 공급자에 직접 요청하므로 좌석당 AI 비용이 없고 데이터도 온전히 회원님의 것입니다. 인박스의 AI 답장 초안, 자동 응답 봇, 플레이그라운드에 사용됩니다.",
+      "description": "직접 발급받은 OpenAI 또는 Anthropic 키를 사용하세요. Zyloop은 회원님의 키로 공급자에 직접 요청하므로 좌석당 AI 비용이 없고 데이터도 온전히 회원님의 것입니다. 인박스의 AI 답장 초안, 자동 응답 봇, 플레이그라운드에 사용됩니다.",
       "adminOnlyConfig": "관리자와 소유자만 AI 설정을 변경할 수 있습니다.",
       "loadFailed": "AI 설정을 불러오지 못했습니다",
       "providerAndKey": "공급자 & 키",
@@ -2088,7 +2175,7 @@
     "titleJoin": "계정 만들고 참여하기",
     "title": "계정 만들기",
     "descJoin": "이메일을 인증한 뒤 초대를 수락해 팀에 참여하세요.",
-    "desc": "WhatsApp용 CRM Template을 시작하세요",
+    "desc": "Zyloop WACRM을 시작하세요",
     "fullNameLabel": "이름",
     "fullNamePlaceholder": "홍길동",
     "emailLabel": "이메일",
@@ -2537,6 +2624,16 @@
       "funnel": {
         "title": "Powers the broadcast funnel",
         "desc": "Answers every broadcast reply so more readers turn into buyers."
+      },
+      "needsKey": {
+        "title": "처음 다섯 기능에는 AI 제공자 키가 필요합니다",
+        "desc": "자동 응답, 초안, 상담원 연결, 다국어, 문서 답변은 AI 모델(OpenAI 또는 Anthropic)이 작성합니다. 학습 내용은 저장되어 있습니다. AI 에이전트 → 설정에 API 키를 붙여넣고 어시스턴트를 켜세요.",
+        "cta": "API 키 추가"
+      },
+      "needsSwitch": {
+        "title": "AI 어시스턴트가 꺼져 있습니다",
+        "desc": "API 키가 저장되어 있습니다. AI 에이전트 → 설정에서 AI 어시스턴트 사용을 켜세요.",
+        "cta": "AI 설정 열기"
       }
     }
   },
@@ -2910,6 +3007,428 @@
       "credited": "{amount} credited to {name}",
       "debited": "{amount} deducted from {name}",
       "failed": "Couldn't adjust the wallet."
+    }
+  },
+  "AutoReplies": {
+    "back": "자동화",
+    "title": "예약 자동 응답",
+    "subtitle": "선택한 요일과 시간에 목록의 연락처에게 승인된 템플릿이나 텍스트로 자동 응답합니다.",
+    "lists": {
+      "title": "연락처 목록",
+      "subtitle": "번호를 붙여넣거나 CSV를 업로드하세요. 각 목록은 태그이기도 해서 브로드캐스트와 자동화에서도 쓸 수 있습니다.",
+      "new": "새 목록",
+      "empty": "아직 목록이 없습니다. 목록을 만들고 예약 응답을 받을 전화번호를 붙여넣으세요.",
+      "count": "연락처 {count}명",
+      "addNumbers": "번호 추가",
+      "delete": "목록 삭제",
+      "confirmDelete": "\"{name}\" 목록을 삭제할까요? 연락처는 남고 목록(태그)만 삭제됩니다."
+    },
+    "rules": {
+      "title": "자동 응답 규칙",
+      "subtitle": "목록의 연락처가 규칙 시간 안에 메시지를 보내면 처음 일치하는 규칙이 한 번 응답합니다(이후 대기 시간 적용).",
+      "new": "새 규칙",
+      "empty": "아직 규칙이 없습니다. 예: \"VIP 학부모\" 목록에 월–토 9:00–21:00 가격표 템플릿으로 응답.",
+      "everyone": "모든 연락처",
+      "replyTemplate": "템플릿: {name}",
+      "replyText": "텍스트 메시지",
+      "sent": "{count}건 발송",
+      "edit": "규칙 편집",
+      "delete": "규칙 삭제",
+      "confirmDelete": "\"{name}\" 규칙을 삭제할까요?",
+      "newTitle": "새 자동 응답 규칙",
+      "editTitle": "자동 응답 규칙 편집",
+      "dialogDescription": "누구에게, 언제, 무엇을 보낼지 선택하세요.",
+      "name": "규칙 이름",
+      "namePlaceholder": "예: VIP 학부모 — 영업시간",
+      "who": "대상 — 연락처 목록",
+      "when": "언제 — 요일과 시간",
+      "from": "시작",
+      "to": "종료",
+      "timezone": "시간대",
+      "windowHint": "종료 시간이 시작보다 이르면 자정을 넘깁니다(예: 영업 외 18:00–09:00). 시작과 종료가 같으면 하루 종일.",
+      "reply": "무엇 — 응답 내용",
+      "kind": {
+        "template": "승인된 템플릿",
+        "text": "텍스트 메시지"
+      },
+      "noTemplates": "아직 승인된 템플릿이 없습니다. 설정 → 템플릿에서 동기화하거나 만드세요.",
+      "pickTemplate": "템플릿 선택…",
+      "textPlaceholder": "안녕하세요 {{contact.name}}님, 메시지 감사합니다! 가격표: …",
+      "textHint": "고객 이름은 {{contact.name}}를 쓰세요. 고객이 방금 메시지를 보냈으므로(24시간 창) 텍스트 응답이 가능합니다.",
+      "cooldown": "같은 연락처에 최대 응답 빈도",
+      "priority": "우선순위(낮을수록 먼저)",
+      "active": "규칙 사용",
+      "save": "규칙 저장",
+      "errors": {
+        "name": "규칙 이름을 입력하세요",
+        "days": "하루 이상 선택하세요",
+        "template": "템플릿을 선택하세요",
+        "text": "응답 내용을 입력하세요"
+      }
+    },
+    "cooldowns": {
+      "0": "매 메시지마다",
+      "60": "1시간에 한 번",
+      "360": "6시간에 한 번",
+      "720": "12시간에 한 번",
+      "1440": "하루에 한 번",
+      "10080": "일주일에 한 번"
+    },
+    "days": {
+      "0": "일",
+      "1": "월",
+      "2": "화",
+      "3": "수",
+      "4": "목",
+      "5": "금",
+      "6": "토"
+    },
+    "activity": {
+      "title": "최근 자동 응답",
+      "empty": "아직 발송된 내용이 없습니다.",
+      "sent": "발송됨",
+      "failed": "실패"
+    },
+    "toasts": {
+      "saved": "규칙이 저장되었습니다",
+      "saveFailed": "저장할 수 없습니다",
+      "deleted": "삭제됨",
+      "deleteFailed": "삭제할 수 없습니다"
+    },
+    "import": {
+      "newTitle": "새 연락처 목록",
+      "addTitle": "{name}에 번호 추가",
+      "description": "한 줄에 번호 하나, 쉼표 구분, 또는 이름·전화 열이 있는 CSV. 새 번호는 연락처로 추가됩니다.",
+      "name": "목록 이름",
+      "namePlaceholder": "예: VIP 학부모",
+      "numbers": "전화번호",
+      "countryCode": "기본 국가 코드",
+      "csv": "CSV 업로드",
+      "hint": "10자리 번호에는 기본 국가 코드가 붙습니다. 중복은 건너뜁니다. 가져오기만으로는 메시지가 발송되지 않습니다.",
+      "cancel": "취소",
+      "submit": "목록 저장",
+      "done": "번호 {numbers}개 저장됨 (새 연락처 {created}명)",
+      "failed": "번호를 가져올 수 없습니다"
+    }
+  },
+  "AuthShell": {
+    "headline": "모든 WhatsApp 대화를",
+    "headlineAccent": "끝까지 매듭짓다.",
+    "subline": "Zyloop WACRM은 대화를 고객으로 바꿉니다 — 팀 공용 받은편지함, 최고의 상담원처럼 답하는 AI, 첫 인사부터 결제 완료까지 이어지는 파이프라인.",
+    "points": {
+      "inbox": {
+        "title": "하나의 공용 받은편지함",
+        "desc": "함께 배정하고, 태그하고, 답장하세요 — 아무도 기다리지 않게."
+      },
+      "ai": {
+        "title": "AI + 예약 자동 응답",
+        "desc": "우리 비즈니스로 학습, 24시간 근무."
+      },
+      "pipeline": {
+        "title": "리드 → 결제 완료",
+        "desc": "SLA가 있는 팀원 간 인계."
+      }
+    },
+    "footer": "© Zyloop · 성장하는 팀을 위한 WhatsApp CRM"
+  },
+  "Instagram": {
+    "title": "인스타그램",
+    "subtitle": "자동화, 빠른 답장, 비즈니스로 학습한 AI로 인스타그램 DM·댓글·스토리 멘션에 자동으로 답하세요.",
+    "status": {
+      "connected": "연결됨 · @{username}",
+      "simulation": "시뮬레이션 모드 — 연결 안 됨",
+      "needsReconnecting": "다시 연결 필요"
+    },
+    "sections": {
+      "inbox": "받은편지함",
+      "automations": "자동화",
+      "connect": "연결 & 테스트"
+    },
+    "inbox": {
+      "empty": "아직 인스타그램 대화가 없습니다. 계정을 연결하거나 연결 & 테스트의 시뮬레이터를 써 보세요.",
+      "pick": "대화를 선택하세요",
+      "placeholder": "인스타그램으로 답장…",
+      "sendFailed": "보낼 수 없습니다",
+      "simulatedSend": "시뮬레이션으로 저장됨 — 실제로 보내려면 인스타그램을 연결하세요.",
+      "storyMention": "📸 스토리에서 회원님을 언급했습니다",
+      "kinds": {
+        "comment": "댓글",
+        "comment_reply": "공개 답글",
+        "story_mention": "스토리 멘션",
+        "story_reply": "스토리 답장"
+      },
+      "by": {
+        "agent": "상담원",
+        "automation": "자동화",
+        "ai": "AI"
+      },
+      "statuses": {
+        "sent": "보냄",
+        "simulated": "시뮬레이션",
+        "failed": "실패",
+        "received": "수신"
+      }
+    },
+    "automations": {
+      "intro": "인스타그램 판매자에게 꼭 필요한 다섯 가지입니다. 초안으로 시작하니 문구를 수정한 뒤 켜세요. 메시지마다 자동화 하나가 답하고, 일치하는 것이 없으면 AI 답장이 답할 수 있습니다.",
+      "kinds": {
+        "comment_to_dm": {
+          "title": "댓글 → DM",
+          "desc": "게시물에 키워드 댓글을 달면 DM으로 정보를 보내고 공개 답글을 남깁니다."
+        },
+        "keyword": {
+          "title": "키워드 답장",
+          "desc": "DM에 키워드(가격, 주문…)가 있으면 준비한 답을 보냅니다."
+        },
+        "welcome": {
+          "title": "환영 DM",
+          "desc": "처음 메시지를 보낸 사람에게 인사합니다."
+        },
+        "story_mention": {
+          "title": "스토리 멘션 감사",
+          "desc": "스토리에 태그한 사람에게 감사 인사 — 혜택 제공에 좋습니다."
+        },
+        "away": {
+          "title": "부재 메시지",
+          "desc": "영업시간 외에 언제 답할지 알려줍니다(사람마다 12시간에 한 번)."
+        }
+      },
+      "fields": {
+        "keywords": "키워드 (쉼표로 구분)",
+        "commentKeywords": "댓글 키워드 (비우면 모든 댓글)",
+        "mediaId": "이 게시물만 (미디어 ID)",
+        "anyPost": "모든 게시물",
+        "from": "부재 시작",
+        "to": "복귀",
+        "replyFrom": "답장 내용",
+        "customText": "직접 입력",
+        "quickReply": "빠른 답장: {title}",
+        "publicReply": "댓글 아래 공개 답글 (선택)"
+      },
+      "sent": "{count}건 발송",
+      "save": "저장",
+      "saved": "저장됨",
+      "saveFailed": "저장할 수 없습니다",
+      "placeholderHint": "고객 @사용자명은 {{name}}를 쓰세요. 빠른 답장은 설정 → 빠른 답장에서 가져옵니다."
+    },
+    "connect": {
+      "title": "API 자격 증명",
+      "steps": {
+        "s1": "Meta for Developers에서 앱에 Instagram 제품(API setup with Instagram login)을 추가하세요. 인스타그램은 프로페셔널 계정이어야 합니다.",
+        "s2": "Webhooks에 여기 표시된 콜백 URL과 확인 토큰을 붙여넣고 messages와 comments를 선택하세요.",
+        "s3": "instagram_business_basic, instagram_business_manage_messages, instagram_business_manage_comments 권한으로 액세스 토큰을 생성하세요.",
+        "s4": "토큰을 붙여넣고 저장 & 연결을 누르세요. 계정이 메시지와 댓글에 자동으로 구독됩니다.",
+        "s5": "Meta 앱을 게시(Live)하세요. Meta는 게시된 앱에만 알림을 전달합니다. 다른 비즈니스 계정을 지원하려면 앱 검수도 필요합니다."
+      },
+      "webhookUrl": "콜백 URL",
+      "verifyToken": "확인 토큰",
+      "copy": "복사",
+      "copied": "복사됨",
+      "token": "인스타그램 액세스 토큰",
+      "tokenSaved": "저장됨 — 바꾸려면 새 토큰 입력",
+      "appSecret": "인스타그램 앱 시크릿",
+      "secretSaved": "저장됨",
+      "secretOptional": "선택 — 기본값 META_APP_SECRET",
+      "connect": "저장 & 연결",
+      "disconnect": "연결 해제",
+      "saved": "인스타그램 설정이 저장되었습니다",
+      "saveFailed": "저장할 수 없습니다",
+      "ai": "인스타그램 AI 자동 응답",
+      "aiDesc": "일치하는 자동화가 없으면 AI가 Train AI와 문서를 바탕으로 DM에 답합니다(AI 에이전트 → 설정에 AI 키 필요).",
+      "simTitle": "인스타그램 없이 테스트",
+      "simDesc": "가상 고객 메시지를 같은 엔진으로 보냅니다. 답장은 받은편지함에 시뮬레이션으로 표시되며 실제 발송·과금은 없습니다.",
+      "simKinds": {
+        "dm": "다이렉트 메시지",
+        "comment": "게시물 댓글",
+        "story_mention": "스토리 멘션",
+        "story_reply": "스토리 답장"
+      },
+      "simSend": "메시지 시뮬레이션",
+      "simFailed": "시뮬레이션 실패",
+      "simReplied": "{by}이(가) 답했습니다 — 받은편지함에서 확인하세요.",
+      "simNoReply": "저장됐지만 일치하는 활성 자동화가 없습니다(AI 꺼짐). 자동화를 켜고 다시 시도하세요.",
+      "credentialsDesc": "저장하면 인스타그램에서 토큰을 확인하고 계정의 메시지 수신을 켭니다.",
+      "credentialsValid": "@{username}(으)로 연결됨",
+      "credentialsValidDesc": "인스타그램이 방금 토큰을 승인했습니다. 만료 전에 자동으로 갱신됩니다.",
+      "needsReconnecting": "다시 연결 필요",
+      "invalidDesc": "인스타그램이 저장된 토큰을 거부했습니다(만료 또는 취소). 새 토큰을 생성해 아래에 저장하세요. 그때까지 자동 답장을 보낼 수 없습니다.",
+      "unreachableDesc": "토큰 확인을 위해 인스타그램에 연결할 수 없습니다. 보통 일시적이니 새로고침해 다시 확인하세요.",
+      "notConnected": "연결되지 않음",
+      "notConnectedDesc": "시뮬레이션 모드: 답장은 여기에 저장되지만 발송되지 않습니다. 설정 단계를 따라 토큰을 저장하면 실제로 운영됩니다.",
+      "subscribed": "메시지와 댓글 구독됨",
+      "notSubscribed": "아직 메시지를 받지 못함",
+      "notSubscribedDesc": "인스타그램이 웹훅 구독을 승인하지 않아 DM과 댓글이 전달되지 않습니다. 토큰과 권한을 확인한 뒤 확인 버튼을 누르세요.",
+      "subscribedSince": "구독 시작: {date}.",
+      "lastEvent": "마지막 이벤트 수신: {date}.",
+      "noEventYet": "아직 도착한 이벤트가 없습니다. 다른 인스타그램 계정에서 DM을 보내 테스트하세요. 아무것도 보이지 않으면 웹훅 설정과 Meta 앱의 Live 상태를 확인하세요.",
+      "verify": "인스타그램으로 확인",
+      "verifyOk": "인스타그램이 구독을 승인했습니다",
+      "verifyFailed": "인스타그램이 구독을 거부했습니다",
+      "toggleToken": "토큰 표시/숨기기",
+      "tokenHint": "장기 토큰(60일)을 사용하세요. 암호화되어 저장되며 다시 표시되지 않습니다.",
+      "disconnectConfirm": "인스타그램 연결을 해제할까요? 자동 답장 발송이 중단됩니다. 대화와 자동화는 유지됩니다.",
+      "webhookTitle": "웹훅 설정",
+      "webhookDesc": "Meta 앱의 Instagram > API setup with Instagram login > Webhooks에 붙여넣으세요.",
+      "localWarning": "이 주소는 공개 HTTPS가 아니어서 Meta가 접근할 수 없고 확인이 실패합니다. 운영 중인 HTTPS 도메인(또는 터널)으로 CRM을 열어 올바른 URL을 복사하세요.",
+      "fields": "구독할 웹훅 필드",
+      "setupTitle": "설정 단계"
+    }
+  },
+  "AccountSecurity": {
+    "signOut": "로그아웃",
+    "login": {
+      "codeLabel": "인증 코드",
+      "recoveryLabel": "복구 코드",
+      "codeHint": "인증 앱을 열고 6자리 코드를 입력하세요.",
+      "recoveryHint": "복구 코드는 각각 한 번만 사용할 수 있습니다.",
+      "useApp": "인증 앱 사용",
+      "useRecovery": "복구 코드 사용"
+    },
+    "password": {
+      "title": "새 비밀번호 설정",
+      "description": "임시 비밀번호로 로그인했습니다. 계속하려면 새 비밀번호를 설정하세요.",
+      "current": "임시 비밀번호",
+      "new": "새 비밀번호",
+      "confirm": "새 비밀번호 확인",
+      "submit": "비밀번호 저장",
+      "mismatch": "새 비밀번호가 일치하지 않습니다.",
+      "failed": "비밀번호를 변경하지 못했습니다."
+    },
+    "mfa": {
+      "title": "2단계 인증 설정",
+      "mandatoryDescription": "관리자는 로그인할 때 인증 앱을 사용해야 합니다.",
+      "startIntro": "Google Authenticator, Microsoft Authenticator, 1Password 같은 인증 앱이 필요합니다.",
+      "startButton": "설정 시작",
+      "stepApp": "인증 앱을 열고 계정을 추가하세요.",
+      "stepKey": "아래 설정 키를 입력하세요(또는 휴대폰에서 링크를 여세요).",
+      "stepCode": "앱에 표시된 6자리 코드를 입력하세요.",
+      "keyLabel": "설정 키",
+      "openInApp": "인증 앱에서 열기",
+      "codeLabel": "6자리 코드",
+      "verifyButton": "확인 후 사용",
+      "enabled": "2단계 인증이 켜졌습니다.",
+      "savedContinue": "복구 코드를 저장했습니다",
+      "cardTitle": "2단계 인증",
+      "cardMandatory": "현재 역할에 필수입니다. 비밀번호와 인증 앱의 코드로 로그인합니다.",
+      "cardOptional": "로그인에 인증 앱 코드를 추가해 계정을 더 안전하게 보호하세요.",
+      "turnOn": "켜기",
+      "statusOn": "켜짐.",
+      "codesLeft": "{count, plural, other {복구 코드 #개 남음}}",
+      "newCodes": "새 복구 코드",
+      "turnOff": "끄기",
+      "passwordLabel": "현재 비밀번호",
+      "cancel": "취소",
+      "failed": "실패했습니다. 코드를 확인하고 다시 시도하세요.",
+      "disabled": "2단계 인증이 꺼졌습니다."
+    },
+    "recovery": {
+      "intro": "이 복구 코드를 안전한 곳에 보관하세요. 휴대폰을 잃어버렸을 때 각 코드로 한 번 로그인할 수 있습니다. 다시 표시되지 않습니다.",
+      "copy": "복사",
+      "download": "다운로드",
+      "copied": "복구 코드를 복사했습니다",
+      "copyFailed": "복사하지 못했습니다. 코드를 선택해 직접 복사하세요.",
+      "fileHeader": "복구 코드. 각 코드는 한 번만 사용할 수 있습니다."
+    },
+    "sessions": {
+      "title": "로그인된 기기",
+      "description": "계정에 로그인된 모든 브라우저와 기기입니다. 모르는 기기는 로그아웃하세요.",
+      "unknownDevice": "알 수 없는 기기",
+      "thisDevice": "이 기기",
+      "lastActive": "마지막 활동 {when}",
+      "signOut": "로그아웃",
+      "signOutAll": "모든 기기에서 로그아웃",
+      "revoked": "기기를 로그아웃했습니다",
+      "revokeFailed": "해당 기기를 로그아웃하지 못했습니다.",
+      "confirmTitle": "모든 기기에서 로그아웃할까요?",
+      "confirmDescription": "이 기기를 포함한 모든 세션이 종료됩니다. 다시 로그인해야 합니다.",
+      "reasonLabel": "사유",
+      "reasonPlaceholder": "예: 노트북 분실",
+      "cancel": "취소",
+      "confirmButton": "모든 기기에서 로그아웃"
+    },
+    "tempPassword": {
+      "label": "임시 비밀번호",
+      "shownOnce": "{email} 사용자에게 이 비밀번호를 전달하세요. 한 번만 표시됩니다.",
+      "expires": "{when}까지 유효합니다. 사용자는 로그인할 때 비밀번호를 변경해야 합니다.",
+      "done": "완료",
+      "confirm": "현재 비밀번호는 더 이상 작동하지 않으며 모든 세션이 종료됩니다.",
+      "cancel": "취소",
+      "issue": "임시 비밀번호 발급",
+      "failed": "임시 비밀번호를 발급하지 못했습니다.",
+      "copied": "비밀번호를 복사했습니다",
+      "copyFailed": "복사하지 못했습니다. 비밀번호를 선택해 직접 복사하세요."
+    }
+  },
+  "Support": {
+    "title": "Support",
+    "description": "Facing a problem with the CRM? Raise a complaint here. Our team will look into it, reply, and mark it resolved — you get a notification at every step.",
+    "adminTitle": "Support tickets",
+    "adminDescription": "Complaints raised by users. Reply, mark them In progress, and resolve them with a note — the user is notified of every reply and status change.",
+    "raise": "Raise a complaint",
+    "formTitle": "New complaint",
+    "subject": "Subject",
+    "subjectPlaceholder": "e.g. Broadcast is stuck on Sending",
+    "categoryLabel": "Category",
+    "priorityLabel": "Priority",
+    "descriptionLabel": "Describe the problem",
+    "descriptionPlaceholder": "What happened, what you expected, and the steps to reproduce it.",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "submitted": "Ticket #{number} raised. We'll get back to you soon.",
+    "submitFailed": "Couldn't raise the ticket.",
+    "loadFailed": "Couldn't load tickets.",
+    "actionFailed": "Couldn't save that.",
+    "notMigrated": "Support tickets aren't set up yet. Run npm run db:init (db/schema.sql).",
+    "filterActive": "Active",
+    "filterAll": "All",
+    "empty": "You haven't raised any complaints yet.",
+    "emptyAdmin": "No tickets here.",
+    "back": "Back to tickets",
+    "raisedOn": "Raised {date}",
+    "resolvedBanner": "Resolved {date}",
+    "confirmFixed": "Yes, it's fixed",
+    "notFixed": "Still not fixed — reopen",
+    "conversation": "Conversation",
+    "supportTeam": "Support team",
+    "you": "You",
+    "replyPlaceholder": "Add more details or reply to the support team…",
+    "replyPlaceholderAdmin": "Reply to the user…",
+    "sendReply": "Send reply",
+    "replySent": "Reply sent.",
+    "replyReopens": "Replying to a resolved ticket reopens it.",
+    "closedNote": "This ticket is closed. Raise a new complaint if you still need help.",
+    "adminActions": "Update status",
+    "resolutionNote": "Resolution note (required to resolve — the user sees this)",
+    "resolutionPlaceholder": "What was the cause and what did you fix?",
+    "markInProgress": "Mark In progress",
+    "markResolved": "Mark Resolved",
+    "close": "Close ticket",
+    "reopen": "Reopen",
+    "closeMine": "Close this ticket",
+    "notifyHint": "The user gets an in-app notification for every reply and status change.",
+    "statusSaved": "Status updated.",
+    "resolvedToast": "Ticket resolved — the user has been notified.",
+    "closedToast": "Ticket closed.",
+    "reopenedToast": "Ticket reopened.",
+    "status": {
+      "open": "Open",
+      "in_progress": "In progress",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "category": {
+      "bug": "Something is broken",
+      "whatsapp": "WhatsApp / Instagram",
+      "billing": "Billing / Wallet",
+      "account": "Login / Account",
+      "feature": "Feature request",
+      "other": "Other"
+    },
+    "priority": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High",
+      "urgent": "Urgent"
     }
   }
 }

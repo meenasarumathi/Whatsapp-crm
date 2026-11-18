@@ -12,7 +12,12 @@ Click **New Broadcast** to start the 4-step wizard.
 
 ## Step 1 — Template
 
-Choose an approved template. If none appear, create one in Settings → Templates.
+Choose an approved template. If none appear:
+
+- Click **Sync from Meta** to pull the templates already approved in your WhatsApp Manager.
+- Or click **Create template** to make a new one (Meta usually approves within minutes to a few hours).
+
+Templates still waiting for approval are listed under **Waiting for Meta approval** so you know why they cannot be picked yet.
 
 ## Step 2 — Audience
 

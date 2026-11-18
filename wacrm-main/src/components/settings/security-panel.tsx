@@ -1,13 +1,14 @@
 'use client';
 
+import { MfaCard } from './mfa-card';
 import { PasswordForm } from './password-form';
 import { SessionsCard } from './sessions-card';
 import { SettingsPanelHead } from './settings-panel-head';
 import { useTranslations } from 'next-intl';
 
 /**
- * "Login & security" section — groups the former Profile-tab password
- * and active-sessions cards into their own dedicated home.
+ * "Login & security" section — password, two-step verification and
+ * signed-in devices.
  */
 export function SecurityPanel() {
   const t = useTranslations('Settings.security');
@@ -19,6 +20,7 @@ export function SecurityPanel() {
       />
       <div className="space-y-4">
         <PasswordForm />
+        <MfaCard />
         <SessionsCard />
       </div>
     </section>

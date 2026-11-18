@@ -52,6 +52,8 @@ Chat with the AI exactly as a customer would. It uses everything you have traine
 
 A card for every AI feature in the CRM, with **On** / **Off** status: 24/7 auto-reply, reply drafts, smart handoff, multiple languages, answers from documents, your training, lead-qualifying flows and the broadcast funnel. Click a card to open where it is set up.
 
+> **Tip:** The first five cards (auto-reply, drafts, handoff, languages, document answers) need an AI model. They stay **Off** until you paste your own OpenAI or Anthropic API key in AI Agents → Setup and turn on **Enable AI assistant**. Your training is kept either way. A notice on this tab says what is missing.
+
 ## Who can train
 
 Owners, Admins and Agents can add and edit training. Viewers can look but not change anything.

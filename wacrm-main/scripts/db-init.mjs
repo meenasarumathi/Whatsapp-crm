@@ -150,14 +150,21 @@ async function preRepair(d, live) {
 // Adds missing / differing constraints.  Primary keys, unique and check constraints must exist before any
 // foreign key that references them, so this runs once for those kinds (before the schema adds its foreign
 // keys) and once more for everything that is still missing.
-async function addConstraints(kinds) {
+// `early` = the pass before the schema's foreign keys. On an empty or older database some columns (or
+// functions a constraint calls) are only created further down db/schema.sql; those constraints are left for
+// postRepair, and the final comparison still fails the run if any of them is missing at the end.
+async function addConstraints(kinds, { early = false } = {}) {
   const live = await readCatalog(client);
   const d = diffCatalog(ref, live);
   const order = { p: 0, u: 1, c: 2, x: 3, f: 4 };
   for (const c of [...d.missingConstraints, ...d.constraintDiffs].filter((c) => kinds.includes(c.kind)).sort((a, b) => order[a.kind] - order[b.kind])) {
     if (c.liveDef) await client.query(`ALTER TABLE public.${q(c.table)} DROP CONSTRAINT ${q(c.name)}`);
     try { await sp("addcon", `ALTER TABLE public.${q(c.table)} ADD CONSTRAINT ${q(c.name)} ${c.def}`); }
-    catch (e) { e.message = `cannot add ${c.table}.${c.name} (${c.def}): ${e.message} - existing rows may violate it`; throw e; }
+    catch (e) {
+      // 42703 undefined column, 42883 undefined function, 42P01 undefined table
+      if (early && !c.liveDef && ["42703", "42883", "42P01"].includes(e.code)) continue;
+      e.message = `cannot add ${c.table}.${c.name} (${c.def}): ${e.message} - existing rows may violate it`; throw e;
+    }
     act("constraint", `added ${c.table}.${c.name}`);
   }
 }
@@ -240,7 +247,7 @@ try {
     for (const st of stmts) {
       try {
         // all tables exist by the time the first foreign key is added
-        if (!usersCopied && /^\s*(?:--[^\n]*\n\s*)*DO \$con\$/.test(st)) { usersCopied = true; await importLegacyAuthUsers(); if (ref) await addConstraints(["p", "u", "c", "x"]); }
+        if (!usersCopied && /^\s*(?:--[^\n]*\n\s*)*DO \$con\$/.test(st)) { usersCopied = true; await importLegacyAuthUsers(); if (ref) await addConstraints(["p", "u", "c", "x"], { early: true }); }
         await runStatement(st);
       }
       catch (e) { e.statement = st.replace(/--[^\n]*/g, "").replace(/\s+/g, " ").trim().slice(0, 200); throw e; }

@@ -4,7 +4,7 @@ Your first login: how to sign in, what your role allows, how the screen is laid 
 
 ## What this CRM does
 
-This is a CRM built around **WhatsApp**. Customers message your business number on WhatsApp, and every conversation lands in one shared **Inbox** that your whole team can work from. Around the inbox you have:
+**Zyloop WACRM** is a CRM built around **WhatsApp**. Customers message your business number on WhatsApp, and every conversation lands in one shared **Inbox** that your whole team can work from. Around the inbox you have:
 
 - **Contacts** — everyone who has messaged you or that you have added.
 - **Pipelines** — sales deals moving through stages (New Lead → Won).
@@ -18,7 +18,12 @@ This is a CRM built around **WhatsApp**. Customers message your business number 
 
 1. Open the CRM link and you land on **Sign in** ("Welcome back").
 2. Enter your **Email** and **Password**, then click **Sign in**.
-3. Forgot it? Click **Forgot password?**, enter your email, click **Send reset link**, then follow the link in your inbox.
+3. If you use two-step verification, type the 6-digit code from your authenticator app (or click **Use a recovery code**) and click **Sign in** again.
+4. Forgot it? Click **Forgot password?**, enter your email, click **Send reset link**, then follow the link in your inbox.
+
+Super admin, Admin 1 and Admin 2 must set up two-step verification the first time they sign in. Signed in with a temporary password? The CRM asks you to choose your own password first. 5 wrong attempts in a row lock the account for 15 minutes.
+
+If your administrator has turned on the local no-login switch, the CRM on `localhost` skips this page and opens the **Dashboard** directly.
 
 ### Creating an account
 

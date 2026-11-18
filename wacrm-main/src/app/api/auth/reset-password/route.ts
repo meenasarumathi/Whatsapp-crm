@@ -1,16 +1,17 @@
 import { NextResponse } from "next/server";
 import { startSession } from "@/lib/auth/session";
-import { resetPassword } from "@/lib/auth/service";
-import { authRateLimited, errorResponse, readJson } from "@/lib/auth/http";
+import { resetPasswordSecure } from "@/lib/auth/security-service";
+import { authRateLimited, errorResponse, readJson, requestMeta } from "@/lib/auth/http";
 
+/** Ends every session of the user. Signs in directly unless the user has MFA on (then: signInRequired). */
 export async function POST(request: Request) {
   const limited = authRateLimited(request, "reset");
   if (limited) return limited;
   try {
     const b = await readJson(request);
-    const u = await resetPassword(b.token, b.password);
-    await startSession(u.id, u.session_version);
-    return NextResponse.json({ ok: true });
+    const r = await resetPasswordSecure({ token: b.token, password: b.password, meta: requestMeta(request) });
+    if (r.session) await startSession(r.userId, r.session.sessionVersion, r.session.sessionId);
+    return NextResponse.json({ ok: true, signInRequired: !r.session });
   } catch (e) {
     return errorResponse(e);
   }

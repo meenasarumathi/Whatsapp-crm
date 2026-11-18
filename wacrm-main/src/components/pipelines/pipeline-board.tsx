@@ -28,6 +28,8 @@ interface PipelineBoardProps {
   onDealMoved: (dealId: string, newStageId: string) => void;
   onAddDeal: (stageId: string) => void;
   onEditDeal: (deal: Deal) => void;
+  /** profile id → display name, for the stage owner in column headers. */
+  ownerNames?: Record<string, string>;
 }
 
 export function PipelineBoard({
@@ -36,6 +38,7 @@ export function PipelineBoard({
   onDealMoved,
   onAddDeal,
   onEditDeal,
+  ownerNames = {},
 }: PipelineBoardProps) {
   const { defaultCurrency } = useAuth();
   const [activeDealId, setActiveDealId] = useState<string | null>(null);
@@ -119,6 +122,7 @@ export function PipelineBoard({
               currency={defaultCurrency}
               onAddDeal={onAddDeal}
               onEditDeal={onEditDeal}
+              ownerName={stage.owner_profile_id ? ownerNames[stage.owner_profile_id] : undefined}
             />
           );
         })}
@@ -193,6 +197,7 @@ function StageColumn({
   currency,
   onAddDeal,
   onEditDeal,
+  ownerName,
 }: {
   stage: PipelineStage;
   deals: Deal[];
@@ -200,6 +205,7 @@ function StageColumn({
   currency: string;
   onAddDeal: (stageId: string) => void;
   onEditDeal: (deal: Deal) => void;
+  ownerName?: string;
 }) {
   const t = useTranslations("Pipelines.board");
   const { setNodeRef, isOver } = useDroppable({ id: stage.id });
@@ -228,6 +234,12 @@ function StageColumn({
       <p className="text-xs text-muted-foreground">
         {formatCurrency(totalValue, currency)}
       </p>
+      {(ownerName || stage.sla_hours) && (
+        <p className="mt-1 flex flex-wrap gap-x-2 text-[11px] text-muted-foreground">
+          {ownerName && <span>{t("owner", { name: ownerName })}</span>}
+          {stage.sla_hours ? <span>{t("sla", { hours: stage.sla_hours })}</span> : null}
+        </p>
+      )}
 
       <div
         ref={setNodeRef}

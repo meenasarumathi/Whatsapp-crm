@@ -15,7 +15,7 @@
     "createAccount": "Criar conta"
   },
   "Sidebar": {
-    "title": "Modelo de CRM para WhatsApp",
+    "title": "Zyloop WACRM",
     "primaryNav": "Principal",
     "dashboard": "Painel",
     "inbox": "Caixa de entrada",
@@ -43,7 +43,9 @@
     "menuSignOut": "Sair",
     "trainAi": "Treinar IA",
     "demo": "Demo",
-    "wallet": "Carteira"
+    "wallet": "Carteira",
+    "users": "Usuários",
+    "support": "Suporte"
   },
   "Header": {
     "dashboard": "Painel",
@@ -66,7 +68,9 @@
     "agents": "Agentes de IA",
     "trainAi": "Treinar IA",
     "demo": "Demo",
-    "wallet": "Carteira"
+    "wallet": "Carteira",
+    "users": "Usuários",
+    "support": "Suporte"
   },
   "ModeToggle": {
     "switchMode": "Mudar para o modo {mode}"
@@ -583,16 +587,34 @@
       "toastFailedMoveDeal": "Falha ao mover o negócio",
       "toastFailedCreatePipeline": "Falha ao criar o pipeline",
       "toastPipelineCreated": "Pipeline criado",
-      "toastNotLinkedToAccount": "Seu perfil não está vinculado a uma conta."
+      "toastNotLinkedToAccount": "Seu perfil não está vinculado a uma conta.",
+      "filterAll": "Todos os negócios",
+      "filterMine": "Meus negócios",
+      "filterOverdue": "Atrasados ({count})",
+      "template": "Começar com",
+      "templates": {
+        "settlement": {
+          "name": "Do lead ao pagamento concluído (passagem entre a equipe)",
+          "stages": "Nova consulta → Qualificado → Orçamento enviado → Pedido confirmado → Pagamento recebido → Enviado → Concluído / Perdido, com SLAs"
+        },
+        "sales": {
+          "name": "Funil de vendas",
+          "stages": "Novo lead → Qualificado → Proposta enviada → Negociação → Ganho"
+        }
+      }
     },
     "board": {
       "dropDealHere": "Solte um negócio aqui",
-      "addDeal": "Adicionar negócio"
+      "addDeal": "Adicionar negócio",
+      "owner": "Responsável: {name}",
+      "sla": "SLA {hours}h"
     },
     "card": {
       "noContact": "Sem contato",
       "won": "Ganho",
-      "lost": "Perdido"
+      "lost": "Perdido",
+      "inStage": "Tempo nesta etapa",
+      "overdue": "Atrasado · {age}"
     },
     "form": {
       "editDeal": "Editar negócio",
@@ -658,7 +680,14 @@
       "toastMoveOrDeleteDeals": "Mova ou exclua os negócios desta etapa primeiro",
       "toastFailedDeleteStage": "Falha ao excluir a etapa",
       "toastFailedDeletePipeline": "Falha ao excluir o pipeline",
-      "toastDeleted": "Pipeline excluído"
+      "toastDeleted": "Pipeline excluído",
+      "owner": "Responsável pela etapa",
+      "noOwner": "Sem responsável (manter atribuído)",
+      "slaHours": "SLA h",
+      "outcome": "Resultado da etapa",
+      "outcomeOpen": "Em andamento",
+      "outcomeWon": "Concluído (ganho)",
+      "outcomeLost": "Perdido"
     },
     "analytics": {
       "totalDeals": "Total de negócios",
@@ -780,7 +809,13 @@
         "subtitle": "Selecione um modelo de mensagem aprovado para o seu disparo.",
         "noTemplates": "Nenhum modelo disponível.",
         "createFirst": "Crie um modelo em Configurações primeiro.",
-        "errorLoad": "Falha ao carregar os modelos"
+        "errorLoad": "Falha ao carregar os modelos",
+        "howTo": "Transmissões só podem usar templates do WhatsApp aprovados pela Meta. Já tem templates no WhatsApp Manager? Sincronize-os. Caso contrário, crie um — a Meta costuma aprovar em minutos ou poucas horas.",
+        "sync": "Sincronizar da Meta",
+        "create": "Criar template",
+        "synced": "{count} templates sincronizados da Meta",
+        "syncFailed": "Não foi possível sincronizar os templates da Meta",
+        "waiting": "Aguardando aprovação da Meta"
       },
       "selectAudience": {
         "title": "Selecionar público",
@@ -912,7 +947,8 @@
         "updateError": "Falha ao atualizar",
         "duplicateError": "Falha ao duplicar",
         "deleteError": "Falha ao excluir"
-      }
+      },
+      "scheduledReplies": "Respostas automáticas agendadas"
     },
     "edit": {
       "loading": "Carregando...",
@@ -1017,7 +1053,14 @@
       "tags": {
         "select": "Selecione uma tag…",
         "placeholder": "ID da tag",
-        "unknown": "{id} (tag desconhecida)"
+        "unknown": "{id} (tag desconhecida)",
+        "new": "Nova tag",
+        "newPlaceholder": "Nome da tag, ex.: Novo lead",
+        "create": "Criar",
+        "pickExisting": "Escolher uma tag existente",
+        "noneYet": "Ainda não há tags — digite um nome para criar a primeira.",
+        "created": "Tag \"{name}\" criada",
+        "createFailed": "Não foi possível criar a tag"
       },
       "fields": {
         "name": "Nome",
@@ -1104,6 +1147,48 @@
         "matchWordHint": "Corresponde à palavra-chave apenas como palavra isolada, então \"k\" não dispara mais em \"thanks\". Ideal para palavras-chave curtas em idiomas com espaços; use Contém para idiomas escritos sem espaços.",
         "matchExact": "Exata",
         "closeConversationHint": "Define o status da conversa como \"fechada\". Nenhuma configuração necessária."
+      }
+    },
+    "library": {
+      "title": "Biblioteca de fluxos",
+      "subtitle": "Fluxos prontos ligados às suas tags e ao pipeline. Instale como rascunho, ajuste o texto e ative.",
+      "install": "Instalar",
+      "open": "Abrir",
+      "statusOn": "Instalado · Ativo",
+      "statusDraft": "Instalado · Rascunho",
+      "installed": "{name} instalado como rascunho — revise e ative",
+      "failed": "Não foi possível instalar o fluxo",
+      "items": {
+        "lead_capture": {
+          "name": "Boas-vindas e captura de leads",
+          "desc": "Transforme cada primeira mensagem em um lead acompanhado.",
+          "flow": "Primeira mensagem → menu (Ver preços / Rastrear pedido / Falar com a equipe) → tag Novo lead → negócio em Lead to Settlement › Nova consulta."
+        },
+        "price_enquiry": {
+          "name": "Consulta de preços e catálogo",
+          "desc": "Responda \"quanto custa?\" na hora, dia e noite.",
+          "flow": "Palavras preço, custo, taxa, catálogo (ou o botão Ver preços) → sua tabela de preços → tag Consulta de preço."
+        },
+        "order_tracking": {
+          "name": "Rastreamento de pedidos",
+          "desc": "Pede o número do pedido e encaminha para a pessoa certa.",
+          "flow": "Palavras rastrear, entrega, cadê meu pedido → pede o número do pedido → tag Suporte de pedido → atribui à pessoa menos ocupada."
+        },
+        "human_handoff": {
+          "name": "Atendimento humano e reclamações",
+          "desc": "Nunca deixe um cliente insatisfeito esperando um robô.",
+          "flow": "Palavras atendente, humano, reclamação, reembolso, danificado, insatisfeito → desculpas → tag Precisa de humano → atribui alguém."
+        },
+        "payment_reminder": {
+          "name": "Lembrete de pagamento",
+          "desc": "Receba mais rápido sem cobrar manualmente.",
+          "flow": "Marque o contato com Pagamento pendente → dados de pagamento → 3 horas depois, se ainda marcado, um lembrete. Remova a tag ao receber."
+        },
+        "delivery_feedback": {
+          "name": "Feedback de entrega e avaliações",
+          "desc": "Colete avaliações de clientes felizes e pegue problemas cedo.",
+          "flow": "Tag Entregue → 2 horas depois pergunta \"Como foi?\" (Amei ⭐ / Insatisfeito) → Amei: agradece, link de avaliação, tag Cliente feliz · Insatisfeito: atendimento humano."
+        }
       }
     }
   },
@@ -1421,7 +1506,8 @@
       "fieldsCount": "{count} {count, plural, =1 {campo personalizado} other {campos personalizados}}",
       "appearance": "modo {mode} · destaque {theme}",
       "yourAccount": "Sua conta",
-      "loading": "Carregando…"
+      "loading": "Carregando…",
+      "notReceiving": "Conectado · não recebe mensagens"
     },
     "members": {
       "title": "Membros da equipe",
@@ -1472,7 +1558,7 @@
       "done": "Concluído",
       "dialogTitle": "Convidar um colega",
       "networkError": "Não foi possível conectar ao servidor. Tentar novamente?",
-      "fallbackAccountName": "nossa conta do wacrm",
+      "fallbackAccountName": "nossa conta do Zyloop",
       "dialogDesc": "Gere um link de convite de uso único. Compartilhe pelo WhatsApp, Slack ou qualquer outro canal — não é preciso serviço de e-mail.",
       "roleLabel": "Função",
       "validForLabel": "Link válido por",
@@ -1489,7 +1575,7 @@
       "labelTooLong": "O rótulo deve ter no máximo {max} caracteres",
       "copied": "Link do convite copiado",
       "clipboardBlocked": "Área de transferência bloqueada — copie o link manualmente",
-      "whatsappMessage": "Entre em {accountName} no wacrm usando este link (válido por {expiresInDays} dias): {url}"
+      "whatsappMessage": "Entre em {accountName} no Zyloop usando este link (válido por {expiresInDays} dias): {url}"
     },
     "tagsAndFields": {
       "title": "Campos e tags",
@@ -1608,8 +1694,8 @@
       "saveResubmit": "Salvar e reenviar",
       "submitApproval": "Enviar para aprovação",
       "deleteDialogTitle": "Excluir modelo?",
-      "deleteMetaDesc": "\"{name}\" será excluído da Meta e do wacrm. Disparos ativos que usam este modelo começarão a falhar no próximo envio. Não é possível desfazer.",
-      "deleteLocalDesc": "\"{name}\" será excluído do wacrm. Ele nunca foi enviado à Meta, então não há limpeza remota necessária.",
+      "deleteMetaDesc": "\"{name}\" será excluído da Meta e do Zyloop. Disparos ativos que usam este modelo começarão a falhar no próximo envio. Não é possível desfazer.",
+      "deleteLocalDesc": "\"{name}\" será excluído do Zyloop. Ele nunca foi enviado à Meta, então não há limpeza remota necessária.",
       "deleting": "Excluindo…",
       "delete": "Excluir",
       "toastLoadFailed": "Falha ao carregar os modelos",
@@ -1652,7 +1738,7 @@
       "notConnected": "Não conectado",
       "connectedDesc": "Seu token de acesso autentica com a Meta. Veja o status de registro abaixo para saber se os webhooks estão realmente conectados.",
       "notConnectedDesc": "Configure abaixo suas credenciais da API da Meta para conectar sua conta do WhatsApp Business.",
-      "registered": "Registrado — a Meta entregará eventos ao wacrm",
+      "registered": "Registrado — a Meta entregará eventos ao Zyloop",
       "notRegistered": "Não registrado — a Meta não entregará eventos",
       "verifyWithMeta": "Verificar com a Meta",
       "subscribedSince": "Inscrito desde {date}. Clique em Verificar com a Meta se os eventos pararem de chegar.",
@@ -1676,7 +1762,7 @@
       "twoStepPin": "PIN de verificação em duas etapas",
       "optional": "(opcional)",
       "pinPlaceholder": "PIN de 6 dígitos do Gerenciador do WhatsApp da Meta",
-      "pinHint": "Necessário apenas para receber mensagens em um número de produção. Defina-o em Meta Business Manager → Contas do WhatsApp → Números de telefone → Verificação em duas etapas e cole-o aqui para que o wacrm possa inscrever o número — caso contrário, a Meta encaminha os eventos recebidos para o último app que reivindicou o número (o sintoma que afeta segundos números em um WABA compartilhado). Números de teste da Meta não têm PIN e já vêm registrados — deixe em branco para eles. Deixar em branco também mantém um registro existente intacto.",
+      "pinHint": "Necessário apenas para receber mensagens em um número de produção. Defina-o em Meta Business Manager → Contas do WhatsApp → Números de telefone → Verificação em duas etapas e cole-o aqui para que o Zyloop possa inscrever o número — caso contrário, a Meta encaminha os eventos recebidos para o último app que reivindicou o número (o sintoma que afeta segundos números em um WABA compartilhado). Números de teste da Meta não têm PIN e já vêm registrados — deixe em branco para eles. Deixar em branco também mantém um registro existente intacto.",
       "webhookTitle": "Configuração do webhook",
       "webhookDesc": "Use esta URL como callback do webhook no painel do app da Meta.",
       "webhookUrl": "URL de callback do webhook",
@@ -1760,7 +1846,8 @@
       "api": "Chaves de API",
       "subscriptions": "Usuários de assinatura",
       "backup": "Backup",
-      "tokens": "Token admin"
+      "tokens": "Token admin",
+      "instagram": "Instagram"
     },
     "groups": {
       "account": "Conta",
@@ -1909,7 +1996,7 @@
     },
     "aiConfig": {
       "title": "Configuração do agente",
-      "description": "Use sua própria chave da OpenAI ou da Anthropic. O wacrm chama o provedor diretamente com a sua chave — sem taxas de IA por usuário, e seus dados continuam seus. Isso alimenta as respostas redigidas por IA na caixa de entrada, o bot de resposta automática e o Playground.",
+      "description": "Use sua própria chave da OpenAI ou da Anthropic. O Zyloop chama o provedor diretamente com a sua chave — sem taxas de IA por usuário, e seus dados continuam seus. Isso alimenta as respostas redigidas por IA na caixa de entrada, o bot de resposta automática e o Playground.",
       "adminOnlyConfig": "Somente administradores e proprietários podem alterar a configuração de IA.",
       "loadFailed": "Falha ao carregar a configuração de IA",
       "providerAndKey": "Provedor e chave",
@@ -2088,7 +2175,7 @@
     "titleJoin": "Criar conta e entrar na equipe",
     "title": "Criar conta",
     "descJoin": "Confirme seu e-mail e depois aceite o convite para entrar na sua equipe.",
-    "desc": "Comece a usar o Modelo de CRM para WhatsApp",
+    "desc": "Comece a usar o Zyloop WACRM",
     "fullNameLabel": "Nome completo",
     "fullNamePlaceholder": "João Silva",
     "emailLabel": "E-mail",
@@ -2537,6 +2624,16 @@
       "funnel": {
         "title": "Powers the broadcast funnel",
         "desc": "Answers every broadcast reply so more readers turn into buyers."
+      },
+      "needsKey": {
+        "title": "Os cinco primeiros precisam de uma chave de provedor de IA",
+        "desc": "Resposta automática, rascunhos, transferência, idiomas e respostas de documentos são escritos por um modelo de IA (OpenAI ou Anthropic). Seu treinamento está salvo — cole sua chave de API em Agentes de IA → Configuração e ative o assistente.",
+        "cta": "Adicionar chave de API"
+      },
+      "needsSwitch": {
+        "title": "O assistente de IA está desativado",
+        "desc": "Sua chave de API está salva. Ative Habilitar assistente de IA em Agentes de IA → Configuração.",
+        "cta": "Abrir configuração de IA"
       }
     }
   },
@@ -2910,6 +3007,428 @@
       "credited": "{amount} credited to {name}",
       "debited": "{amount} deducted from {name}",
       "failed": "Couldn't adjust the wallet."
+    }
+  },
+  "AutoReplies": {
+    "back": "Automações",
+    "title": "Respostas automáticas agendadas",
+    "subtitle": "Responda automaticamente aos contatos das suas listas, nos dias e horários escolhidos, com um template aprovado ou uma mensagem de texto.",
+    "lists": {
+      "title": "Listas de contatos",
+      "subtitle": "Cole números ou envie um CSV. Cada lista também é uma tag, então pode ser usada em transmissões e automações.",
+      "new": "Nova lista",
+      "empty": "Ainda não há listas. Crie uma e cole os números que devem receber as respostas agendadas.",
+      "count": "{count, plural, one {# contato} other {# contatos}}",
+      "addNumbers": "Adicionar números",
+      "delete": "Excluir lista",
+      "confirmDelete": "Excluir a lista \"{name}\"? Os contatos permanecem; só a lista (tag) é removida."
+    },
+    "rules": {
+      "title": "Regras de resposta automática",
+      "subtitle": "Quando um contato da lista escreve dentro do horário de uma regra, a primeira regra correspondente responde uma vez (e respeita o intervalo).",
+      "new": "Nova regra",
+      "empty": "Ainda não há regras. Exemplo: responder com o template de preços à lista \"Pais VIP\", seg–sáb 9:00–21:00.",
+      "everyone": "Todos",
+      "replyTemplate": "Template: {name}",
+      "replyText": "Mensagem de texto",
+      "sent": "{count} enviadas",
+      "edit": "Editar regra",
+      "delete": "Excluir regra",
+      "confirmDelete": "Excluir a regra \"{name}\"?",
+      "newTitle": "Nova regra de resposta automática",
+      "editTitle": "Editar regra de resposta automática",
+      "dialogDescription": "Escolha quem recebe, quando e o quê.",
+      "name": "Nome da regra",
+      "namePlaceholder": "ex.: Pais VIP — horário comercial",
+      "who": "Quem — listas de contatos",
+      "when": "Quando — dias e horários",
+      "from": "De",
+      "to": "Até",
+      "timezone": "Fuso horário",
+      "windowHint": "Um fim antes do início passa da meia-noite (ex.: 18:00–09:00 fora do expediente). Início igual ao fim = o dia todo.",
+      "reply": "O quê — a resposta",
+      "kind": {
+        "template": "Template aprovado",
+        "text": "Mensagem de texto"
+      },
+      "noTemplates": "Ainda não há templates aprovados — sincronize ou crie em Configurações → Templates.",
+      "pickTemplate": "Escolha um template…",
+      "textPlaceholder": "Olá {{contact.name}}, obrigado pela mensagem! Nossa tabela de preços: …",
+      "textHint": "Use {{contact.name}} para o nome do cliente. Respostas de texto funcionam porque o cliente acabou de escrever (janela de 24 horas).",
+      "cooldown": "Responder ao mesmo contato no máximo",
+      "priority": "Prioridade (menor roda primeiro)",
+      "active": "Regra ativada",
+      "save": "Salvar regra",
+      "errors": {
+        "name": "Dê um nome à regra",
+        "days": "Escolha pelo menos um dia",
+        "template": "Escolha um template",
+        "text": "Escreva o texto da resposta"
+      }
+    },
+    "cooldowns": {
+      "0": "A cada mensagem",
+      "60": "Uma vez por hora",
+      "360": "Uma vez a cada 6 horas",
+      "720": "Uma vez a cada 12 horas",
+      "1440": "Uma vez por dia",
+      "10080": "Uma vez por semana"
+    },
+    "days": {
+      "0": "Dom",
+      "1": "Seg",
+      "2": "Ter",
+      "3": "Qua",
+      "4": "Qui",
+      "5": "Sex",
+      "6": "Sáb"
+    },
+    "activity": {
+      "title": "Respostas automáticas recentes",
+      "empty": "Nada enviado ainda.",
+      "sent": "Enviada",
+      "failed": "Falhou"
+    },
+    "toasts": {
+      "saved": "Regra salva",
+      "saveFailed": "Não foi possível salvar",
+      "deleted": "Excluído",
+      "deleteFailed": "Não foi possível excluir"
+    },
+    "import": {
+      "newTitle": "Nova lista de contatos",
+      "addTitle": "Adicionar números a {name}",
+      "description": "Um número por linha, separados por vírgula, ou um CSV com colunas de nome e telefone. Números novos viram contatos.",
+      "name": "Nome da lista",
+      "namePlaceholder": "ex.: Pais VIP",
+      "numbers": "Números de telefone",
+      "countryCode": "Código do país padrão",
+      "csv": "Enviar CSV",
+      "hint": "Números de 10 dígitos recebem o código do país padrão. Duplicados são ignorados. Importar não envia nenhuma mensagem.",
+      "cancel": "Cancelar",
+      "submit": "Salvar lista",
+      "done": "{numbers} números salvos ({created} novos contatos)",
+      "failed": "Não foi possível importar os números"
+    }
+  },
+  "AuthShell": {
+    "headline": "Cada conversa no WhatsApp,",
+    "headlineAccent": "fechada no ciclo.",
+    "subline": "O Zyloop WACRM transforma conversas em clientes — uma caixa de entrada para a equipe, IA que responde como seu melhor atendente e um pipeline do primeiro oi ao pagamento concluído.",
+    "points": {
+      "inbox": {
+        "title": "Uma caixa de entrada compartilhada",
+        "desc": "Atribua, marque e responda em equipe — ninguém espera."
+      },
+      "ai": {
+        "title": "IA + respostas automáticas agendadas",
+        "desc": "Treinada no seu negócio, de plantão 24/7."
+      },
+      "pipeline": {
+        "title": "Lead → pagamento concluído",
+        "desc": "Passagens entre a equipe com SLAs."
+      }
+    },
+    "footer": "© Zyloop · CRM de WhatsApp para equipes em crescimento"
+  },
+  "Instagram": {
+    "title": "Instagram",
+    "subtitle": "Responda DMs, comentários e menções em stories do Instagram automaticamente — com suas automações, respostas rápidas e a IA treinada no seu negócio.",
+    "status": {
+      "connected": "Conectado · @{username}",
+      "simulation": "Modo simulação — não conectado",
+      "needsReconnecting": "Precisa reconectar"
+    },
+    "sections": {
+      "inbox": "Caixa de entrada",
+      "automations": "Automações",
+      "connect": "Conectar e testar"
+    },
+    "inbox": {
+      "empty": "Ainda não há conversas do Instagram. Conecte sua conta ou use o simulador em Conectar e testar.",
+      "pick": "Escolha uma conversa",
+      "placeholder": "Responder no Instagram…",
+      "sendFailed": "Não foi possível enviar",
+      "simulatedSend": "Salvo como simulado — conecte o Instagram para enviar de verdade.",
+      "storyMention": "📸 Mencionou você no story",
+      "kinds": {
+        "comment": "Comentário",
+        "comment_reply": "Resposta pública",
+        "story_mention": "Menção no story",
+        "story_reply": "Resposta ao story"
+      },
+      "by": {
+        "agent": "Atendente",
+        "automation": "Automação",
+        "ai": "IA"
+      },
+      "statuses": {
+        "sent": "enviada",
+        "simulated": "simulada",
+        "failed": "falhou",
+        "received": "recebida"
+      }
+    },
+    "automations": {
+      "intro": "Os cinco básicos de todo vendedor no Instagram. Começam como rascunho — edite o texto e ative. Uma automação responde cada mensagem; se nenhuma combinar, a resposta da IA pode responder.",
+      "kinds": {
+        "comment_to_dm": {
+          "title": "Comentário → DM",
+          "desc": "Alguém comenta uma palavra-chave num post: envie os detalhes por DM e responda publicamente."
+        },
+        "keyword": {
+          "title": "Resposta por palavra-chave",
+          "desc": "Uma DM contém uma palavra-chave (preço, pedido…): envie a resposta pronta."
+        },
+        "welcome": {
+          "title": "DM de boas-vindas",
+          "desc": "Cumprimenta quem escreve pela primeira vez."
+        },
+        "story_mention": {
+          "title": "Agradecer menção no story",
+          "desc": "Agradece quem marca você no story — ótimo para ofertas."
+        },
+        "away": {
+          "title": "Mensagem de ausência",
+          "desc": "Fora do horário, avisa quando você vai responder (uma vez a cada 12 horas por pessoa)."
+        }
+      },
+      "fields": {
+        "keywords": "Palavras-chave (separadas por vírgula)",
+        "commentKeywords": "Palavras do comentário (vazio = todos)",
+        "mediaId": "Só este post (id da mídia)",
+        "anyPost": "Qualquer post",
+        "from": "Ausente das",
+        "to": "Volta às",
+        "replyFrom": "Responder com",
+        "customText": "Texto personalizado",
+        "quickReply": "Resposta rápida: {title}",
+        "publicReply": "Resposta pública no comentário (opcional)"
+      },
+      "sent": "{count} enviadas",
+      "save": "Salvar",
+      "saved": "Salvo",
+      "saveFailed": "Não foi possível salvar",
+      "placeholderHint": "Use {{name}} para o @usuário do cliente. Respostas rápidas vêm de Configurações → Respostas rápidas."
+    },
+    "connect": {
+      "title": "Credenciais da API",
+      "steps": {
+        "s1": "No Meta for Developers, adicione o produto Instagram (API setup with Instagram login) ao app. Seu Instagram precisa ser uma conta profissional.",
+        "s2": "Em Webhooks, cole a URL de retorno e o token de verificação mostrados aqui e selecione messages e comments.",
+        "s3": "Gere um token de acesso com instagram_business_basic, instagram_business_manage_messages e instagram_business_manage_comments.",
+        "s4": "Cole o token e clique em Salvar e conectar. Isso também inscreve sua conta em mensagens e comentários.",
+        "s5": "Publique seu app da Meta (Live): a Meta só entrega notificações a apps publicados. Atender contas de outras empresas também exige a Revisão de App."
+      },
+      "webhookUrl": "URL de retorno",
+      "verifyToken": "Token de verificação",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "token": "Token de acesso do Instagram",
+      "tokenSaved": "Salvo — cole outro para trocar",
+      "appSecret": "Segredo do app do Instagram",
+      "secretSaved": "Salvo",
+      "secretOptional": "Opcional — padrão META_APP_SECRET",
+      "connect": "Salvar e conectar",
+      "disconnect": "Desconectar",
+      "saved": "Configurações do Instagram salvas",
+      "saveFailed": "Não foi possível salvar",
+      "ai": "Resposta automática com IA no Instagram",
+      "aiDesc": "Quando nenhuma automação combina, a IA responde DMs com o Treinar IA e seus documentos (precisa de chave em Agentes de IA → Configuração).",
+      "simTitle": "Teste sem o Instagram",
+      "simDesc": "Envia uma mensagem de cliente fictícia pelo mesmo motor. As respostas aparecem na Caixa como simuladas — nada é enviado ou cobrado.",
+      "simKinds": {
+        "dm": "Mensagem direta",
+        "comment": "Comentário num post",
+        "story_mention": "Menção no story",
+        "story_reply": "Resposta ao seu story"
+      },
+      "simSend": "Simular mensagem",
+      "simFailed": "A simulação falhou",
+      "simReplied": "Respondido por {by} — veja na Caixa de entrada.",
+      "simNoReply": "Salvo, mas nenhuma automação ativa combinou (e a IA está desligada). Ative uma automação e tente de novo.",
+      "credentialsDesc": "Ao salvar, o token é verificado no Instagram e a entrega de mensagens é ativada para sua conta.",
+      "credentialsValid": "Conectado como @{username}",
+      "credentialsValidDesc": "O Instagram aceitou seu token agora. Ele é renovado automaticamente antes de expirar.",
+      "needsReconnecting": "Precisa reconectar",
+      "invalidDesc": "O Instagram rejeitou o token salvo (expirado ou revogado). Gere um novo e salve abaixo. Até lá, as respostas automáticas não podem ser enviadas.",
+      "unreachableDesc": "Não foi possível acessar o Instagram para verificar o token. Costuma ser temporário; recarregue para verificar de novo.",
+      "notConnected": "Não conectado",
+      "notConnectedDesc": "Modo simulação: as respostas ficam salvas aqui, mas nada é enviado. Siga os passos e salve seu token para ativar.",
+      "subscribed": "Inscrito em mensagens e comentários",
+      "notSubscribed": "Ainda não recebe mensagens",
+      "notSubscribedDesc": "O Instagram não aceitou a inscrição do webhook, então DMs e comentários não serão entregues. Confira o token e as permissões e clique em Verificar.",
+      "subscribedSince": "Inscrito desde {date}.",
+      "lastEvent": "Último evento recebido: {date}.",
+      "noEventYet": "Nenhum evento chegou ainda. Envie uma DM de outra conta do Instagram para testar; se nada aparecer, confira o webhook e se o app da Meta está Live.",
+      "verify": "Verificar com o Instagram",
+      "verifyOk": "O Instagram aceitou a inscrição",
+      "verifyFailed": "O Instagram não aceitou a inscrição",
+      "toggleToken": "Mostrar ou ocultar token",
+      "tokenHint": "Use um token de longa duração (60 dias). Ele fica criptografado e não é exibido de novo.",
+      "disconnectConfirm": "Desconectar o Instagram? As respostas automáticas deixam de ser enviadas. Conversas e automações são mantidas.",
+      "webhookTitle": "Configuração do webhook",
+      "webhookDesc": "Cole no seu app da Meta em Instagram > API setup with Instagram login > Webhooks.",
+      "localWarning": "Este endereço não é HTTPS público, então a Meta não consegue acessá-lo e a verificação falhará. Abra o CRM no seu domínio HTTPS (ou um túnel) para copiar a URL certa.",
+      "fields": "Campos do webhook para assinar",
+      "setupTitle": "Passos de configuração"
+    }
+  },
+  "AccountSecurity": {
+    "signOut": "Sair",
+    "login": {
+      "codeLabel": "Código do autenticador",
+      "recoveryLabel": "Código de recuperação",
+      "codeHint": "Abra o seu app autenticador e digite o código de 6 dígitos.",
+      "recoveryHint": "Cada código de recuperação funciona uma única vez.",
+      "useApp": "Usar o app autenticador",
+      "useRecovery": "Usar um código de recuperação"
+    },
+    "password": {
+      "title": "Escolha uma nova senha",
+      "description": "Você entrou com uma senha temporária. Defina sua própria senha para continuar.",
+      "current": "Senha temporária",
+      "new": "Nova senha",
+      "confirm": "Repita a nova senha",
+      "submit": "Salvar senha",
+      "mismatch": "As novas senhas não coincidem.",
+      "failed": "Não foi possível alterar a senha."
+    },
+    "mfa": {
+      "title": "Configure a verificação em duas etapas",
+      "mandatoryDescription": "Administradores precisam usar um app autenticador ao entrar.",
+      "startIntro": "Você vai precisar de um app autenticador como Google Authenticator, Microsoft Authenticator ou 1Password.",
+      "startButton": "Começar",
+      "stepApp": "Abra o seu app autenticador e adicione uma conta.",
+      "stepKey": "Digite a chave de configuração abaixo (ou abra o link no celular).",
+      "stepCode": "Digite o código de 6 dígitos mostrado no app.",
+      "keyLabel": "Chave de configuração",
+      "openInApp": "Abrir no app autenticador",
+      "codeLabel": "Código de 6 dígitos",
+      "verifyButton": "Verificar e ativar",
+      "enabled": "A verificação em duas etapas está ativada.",
+      "savedContinue": "Já salvei meus códigos de recuperação",
+      "cardTitle": "Verificação em duas etapas",
+      "cardMandatory": "Obrigatória para o seu perfil. Você entra com sua senha e um código do app autenticador.",
+      "cardOptional": "Adicione um código de um app autenticador ao seu login para mais proteção.",
+      "turnOn": "Ativar",
+      "statusOn": "Ativada.",
+      "codesLeft": "{count, plural, one {Resta # código de recuperação} other {Restam # códigos de recuperação}}",
+      "newCodes": "Novos códigos de recuperação",
+      "turnOff": "Desativar",
+      "passwordLabel": "Senha atual",
+      "cancel": "Cancelar",
+      "failed": "Não funcionou. Confira o código e tente de novo.",
+      "disabled": "A verificação em duas etapas está desativada."
+    },
+    "recovery": {
+      "intro": "Guarde estes códigos em um lugar seguro. Cada um permite entrar uma vez se você perder o celular. Eles não serão mostrados novamente.",
+      "copy": "Copiar",
+      "download": "Baixar",
+      "copied": "Códigos copiados",
+      "copyFailed": "Não foi possível copiar. Selecione os códigos e copie manualmente.",
+      "fileHeader": "Códigos de recuperação. Cada código funciona uma vez."
+    },
+    "sessions": {
+      "title": "Dispositivos conectados",
+      "description": "Cada navegador ou dispositivo conectado à sua conta. Desconecte os que você não reconhece.",
+      "unknownDevice": "Dispositivo desconhecido",
+      "thisDevice": "Este dispositivo",
+      "lastActive": "Última atividade {when}",
+      "signOut": "Sair",
+      "signOutAll": "Sair de todos os dispositivos",
+      "revoked": "Dispositivo desconectado",
+      "revokeFailed": "Não foi possível desconectar esse dispositivo.",
+      "confirmTitle": "Sair de todos os dispositivos?",
+      "confirmDescription": "Todas as sessões terminam, inclusive esta. Você precisará entrar de novo.",
+      "reasonLabel": "Motivo",
+      "reasonPlaceholder": "Por exemplo: perdi meu notebook",
+      "cancel": "Cancelar",
+      "confirmButton": "Sair de todos os dispositivos"
+    },
+    "tempPassword": {
+      "label": "Senha temporária",
+      "shownOnce": "Entregue esta senha para {email}. Ela é mostrada apenas uma vez.",
+      "expires": "Válida até {when}. O usuário precisa alterá-la ao entrar.",
+      "done": "Concluído",
+      "confirm": "A senha atual deixa de funcionar e todas as sessões são encerradas.",
+      "cancel": "Cancelar",
+      "issue": "Gerar senha temporária",
+      "failed": "Não foi possível gerar a senha temporária.",
+      "copied": "Senha copiada",
+      "copyFailed": "Não foi possível copiar. Selecione a senha e copie manualmente."
+    }
+  },
+  "Support": {
+    "title": "Support",
+    "description": "Facing a problem with the CRM? Raise a complaint here. Our team will look into it, reply, and mark it resolved — you get a notification at every step.",
+    "adminTitle": "Support tickets",
+    "adminDescription": "Complaints raised by users. Reply, mark them In progress, and resolve them with a note — the user is notified of every reply and status change.",
+    "raise": "Raise a complaint",
+    "formTitle": "New complaint",
+    "subject": "Subject",
+    "subjectPlaceholder": "e.g. Broadcast is stuck on Sending",
+    "categoryLabel": "Category",
+    "priorityLabel": "Priority",
+    "descriptionLabel": "Describe the problem",
+    "descriptionPlaceholder": "What happened, what you expected, and the steps to reproduce it.",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "submitted": "Ticket #{number} raised. We'll get back to you soon.",
+    "submitFailed": "Couldn't raise the ticket.",
+    "loadFailed": "Couldn't load tickets.",
+    "actionFailed": "Couldn't save that.",
+    "notMigrated": "Support tickets aren't set up yet. Run npm run db:init (db/schema.sql).",
+    "filterActive": "Active",
+    "filterAll": "All",
+    "empty": "You haven't raised any complaints yet.",
+    "emptyAdmin": "No tickets here.",
+    "back": "Back to tickets",
+    "raisedOn": "Raised {date}",
+    "resolvedBanner": "Resolved {date}",
+    "confirmFixed": "Yes, it's fixed",
+    "notFixed": "Still not fixed — reopen",
+    "conversation": "Conversation",
+    "supportTeam": "Support team",
+    "you": "You",
+    "replyPlaceholder": "Add more details or reply to the support team…",
+    "replyPlaceholderAdmin": "Reply to the user…",
+    "sendReply": "Send reply",
+    "replySent": "Reply sent.",
+    "replyReopens": "Replying to a resolved ticket reopens it.",
+    "closedNote": "This ticket is closed. Raise a new complaint if you still need help.",
+    "adminActions": "Update status",
+    "resolutionNote": "Resolution note (required to resolve — the user sees this)",
+    "resolutionPlaceholder": "What was the cause and what did you fix?",
+    "markInProgress": "Mark In progress",
+    "markResolved": "Mark Resolved",
+    "close": "Close ticket",
+    "reopen": "Reopen",
+    "closeMine": "Close this ticket",
+    "notifyHint": "The user gets an in-app notification for every reply and status change.",
+    "statusSaved": "Status updated.",
+    "resolvedToast": "Ticket resolved — the user has been notified.",
+    "closedToast": "Ticket closed.",
+    "reopenedToast": "Ticket reopened.",
+    "status": {
+      "open": "Open",
+      "in_progress": "In progress",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "category": {
+      "bug": "Something is broken",
+      "whatsapp": "WhatsApp / Instagram",
+      "billing": "Billing / Wallet",
+      "account": "Login / Account",
+      "feature": "Feature request",
+      "other": "Other"
+    },
+    "priority": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High",
+      "urgent": "Urgent"
     }
   }
 }

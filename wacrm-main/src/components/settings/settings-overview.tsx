@@ -26,6 +26,12 @@ interface OverviewCounts {
   customFields: number | null;
 }
 
+interface InstagramStatus {
+  connected: boolean;
+  token_health?: string;
+  webhook_subscribed_at: string | null;
+}
+
 interface WhatsAppStatus {
   configured: boolean;
   connected: boolean;
@@ -51,6 +57,8 @@ export function SettingsOverview({
   // from blanking the rest of the landing.
   const [whatsapp, setWhatsapp] = useState<WhatsAppStatus | null>(null);
   const [whatsappLoading, setWhatsappLoading] = useState(true);
+  const [instagram, setInstagram] = useState<InstagramStatus | null>(null);
+  const [instagramLoading, setInstagramLoading] = useState(true);
 
   useEffect(() => {
     if (!user || !accountId) return;
@@ -136,6 +144,17 @@ export function SettingsOverview({
       setWhatsappLoading(false);
     })();
 
+    // Instagram status — pings Instagram too, so it is independent as well.
+    (async () => {
+      setInstagramLoading(true);
+      const res = await fetch('/api/instagram/settings?check=1', { cache: 'no-store' })
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null);
+      if (cancelled) return;
+      setInstagram(res);
+      setInstagramLoading(false);
+    })();
+
     return () => {
       cancelled = true;
     };
@@ -170,6 +189,25 @@ export function SettingsOverview({
       ) : (
         <>
           <StatusDot tone="muted" /> {t('needsReconnecting')}
+        </>
+      ),
+    },
+    {
+      section: 'instagram',
+      loading: instagramLoading,
+      subtitle: !instagram?.connected ? (
+        t('notSetup')
+      ) : instagram.token_health !== 'ok' ? (
+        <>
+          <StatusDot tone="muted" /> {t('needsReconnecting')}
+        </>
+      ) : instagram.webhook_subscribed_at ? (
+        <>
+          <StatusDot tone="ok" /> {t('connected')}
+        </>
+      ) : (
+        <>
+          <StatusDot tone="muted" /> {t('notReceiving')}
         </>
       ),
     },

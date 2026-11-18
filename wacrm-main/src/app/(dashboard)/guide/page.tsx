@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import {
+  AtSign,
   ArrowLeft,
   ArrowRight,
   Bell,
@@ -12,6 +13,7 @@ import {
   GraduationCap,
   HelpCircle,
   LayoutDashboard,
+  LifeBuoy,
   MessageSquare,
   Presentation,
   Radio,
@@ -50,6 +52,8 @@ const CHAPTER_ICONS: Record<string, LucideIcon> = {
   "train-ai": GraduationCap,
   demo: Presentation,
   "token-wallet": Coins,
+  instagram: AtSign,
+  support: LifeBuoy,
 };
 
 function chapterIcon(slug: string): LucideIcon {

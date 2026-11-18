@@ -31,6 +31,8 @@ const pageTitles: Record<string, string> = {
   "/train-ai": "trainAi",
   "/demo": "demo",
   "/wallet": "wallet",
+  "/users": "users",
+  "/support": "support",
   "/guide": "guide",
   "/settings": "settings",
 };

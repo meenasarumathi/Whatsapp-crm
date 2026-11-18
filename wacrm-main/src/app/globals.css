@@ -88,32 +88,33 @@
 
 :root,
 html[data-mode="dark"] {
-  --background: oklch(0.13 0.01 260);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.18 0.01 260);
-  --card-2: oklch(0.205 0.01 260);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.18 0.01 260);
-  --popover-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.22 0.01 260);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.22 0.01 260);
-  --muted-foreground: oklch(0.65 0.01 260);
-  --accent: oklch(0.22 0.01 260);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.28 0.01 260);
-  --input: oklch(0.28 0.01 260);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.16 0.01 260);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.22 0.01 260);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.28 0.01 260);
+  /* Zyloop "midnight ink": blue-tinted surfaces instead of flat grey. */
+  --background: oklch(0.145 0.022 258);
+  --foreground: oklch(0.975 0.005 250);
+  --card: oklch(0.19 0.026 258);
+  --card-2: oklch(0.215 0.028 258);
+  --card-foreground: oklch(0.975 0.005 250);
+  --popover: oklch(0.19 0.026 258);
+  --popover-foreground: oklch(0.975 0.005 250);
+  --secondary: oklch(0.235 0.028 258);
+  --secondary-foreground: oklch(0.975 0.005 250);
+  --muted: oklch(0.235 0.028 258);
+  --muted-foreground: oklch(0.7 0.025 255);
+  --accent: oklch(0.235 0.028 258);
+  --accent-foreground: oklch(0.975 0.005 250);
+  --destructive: oklch(0.62 0.22 25);
+  --border: oklch(0.29 0.03 258);
+  --input: oklch(0.29 0.03 258);
+  --chart-2: oklch(0.6 0.13 285);
+  --chart-3: oklch(0.72 0.12 75);
+  --chart-4: oklch(0.65 0.16 340);
+  --chart-5: oklch(0.5 0.03 258);
+  --radius: 0.75rem;
+  --sidebar: oklch(0.165 0.026 258);
+  --sidebar-foreground: oklch(0.975 0.005 250);
+  --sidebar-accent: oklch(0.235 0.028 258);
+  --sidebar-accent-foreground: oklch(0.975 0.005 250);
+  --sidebar-border: oklch(0.27 0.03 258);
 }
 
 html[data-mode="light"] {
@@ -143,11 +144,27 @@ html[data-mode="light"] {
   --sidebar-accent: oklch(0.96 0.004 260);
   --sidebar-accent-foreground: oklch(0.25 0.01 260);
   --sidebar-border: oklch(0.922 0.004 260);
+  --radius: 0.75rem;
 }
 
 /* ---- ACCENT: primary color ---- */
 
+/* Zyloop signature accent (default): electric teal on ink, with a
+ * teal → indigo brand gradient for the mark, hero and key CTAs. */
 :root,
+html[data-theme="zyloop"] {
+  --primary: oklch(0.72 0.135 192);
+  --primary-foreground: oklch(0.18 0.04 220);
+  --primary-hover: oklch(0.78 0.12 192);
+  --primary-soft: oklch(0.72 0.135 192 / 0.13);
+  --primary-soft-2: oklch(0.72 0.135 192 / 0.22);
+  --ring: oklch(0.72 0.135 192);
+  --chart-1: oklch(0.72 0.135 192);
+  --sidebar-primary: oklch(0.72 0.135 192);
+  --sidebar-primary-foreground: oklch(0.18 0.04 220);
+  --sidebar-ring: oklch(0.72 0.135 192);
+}
+
 html[data-theme="violet"] {
   --primary: oklch(0.526 0.247 293);
   --primary-foreground: oklch(0.985 0 0);
@@ -215,6 +232,22 @@ html[data-theme="rose"] {
   --sidebar-primary: oklch(0.645 0.22 16);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-ring: oklch(0.645 0.22 16);
+}
+
+/* Brand gradient — the same in every accent so the identity holds. */
+:root {
+  --brand-from: #22d3ee;
+  --brand-via: #14b8a6;
+  --brand-to: #6366f1;
+}
+.bg-brand-gradient {
+  background-image: linear-gradient(135deg, var(--brand-from), var(--brand-via) 55%, var(--brand-to));
+}
+.text-brand-gradient {
+  background-image: linear-gradient(90deg, var(--brand-from), var(--brand-to));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 @layer base {

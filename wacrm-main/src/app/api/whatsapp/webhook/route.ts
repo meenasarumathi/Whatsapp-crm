@@ -18,6 +18,7 @@ import { verifyMetaWebhookSignature } from '@/lib/whatsapp/webhook-signature'
 import { runAutomationsForTrigger } from '@/lib/automations/engine'
 import { dispatchInboundToFlows } from '@/lib/flows/engine'
 import { dispatchInboundToAiReply } from '@/lib/ai/auto-reply'
+import { runAutoReplyRules } from '@/lib/auto-replies/engine'
 import { dispatchWebhookEvent } from '@/lib/webhooks/deliver'
 import {
   handleTemplateWebhookChange,
@@ -949,12 +950,27 @@ async function processMessage(
     }).catch((err) => console.error('[automations] dispatch failed:', err))
   }
 
+  // Scheduled auto-replies (Automations → Scheduled auto-replies): list +
+  // days/time window + template or text. Skipped when a flow consumed the
+  // message or the customer tapped a button. When a rule answers, the AI
+  // auto-reply below stays quiet so the customer gets one reply, not two.
+  let scheduledReplySent = false
+  if (!flowConsumed && !interactiveReplyId) {
+    const result = await runAutoReplyRules({
+      accountId,
+      contactId: contactRecord.id,
+      conversationId: conversation.id,
+      inboundMessageId: message.id,
+    })
+    scheduledReplySent = result.status === 'sent'
+  }
+
   // AI auto-reply. Runs only for plain-text inbound the deterministic
   // flow runner did NOT consume (flows win over the LLM), and only when
   // the account has enabled it. Awaited inside `after()` (same reason as
   // the webhook dispatch below); `dispatchInboundToAiReply` owns its
   // eligibility gates + try/catch and never throws.
-  if (!flowConsumed && !interactiveReplyId && inboundText.trim()) {
+  if (!flowConsumed && !interactiveReplyId && !scheduledReplySent && inboundText.trim()) {
     await dispatchInboundToAiReply({
       accountId,
       conversationId: conversation.id,

@@ -1,17 +1,18 @@
 // ============================================================
-// Account credentials: sign-up, sign-in, password change/reset. Talks to
-// public.users through the owner connection (the application role has no
-// access to that table).
+// Account credentials: sign-up and email change. Talks to public.users
+// through the owner connection (the application role has no access to
+// that table).
+//
+// Sign-in, sessions, MFA, password change and reset live in
+// ./security-service (lockout, per-session rows, audit events).
 // ============================================================
 
-import { createHash, randomBytes } from "node:crypto";
-
 import { getPool } from "@/lib/db/pool";
-import { hashPassword, MIN_PASSWORD_LENGTH, verifyPassword } from "./password";
-import { sendMail } from "./mailer";
+import { hashPassword, MIN_PASSWORD_LENGTH } from "./password";
 
 export class AuthError extends Error {
-  constructor(message: string, readonly status = 400) {
+  /** `code` is a stable machine-readable reason (e.g. "mfa_required"); `message` is for people. */
+  constructor(message: string, readonly status = 400, readonly code?: string) {
     super(message);
   }
 }
@@ -51,36 +52,6 @@ export async function createUserWithPassword(emailIn: unknown, password: unknown
   return signUp(emailIn, password, fullName);
 }
 
-export async function signIn(emailIn: unknown, password: unknown): Promise<AuthUserRow> {
-  const email = normEmail(emailIn);
-  const { rows } = await getPool().query<AuthUserRow & { password_hash: string | null }>(
-    "SELECT id, email, session_version, password_hash FROM public.users WHERE lower(email) = $1",
-    [email],
-  );
-  const u = rows[0];
-  // Same message and similar work whether the email exists or not.
-  const ok = await verifyPassword(typeof password === "string" ? password : "", u?.password_hash ?? "$2a$12$invalidinvalidinvalidinvalidinvalidinvalidinvalidinvalidinv");
-  if (!u || !ok) throw new AuthError("Invalid login credentials", 401);
-  await getPool().query("UPDATE public.users SET last_sign_in_at = now() WHERE id = $1", [u.id]);
-  return { id: u.id, email: u.email, session_version: u.session_version };
-}
-
-export async function changePassword(userId: string, current: unknown, next: unknown): Promise<AuthUserRow> {
-  if (typeof next !== "string" || next.length < MIN_PASSWORD_LENGTH) {
-    throw new AuthError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`);
-  }
-  const { rows } = await getPool().query<{ password_hash: string | null }>("SELECT password_hash FROM public.users WHERE id = $1", [userId]);
-  if (!(await verifyPassword(typeof current === "string" ? current : "", rows[0]?.password_hash))) {
-    throw new AuthError("Current password is incorrect", 403);
-  }
-  const hash = await hashPassword(next);
-  const r = await getPool().query<AuthUserRow>(
-    "UPDATE public.users SET password_hash = $2 WHERE id = $1 RETURNING id, email, session_version",
-    [userId, hash],
-  );
-  return r.rows[0];
-}
-
 export async function changeEmail(userId: string, emailIn: unknown): Promise<void> {
   const email = normEmail(emailIn);
   if (!EMAIL_RE.test(email)) throw new AuthError("Enter a valid email address");
@@ -90,58 +61,5 @@ export async function changeEmail(userId: string, emailIn: unknown): Promise<voi
   } catch (e) {
     if ((e as { code?: string }).code === "23505") throw new AuthError("That email is already in use", 409);
     throw e;
-  }
-}
-
-/** Bumps session_version: every existing cookie stops working ("sign out everywhere"). */
-export async function revokeAllSessions(userId: string): Promise<number> {
-  const r = await getPool().query<{ session_version: number }>(
-    "UPDATE public.users SET session_version = session_version + 1 WHERE id = $1 RETURNING session_version",
-    [userId],
-  );
-  return r.rows[0]?.session_version ?? 1;
-}
-
-const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
-
-export async function requestPasswordReset(emailIn: unknown, origin: string): Promise<void> {
-  const email = normEmail(emailIn);
-  const { rows } = await getPool().query<{ id: string }>("SELECT id FROM public.users WHERE lower(email) = $1", [email]);
-  if (!rows[0]) return; // never reveal whether an address is registered
-  const token = randomBytes(32).toString("base64url");
-  await getPool().query(
-    "INSERT INTO public.password_reset_tokens (user_id, token_hash, expires_at) VALUES ($1, $2, now() + interval '1 hour')",
-    [rows[0].id, sha256(token)],
-  );
-  const link = `${origin}/reset-password?token=${token}`;
-  await sendMail(email, "Reset your WACRM password", `Use this link within one hour to choose a new password:\n\n${link}\n\nIf you did not ask for this, ignore this message.`);
-}
-
-export async function resetPassword(token: unknown, password: unknown): Promise<AuthUserRow> {
-  if (typeof token !== "string" || !token) throw new AuthError("Reset link is invalid or has expired");
-  if (typeof password !== "string" || password.length < MIN_PASSWORD_LENGTH) {
-    throw new AuthError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`);
-  }
-  const client = await getPool().connect();
-  try {
-    await client.query("BEGIN");
-    const t = await client.query<{ id: string; user_id: string }>(
-      "SELECT id, user_id FROM public.password_reset_tokens WHERE token_hash = $1 AND used_at IS NULL AND expires_at > now() FOR UPDATE",
-      [sha256(token)],
-    );
-    if (!t.rows[0]) throw new AuthError("Reset link is invalid or has expired");
-    const hash = await hashPassword(password);
-    const u = await client.query<AuthUserRow>(
-      "UPDATE public.users SET password_hash = $2, session_version = session_version + 1 WHERE id = $1 RETURNING id, email, session_version",
-      [t.rows[0].user_id, hash],
-    );
-    await client.query("UPDATE public.password_reset_tokens SET used_at = now() WHERE user_id = $1 AND used_at IS NULL", [t.rows[0].user_id]);
-    await client.query("COMMIT");
-    return u.rows[0];
-  } catch (e) {
-    await client.query("ROLLBACK").catch(() => {});
-    throw e;
-  } finally {
-    client.release();
   }
 }

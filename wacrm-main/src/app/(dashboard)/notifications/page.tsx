@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createBrowserDb } from "@/lib/db/browser";
 import { useAuth } from "@/hooks/use-auth";
 import type { Notification } from "@/types";
-import { Bell, CheckCheck, Loader2, UserPlus } from "lucide-react";
+import { Bell, CheckCheck, GitBranch, LifeBuoy, Loader2, UserPlus } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,8 @@ import { useTranslations } from "next-intl";
 // (conversation_assigned) but this keeps future types a one-line add.
 const TYPE_ICON: Record<Notification["type"], typeof Bell> = {
   conversation_assigned: UserPlus,
+  deal_assigned: GitBranch,
+  support_ticket: LifeBuoy,
 };
 
 export default function NotificationsPage() {
@@ -116,7 +118,11 @@ export default function NotificationsPage() {
   const handleClick = useCallback(
     (n: Notification) => {
       if (!n.read_at) markRead(n.id);
-      if (n.conversation_id) {
+      if (n.ticket_id) {
+        router.push(`/support?t=${n.ticket_id}`);
+      } else if (n.deal_id) {
+        router.push(`/pipelines?deal=${n.deal_id}`);
+      } else if (n.conversation_id) {
         router.push(`/inbox?c=${n.conversation_id}`);
       }
     },

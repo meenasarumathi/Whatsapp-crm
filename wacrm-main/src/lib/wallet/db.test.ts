@@ -67,7 +67,10 @@ function applySchema() {
  */
 function newAccount(name: string): string {
   const user = sql(`insert into users(email) values ('${name}-' || gen_random_uuid() || '@x.test') returning id`);
-  sql("update platform_users set platform_role = 'subscriber'");
+  // Test fixture: no super admin at all. The User Management guard
+  // (crm_platform_users_last_super_admin) forbids that in real use, so it is
+  // bypassed for this one statement (replica mode skips ordinary triggers).
+  sql("set session_replication_role = replica; update platform_users set platform_role = 'subscriber'");
   return sql(`select id from accounts where owner_user_id = '${user}'`);
 }
 const balance = (acct: string) => Number(sql(`select balance_units from token_wallets where account_id='${acct}'`));

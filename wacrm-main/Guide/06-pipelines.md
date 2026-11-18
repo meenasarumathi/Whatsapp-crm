@@ -12,7 +12,10 @@ A visual sales board: deals move left-to-right through stages until they are won
 
 1. Click **Create Pipeline** (or **Add Pipeline**).
 2. Enter a **Pipeline Name**, e.g. "Enterprise Sales".
-3. Click **Create Pipeline**. Default stages are added for you: **New Lead → Qualified → Proposal Sent → Negotiation → Won**.
+3. Under **Start from** pick a template:
+   - **Lead to payment settled (team hand-off)** — **New enquiry → Qualified → Quote sent → Order confirmed → Payment received → Dispatched → Settled / Lost**, each with an SLA. This is the default.
+   - **Sales funnel** — **New Lead → Qualified → Proposal Sent → Negotiation → Won**.
+4. Click **Create Pipeline**.
 
 Switch between pipelines with **Select Pipeline** at the top.
 
@@ -24,6 +27,9 @@ Click **Manage Pipelines** to:
 - Add a stage — type a **New stage name** and click **Add**.
 - Reorder stages — drag the handle (**Drag to reorder**).
 - Change a stage's colour — click the colour dot.
+- **Stage owner** — the teammate responsible for that step. When a deal enters the stage it is handed to them and they get a notification.
+- **SLA h** — how many hours a deal may sit in the stage. After that its card turns red (**Overdue**).
+- **Stage outcome** — **In progress**, **Settled (won)** or **Lost**. Dropping a deal on a Settled stage marks it won; on a Lost stage, lost; dragging it back out reopens it.
 - Delete a stage — first move or delete the deals in it.
 - **Delete Pipeline** — archives all its deals; cannot be undone.
 
@@ -47,7 +53,17 @@ Click **Save Changes** when done.
 
 ### Move a deal
 
-Drag the card from one column and drop it in another ("Drop a deal here").
+Drag the card from one column and drop it in another ("Drop a deal here"). If the new stage has an owner, the deal is assigned to them automatically and they are notified (Notifications → click it to open the deal). Every move is kept in the deal's stage history with the time it spent in the previous stage.
+
+### Team hand-off from entry to settlement
+
+Each card shows how long it has been in its stage and who owns it. Use the chips above the board:
+
+- **All deals** — everything in the pipeline.
+- **My deals** — deals assigned to you.
+- **Overdue** — deals past their stage SLA, so nothing gets stuck between teammates.
+
+> **Tip:** Example for a book shop — Sales owns New enquiry to Quote sent, Accounts owns Order confirmed and Payment received, Dispatch owns Dispatched. Each person works from **My deals**.
 
 ### Win, lose or reopen
 
