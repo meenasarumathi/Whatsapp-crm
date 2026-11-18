@@ -44,7 +44,8 @@
     "trainAi": "Train AI",
     "demo": "Demo",
     "wallet": "Wallet",
-    "users": "Users"
+    "users": "Users",
+    "support": "Support"
   },
   "Header": {
     "dashboard": "Dashboard",
@@ -68,7 +69,8 @@
     "trainAi": "Train AI",
     "demo": "Demo",
     "wallet": "Wallet",
-    "users": "Users"
+    "users": "Users",
+    "support": "Support"
   },
   "ModeToggle": {
     "switchMode": "Switch to {mode} mode"
@@ -3355,6 +3357,78 @@
       "failed": "Could not issue a temporary password.",
       "copied": "Password copied",
       "copyFailed": "Could not copy. Select the password and copy it by hand."
+    }
+  },
+  "Support": {
+    "title": "Support",
+    "description": "Facing a problem with the CRM? Raise a complaint here. Our team will look into it, reply, and mark it resolved — you get a notification at every step.",
+    "adminTitle": "Support tickets",
+    "adminDescription": "Complaints raised by users. Reply, mark them In progress, and resolve them with a note — the user is notified of every reply and status change.",
+    "raise": "Raise a complaint",
+    "formTitle": "New complaint",
+    "subject": "Subject",
+    "subjectPlaceholder": "e.g. Broadcast is stuck on Sending",
+    "categoryLabel": "Category",
+    "priorityLabel": "Priority",
+    "descriptionLabel": "Describe the problem",
+    "descriptionPlaceholder": "What happened, what you expected, and the steps to reproduce it.",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "submitted": "Ticket #{number} raised. We'll get back to you soon.",
+    "submitFailed": "Couldn't raise the ticket.",
+    "loadFailed": "Couldn't load tickets.",
+    "actionFailed": "Couldn't save that.",
+    "notMigrated": "Support tickets aren't set up yet. Run npm run db:init (db/schema.sql).",
+    "filterActive": "Active",
+    "filterAll": "All",
+    "empty": "You haven't raised any complaints yet.",
+    "emptyAdmin": "No tickets here.",
+    "back": "Back to tickets",
+    "raisedOn": "Raised {date}",
+    "resolvedBanner": "Resolved {date}",
+    "confirmFixed": "Yes, it's fixed",
+    "notFixed": "Still not fixed — reopen",
+    "conversation": "Conversation",
+    "supportTeam": "Support team",
+    "you": "You",
+    "replyPlaceholder": "Add more details or reply to the support team…",
+    "replyPlaceholderAdmin": "Reply to the user…",
+    "sendReply": "Send reply",
+    "replySent": "Reply sent.",
+    "replyReopens": "Replying to a resolved ticket reopens it.",
+    "closedNote": "This ticket is closed. Raise a new complaint if you still need help.",
+    "adminActions": "Update status",
+    "resolutionNote": "Resolution note (required to resolve — the user sees this)",
+    "resolutionPlaceholder": "What was the cause and what did you fix?",
+    "markInProgress": "Mark In progress",
+    "markResolved": "Mark Resolved",
+    "close": "Close ticket",
+    "reopen": "Reopen",
+    "closeMine": "Close this ticket",
+    "notifyHint": "The user gets an in-app notification for every reply and status change.",
+    "statusSaved": "Status updated.",
+    "resolvedToast": "Ticket resolved — the user has been notified.",
+    "closedToast": "Ticket closed.",
+    "reopenedToast": "Ticket reopened.",
+    "status": {
+      "open": "Open",
+      "in_progress": "In progress",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "category": {
+      "bug": "Something is broken",
+      "whatsapp": "WhatsApp / Instagram",
+      "billing": "Billing / Wallet",
+      "account": "Login / Account",
+      "feature": "Feature request",
+      "other": "Other"
+    },
+    "priority": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High",
+      "urgent": "Urgent"
     }
   }
 }

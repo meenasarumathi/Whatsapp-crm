@@ -1209,7 +1209,7 @@ CREATE TABLE IF NOT EXISTS public.notifications (
   read_at timestamp with time zone,
   created_at timestamp with time zone DEFAULT now() NOT NULL,
   CONSTRAINT notifications_pkey PRIMARY KEY (id),
-  CONSTRAINT notifications_type_check CHECK ((type = ANY (ARRAY['conversation_assigned'::text, 'deal_assigned'::text])))
+  CONSTRAINT notifications_type_check CHECK ((type = ANY (ARRAY['conversation_assigned'::text, 'deal_assigned'::text, 'support_ticket'::text])))
 );
 ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS id uuid DEFAULT uuid_generate_v4() NOT NULL;
 ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS account_id uuid NOT NULL;
@@ -4564,7 +4564,7 @@ GRANT SELECT ON public.deal_stage_history TO wacrm_app;
 ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS deal_id uuid REFERENCES public.deals(id) ON DELETE CASCADE;
 CREATE INDEX IF NOT EXISTS idx_notifications_deal_id ON public.notifications (deal_id);
 ALTER TABLE public.notifications DROP CONSTRAINT IF EXISTS notifications_type_check;
-ALTER TABLE public.notifications ADD CONSTRAINT notifications_type_check CHECK (type IN ('conversation_assigned', 'deal_assigned'));
+ALTER TABLE public.notifications ADD CONSTRAINT notifications_type_check CHECK (type IN ('conversation_assigned', 'deal_assigned', 'support_ticket'));
 
 -- BEFORE: stamp entry time, hand over to the stage owner, apply the outcome.
 CREATE OR REPLACE FUNCTION public.deal_stage_before()
@@ -5750,5 +5750,66 @@ COMMENT ON TABLE public.crm_revenue_attributions IS
 ALTER TABLE public.crm_revenue_payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.crm_revenue_splits   ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.crm_revenue_payments, public.crm_revenue_splits FROM wacrm_app;
+
+-- ----------------------------------------------------------------------
+-- MODULE: Support tickets (Support tab, 2026-11-18)
+--   A subscriber raises a complaint; a platform admin (super_admin /
+--   admin1 / admin2) replies, moves it through the statuses and resolves
+--   it with a note. The raiser gets an in-app notification on every
+--   admin reply and status change. Server-only, like the wallet: RLS on,
+--   no policies, every read/write goes through /api/support.
+-- ----------------------------------------------------------------------
+
+CREATE SEQUENCE IF NOT EXISTS public.support_ticket_number_seq START 1001;
+
+CREATE TABLE IF NOT EXISTS public.support_tickets (
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  ticket_number    bigint NOT NULL UNIQUE DEFAULT nextval('public.support_ticket_number_seq'),
+  account_id       uuid NOT NULL REFERENCES public.accounts(id) ON DELETE CASCADE,
+  raised_by        uuid REFERENCES public.users(id) ON DELETE SET NULL,
+  subject          text NOT NULL CHECK (length(btrim(subject)) BETWEEN 3 AND 150),
+  category         text NOT NULL DEFAULT 'other'
+                     CHECK (category IN ('bug', 'whatsapp', 'billing', 'account', 'feature', 'other')),
+  priority         text NOT NULL DEFAULT 'normal'
+                     CHECK (priority IN ('low', 'normal', 'high', 'urgent')),
+  status           text NOT NULL DEFAULT 'open'
+                     CHECK (status IN ('open', 'in_progress', 'resolved', 'closed')),
+  resolution_note  text CHECK (resolution_note IS NULL OR length(resolution_note) <= 2000),
+  resolved_by      uuid REFERENCES public.users(id) ON DELETE SET NULL,
+  resolved_at      timestamptz,
+  created_at       timestamptz NOT NULL DEFAULT now(),
+  updated_at       timestamptz NOT NULL DEFAULT now(),
+  CHECK (status <> 'resolved' OR (resolved_at IS NOT NULL AND resolution_note IS NOT NULL
+                                  AND length(btrim(resolution_note)) > 0))
+);
+CREATE INDEX IF NOT EXISTS idx_support_tickets_account ON public.support_tickets (account_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_support_tickets_raised_by ON public.support_tickets (raised_by, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_support_tickets_active ON public.support_tickets (updated_at)
+  WHERE status IN ('open', 'in_progress');
+
+CREATE TABLE IF NOT EXISTS public.support_ticket_messages (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  ticket_id       uuid NOT NULL REFERENCES public.support_tickets(id) ON DELETE CASCADE,
+  author_user_id  uuid REFERENCES public.users(id) ON DELETE SET NULL,
+  -- true = written by platform staff; 'event' rows record status changes.
+  from_admin      boolean NOT NULL DEFAULT false,
+  kind            text NOT NULL DEFAULT 'message' CHECK (kind IN ('message', 'event')),
+  body            text NOT NULL CHECK (length(btrim(body)) BETWEEN 1 AND 5000),
+  created_at      timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_support_ticket_messages_ticket ON public.support_ticket_messages (ticket_id, created_at);
+
+-- Notifications can point at a ticket (type 'support_ticket').
+ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS ticket_id uuid
+  REFERENCES public.support_tickets(id) ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_notifications_ticket_id ON public.notifications (ticket_id);
+ALTER TABLE public.notifications DROP CONSTRAINT IF EXISTS notifications_type_check;
+ALTER TABLE public.notifications ADD CONSTRAINT notifications_type_check
+  CHECK (type IN ('conversation_assigned', 'deal_assigned', 'support_ticket'));
+
+ALTER TABLE public.support_tickets         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.support_ticket_messages ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.support_tickets, public.support_ticket_messages FROM wacrm_app;
+REVOKE ALL ON SEQUENCE public.support_ticket_number_seq FROM wacrm_app;
 
 -- End of schema.

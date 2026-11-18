@@ -198,7 +198,7 @@ export interface Conversation {
 // Notifications (migration 027)
 // ============================================================
 
-export type NotificationType = 'conversation_assigned' | 'deal_assigned';
+export type NotificationType = 'conversation_assigned' | 'deal_assigned' | 'support_ticket';
 
 export interface Notification {
   id: string;
@@ -210,6 +210,8 @@ export interface Notification {
   contact_id?: string;
   /** Set on deal_assigned: the deal handed to the recipient. */
   deal_id?: string;
+  /** Set on support_ticket: the ticket that was replied to / resolved. */
+  ticket_id?: string;
   /** Who triggered it. Null when an automation/system assigned it. */
   actor_user_id?: string;
   title: string;

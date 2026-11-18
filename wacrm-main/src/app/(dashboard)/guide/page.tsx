@@ -13,6 +13,7 @@ import {
   GraduationCap,
   HelpCircle,
   LayoutDashboard,
+  LifeBuoy,
   MessageSquare,
   Presentation,
   Radio,
@@ -52,6 +53,7 @@ const CHAPTER_ICONS: Record<string, LucideIcon> = {
   demo: Presentation,
   "token-wallet": Coins,
   instagram: AtSign,
+  support: LifeBuoy,
 };
 
 function chapterIcon(slug: string): LucideIcon {

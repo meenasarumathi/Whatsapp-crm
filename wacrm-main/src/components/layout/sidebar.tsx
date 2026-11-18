@@ -18,6 +18,7 @@ import {
   GitBranch,
   GraduationCap,
   LayoutDashboard,
+  LifeBuoy,
   LogOut,
   MessageSquare,
   Presentation,
@@ -116,6 +117,8 @@ const bottomNavItems: { href: string; labelKey: string; icon: typeof LayoutDashb
   // Always visible (like Settings): owners must be able to recharge even
   // when their plan hides other tabs.
   { href: "/wallet", labelKey: "wallet", icon: Coins },
+  // Complaints: users raise tickets, platform admins resolve them. Always visible.
+  { href: "/support", labelKey: "support", icon: LifeBuoy },
   // User management — Super admin / Admin 1 / Admin 2 only (the API enforces it too).
   { href: "/users", labelKey: "users", icon: UserCog, adminOnly: true },
   { href: "/settings", labelKey: "settings", icon: Settings },
